@@ -13,6 +13,15 @@ import { UNIVERS } from "./univers";
 /** Cookie qui relie ce navigateur au paiement en cours (ouvre la session une fois payé). */
 export const COOKIE_ADHESION = "clans_adhesion";
 
+/**
+ * Montant réellement débité, invisible pour le visiteur (qui voit 2 500 FCFA).
+ * 500 FCFA par défaut pendant la phase de test ; au lancement, MONTANT_DEBITE=2500.
+ */
+export function montantADebiter(): number {
+  const configure = Number(process.env.MONTANT_DEBITE);
+  return Number.isFinite(configure) && configure > 0 ? configure : 500;
+}
+
 const DELAI_MESSAGE_BIENVENUE_SECONDES = 3 * 3600; // « Quelques heures après l'adhésion »
 
 // Messages d'erreur en français pour tout ce qui n'a pas de message dédié.

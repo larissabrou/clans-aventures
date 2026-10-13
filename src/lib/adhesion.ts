@@ -1,4 +1,5 @@
-// Montant fixé par le document d'architecture (étape 7 : « ADHÉSION CLANS — 2 500 FCFA »).
+// Prix affiché de l'adhésion (document d'architecture, étape 7 : « ADHÉSION CLANS — 2 500 FCFA »).
+// Le montant réellement débité est fixé côté serveur : voir montantADebiter() dans lib/adhesions.ts.
 export const PRIX_ADHESION = 2500;
 
 export function formatFcfa(montant: number) {
