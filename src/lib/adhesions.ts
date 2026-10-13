@@ -16,6 +16,13 @@ export const COOKIE_ADHESION = "clans_adhesion";
 
 const DELAI_MESSAGE_BIENVENUE_SECONDES = 3 * 3600; // « Quelques heures après l'adhésion »
 
+// Messages d'erreur en français pour tout ce qui n'a pas de message dédié.
+z.config(z.locales.fr());
+
+/** Texte obligatoire : le même message que le champ soit absent ou vide. */
+const texteRequis = (message: string, max = 80) =>
+  z.string({ error: message }).trim().min(1, message).max(max);
+
 const texteOptionnel = z
   .string()
   .trim()
@@ -25,14 +32,16 @@ const texteOptionnel = z
 
 /** Corps attendu par POST /api/paiement : le profil du formulaire et le moyen de paiement. */
 export const demandeAdhesionSchema = z.object({
-  prenom: z.string().trim().min(1, "Indique ton prénom.").max(80),
-  nom: z.string().trim().min(1, "Indique ton nom.").max(80),
-  email: z.email("Ton adresse email ne semble pas valide.").trim().max(200),
-  telephone: z.string().trim().min(8, "Indique ton numéro WhatsApp."),
+  prenom: texteRequis("Indique ton prénom."),
+  nom: texteRequis("Indique ton nom."),
+  email: z.email({ error: "Ton adresse email ne semble pas valide." }).trim().max(200),
+  telephone: texteRequis("Indique ton numéro WhatsApp.", 30),
   ville: texteOptionnel,
   age: texteOptionnel,
   interets: z
-    .array(z.enum(UNIVERS.map((u) => u.id) as [string, ...string[]]))
+    .array(z.enum(UNIVERS.map((u) => u.id) as [string, ...string[]]), {
+      error: "Sélectionne au moins un univers.",
+    })
     .min(1, "Sélectionne au moins un univers."),
   appartenance: texteOptionnel,
   appartenanceAutre: texteOptionnel,
@@ -43,10 +52,12 @@ export const demandeAdhesionSchema = z.object({
     .max(2000)
     .optional()
     .transform((v) => v || null),
-  charteAcceptee: z.literal(true, "Tu dois accepter la charte de CLANS aventures."),
-  pays: z.string().refine(estPays, "Pays non pris en charge."),
-  operateur: z.string().refine(estOperateur, "Opérateur non pris en charge."),
-  telephonePaiement: z.string().trim().min(8, "Indique le numéro Mobile Money à débiter."),
+  charteAcceptee: z.literal(true, { error: "Tu dois accepter la charte de CLANS aventures." }),
+  pays: z.string({ error: "Choisis ton pays." }).refine(estPays, "Pays non pris en charge."),
+  operateur: z
+    .string({ error: "Choisis ton opérateur Mobile Money." })
+    .refine(estOperateur, "Opérateur non pris en charge."),
+  telephonePaiement: texteRequis("Indique le numéro Mobile Money à débiter.", 30),
 });
 
 export type DemandeAdhesion = z.infer<typeof demandeAdhesionSchema>;

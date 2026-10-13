@@ -14,6 +14,7 @@ export async function demarrer() {
   await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
   console.info("Base de données : migrations appliquées.");
 
-  await demarrerTravailleurs();
-  console.info("Tâches : travailleurs pg-boss démarrés.");
+  if (await demarrerTravailleurs()) {
+    console.info("Tâches : travailleurs pg-boss démarrés.");
+  }
 }

@@ -20,7 +20,7 @@ export function telephoneValide(chiffres: string): boolean {
   return /^\d{10,15}$/.test(chiffres);
 }
 
-/** Affichage masqué : +225 07 •• •• •• 12 */
+/** Affichage masqué : +225 •• •• •• •• 12 (les pays servis ont tous un indicatif à 3 chiffres). */
 export function masquerTelephone(chiffres: string): string {
-  return `+${chiffres.slice(0, -6)} •• •• ${chiffres.slice(-2)}`;
+  return `+${chiffres.slice(0, 3)} •• •• •• •• ${chiffres.slice(-2)}`;
 }

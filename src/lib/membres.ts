@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gte, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, sql, sum } from "drizzle-orm";
 import { db } from "./db";
 import {
   evenements,
@@ -52,7 +52,7 @@ export async function tableauDeBord(membre: Membre) {
       db
         .select()
         .from(evenements)
-        .where(and(eq(evenements.obligatoire, true), gte(evenements.date, new Date())))
+        .where(and(eq(evenements.obligatoire, true), gte(evenements.date, sql`now()`)))
         .orderBy(asc(evenements.date))
         .limit(5),
     ]);

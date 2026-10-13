@@ -3,7 +3,7 @@ import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { and, count, desc, eq, gt } from "drizzle-orm";
+import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { codesConnexion, membres, sessions, type Membre } from "./db/schema";
 import { enProduction, secretAuth } from "./env";
@@ -57,7 +57,8 @@ export const membreConnecte = cache(async (): Promise<Membre | null> => {
     .select({ membre: membres })
     .from(sessions)
     .innerJoin(membres, eq(sessions.membreId, membres.id))
-    .where(and(eq(sessions.id, empreinteJeton(jeton)), gt(sessions.expireLe, new Date())))
+    // now() côté PostgreSQL : Next.js interdit new Date() pendant le pré-rendu des pages.
+    .where(and(eq(sessions.id, empreinteJeton(jeton)), gt(sessions.expireLe, sql`now()`)))
     .limit(1);
 
   if (!ligne || ligne.membre.statut !== "membre") return null;
