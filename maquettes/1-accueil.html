@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CLANS aventures — Commence ton aventure</title>
+
+    <meta name="description"
+          content="CLANS aventures — Une communauté qui rassemble aventure, culture, rencontres et expériences en pleine nature.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Typographies CLANS -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        /* =========================
+           RESET
+        ========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #10140f;
+            color: #ffffff;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .site-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 22px 35px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            z-index: 10;
+        }
+
+        .logo img {
+            display: block;
+            width: auto;
+            height: 48px;
+            max-width: 190px;
+            object-fit: contain;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .member-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 11px 20px;
+
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 50px;
+
+            color: #ffffff;
+            text-decoration: none;
+
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+
+            transition: all 0.3s ease;
+        }
+
+        .member-link:hover {
+            background: #ffffff;
+            color: #172018;
+        }
+
+
+        /* =========================
+           HERO
+        ========================= */
+
+        .hero {
+            position: relative;
+
+            width: 100%;
+            min-height: 100vh;
+
+            overflow: hidden;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            text-align: center;
+        }
+
+
+        /* Vidéo */
+
+        .hero-video {
+            position: absolute;
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            z-index: 0;
+        }
+
+
+        /* Overlay */
+
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+
+            background:
+                linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.30),
+                    rgba(0, 0, 0, 0.60)
+                );
+
+            z-index: 1;
+        }
+
+
+        /* Contenu */
+
+        .hero-content {
+            position: relative;
+
+            z-index: 2;
+
+            max-width: 850px;
+
+            padding: 40px 25px;
+        }
+
+        .brand {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: clamp(3rem, 8vw, 6.5rem);
+
+            font-weight: 600;
+
+            letter-spacing: 3px;
+
+            margin-bottom: 10px;
+        }
+
+        .brand span {
+            font-style: italic;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.35rem);
+
+            letter-spacing: 4px;
+
+            text-transform: uppercase;
+
+            margin-bottom: 35px;
+
+            opacity: 0.9;
+        }
+
+        .hero-title {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: clamp(2rem, 5vw, 4rem);
+
+            line-height: 1.05;
+
+            font-weight: 500;
+
+            margin-bottom: 20px;
+        }
+
+        .hero-description {
+            max-width: 650px;
+
+            margin: 0 auto 35px;
+
+            font-size: 1rem;
+
+            line-height: 1.8;
+
+            opacity: 0.92;
+        }
+
+
+        /* CTA */
+
+        .cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 17px 35px;
+
+            background: #ffffff;
+            color: #111111;
+
+            text-decoration: none;
+
+            font-size: 0.9rem;
+            font-weight: 700;
+
+            letter-spacing: 2px;
+
+            text-transform: uppercase;
+
+            border-radius: 50px;
+
+            transition: all 0.3s ease;
+
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .cta:hover {
+            transform: translateY(-4px);
+
+            background: #d9b56c;
+            color: #ffffff;
+
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+        }
+
+        .cta-arrow {
+            margin-left: 12px;
+            font-size: 1.2rem;
+        }
+
+
+        /* =========================
+           SCROLL INDICATOR
+        ========================= */
+
+        .scroll-indicator {
+            position: absolute;
+
+            bottom: 25px;
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            z-index: 3;
+
+            font-size: 0.7rem;
+
+            letter-spacing: 3px;
+
+            text-transform: uppercase;
+
+            opacity: 0.7;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 40px;
+
+            background: #ffffff;
+
+            margin: 8px auto 0;
+
+            animation: scrollAnimation 2s infinite;
+        }
+
+        @keyframes scrollAnimation {
+
+            0% {
+                transform: scaleY(0);
+                transform-origin: top;
+            }
+
+            50% {
+                transform: scaleY(1);
+                transform-origin: top;
+            }
+
+            51% {
+                transform-origin: bottom;
+            }
+
+            100% {
+                transform: scaleY(0);
+                transform-origin: bottom;
+            }
+        }
+
+
+        /* =========================
+           SECTION EXPERIENCE
+        ========================= */
+
+        .experience {
+            padding: 100px 25px;
+
+            background: #f5f1e8;
+
+            color: #172018;
+
+            text-align: center;
+        }
+
+        .section-label {
+            text-transform: uppercase;
+
+            letter-spacing: 3px;
+
+            font-size: 0.75rem;
+
+            margin-bottom: 15px;
+
+            opacity: 0.7;
+        }
+
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: clamp(2.5rem, 5vw, 4rem);
+
+            font-weight: 600;
+
+            margin-bottom: 25px;
+        }
+
+        .section-description {
+            max-width: 750px;
+
+            margin: auto;
+
+            line-height: 1.8;
+
+            font-size: 1rem;
+        }
+
+
+        /* =========================
+           4 UNIVERS
+        ========================= */
+
+        .universes {
+            display: grid;
+
+            grid-template-columns:
+                repeat(auto-fit, minmax(220px, 1fr));
+
+            gap: 20px;
+
+            max-width: 1100px;
+
+            margin: 60px auto 0;
+        }
+
+        .universe {
+            padding: 35px 25px;
+
+            background: #ffffff;
+
+            border-radius: 15px;
+
+            transition: transform 0.3s ease;
+        }
+
+        .universe:hover {
+            transform: translateY(-8px);
+        }
+
+        .universe-icon {
+            font-size: 2rem;
+
+            margin-bottom: 15px;
+        }
+
+        .universe h3 {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 1.7rem;
+
+            margin-bottom: 10px;
+        }
+
+        .universe p {
+            font-size: 0.85rem;
+
+            line-height: 1.7;
+
+            opacity: 0.75;
+        }
+
+
+        /* =========================
+           CTA FINAL
+        ========================= */
+
+        .final-cta {
+            padding: 120px 25px;
+
+            text-align: center;
+
+            background: #121810;
+
+            position: relative;
+
+            overflow: hidden;
+        }
+
+        .final-cta h2 {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: clamp(2.5rem, 6vw, 5rem);
+
+            font-weight: 500;
+
+            margin-bottom: 20px;
+        }
+
+        .final-cta p {
+            max-width: 600px;
+
+            margin: 0 auto 35px;
+
+            line-height: 1.8;
+
+            opacity: 0.8;
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            padding: 30px;
+
+            text-align: center;
+
+            background: #0b0e0a;
+
+            font-size: 0.75rem;
+
+            opacity: 0.7;
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 600px) {
+
+            .site-header {
+                padding: 18px 20px;
+            }
+
+            .logo img {
+                height: 38px;
+                max-width: 145px;
+            }
+
+            .member-link {
+                padding: 9px 13px;
+
+                font-size: 0.62rem;
+            }
+
+            .hero {
+                min-height: 100svh;
+            }
+
+            .hero-content {
+                padding: 30px 20px;
+            }
+
+            .subtitle {
+                letter-spacing: 2px;
+            }
+
+            .hero-description {
+                font-size: 0.9rem;
+
+                line-height: 1.7;
+            }
+
+            .cta {
+                width: 100%;
+
+                max-width: 320px;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ======================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="site-header">
+
+        <a class="logo" href="index.html">
+
+            <img
+                src="c:\Users\HP\Documents\Espace 225\logo-clan-new.png"
+                alt="CLANS aventures">
+
+        </a>
+
+
+        <div class="header-actions">
+
+            <a
+                class="member-link"
+                href="espace-membre.html">
+
+                Espace membre
+
+            </a>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ======================================================
+         HERO / VIDEO
+    ====================================================== -->
+
+    <section class="hero">
+
+
+        <!--
+            REMPLACE "camping-foret.mp4"
+            par ta vraie vidéo.
+        -->
+
+        <video
+            class="hero-video"
+            autoplay
+            muted
+            loop
+            playsinline
+            poster="images/camping-foret.jpg">
+
+            <source
+                src="videos/camping-foret.mp4"
+                type="video/mp4">
+
+            Votre navigateur ne supporte pas la vidéo.
+
+        </video>
+
+
+        <div class="hero-overlay"></div>
+
+
+        <div class="hero-content">
+
+
+            <div class="brand">
+
+                clans <span>aventures</span>
+
+            </div>
+
+
+            <div class="subtitle">
+
+                Nature · Culture · Rencontres
+
+            </div>
+
+
+            <h1 class="hero-title">
+
+                Et si ta prochaine histoire
+                commençait autour d’un feu ?
+
+            </h1>
+
+
+            <p class="hero-description">
+
+                Une communauté africaine qui se retrouve,
+                explore, partage et crée des souvenirs
+                loin du quotidien.
+
+                <br>
+
+                Des campings. Des découvertes.
+                Des rencontres. Des histoires.
+
+            </p>
+
+
+            <a
+                href="#aventure"
+                class="cta">
+
+                Commencer l’aventure
+
+                <span class="cta-arrow">→</span>
+
+            </a>
+
+        </div>
+
+
+        <div class="scroll-indicator">
+
+            Découvrir
+
+            <div class="scroll-line"></div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ======================================================
+         EXPERIENCE
+    ====================================================== -->
+
+    <section
+        class="experience"
+        id="aventure">
+
+
+        <div class="section-label">
+
+            Bienvenue chez CLANS
+
+        </div>
+
+
+        <h2 class="section-title">
+
+            Ici, tu ne viens pas
+            simplement camper.
+
+        </h2>
+
+
+        <p class="section-description">
+
+            Tu viens vivre des expériences.
+            Rencontrer des personnes.
+            Découvrir nos cultures.
+            Explorer la nature.
+            Et peut-être repartir avec
+            une nouvelle histoire à raconter.
+            <br> <strong><em>Alors descends encore et commence l'aventure.</em></strong>
+
+        </p>
+
+
+
+        <div class="universes">
+
+
+            <!-- AVENTURE -->
+
+            <div class="universe">
+
+                <div class="universe-icon">
+
+                    🌿
+
+                </div>
+
+                <h3>
+
+                    Aventure
+
+                </h3>
+
+                <p>
+
+                    Randonnées, campings, excursions
+                    et expériences en pleine nature.
+
+                </p>
+
+            </div>
+
+
+
+            <!-- RENCONTRES -->
+
+            <div class="universe">
+
+                <div class="universe-icon">
+
+                    ❤️
+
+                </div>
+
+                <h3>
+
+                    Rencontres
+
+                </h3>
+
+                <p>
+
+                    Crée de nouvelles connexions,
+                    amicales ou sentimentales,
+                    dans un cadre naturel.
+
+                </p>
+
+            </div>
+
+
+
+            <!-- CULTURE -->
+
+            <div class="universe">
+
+                <div class="universe-icon">
+
+                    🌍
+
+                </div>
+
+                <h3>
+
+                    Culture
+
+                </h3>
+
+                <p>
+
+                    Découvre et partage les cultures,
+                    traditions, cuisines et histoires
+                    africaines.
+
+                </p>
+
+            </div>
+
+
+
+            <!-- RESEAU -->
+
+            <div class="universe">
+
+                <div class="universe-icon">
+
+                    🤝
+
+                </div>
+
+                <h3>
+
+                    Réseau
+
+                </h3>
+
+                <p>
+
+                    Rencontres professionnelles,
+                    entrepreneurs, créateurs et
+                    passionnés réunis autour de CLANS.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ======================================================
+         FINAL CTA
+    ====================================================== -->
+
+    <section class="final-cta">
+
+
+        <h2>
+
+            Ton aventure commence ici.
+
+        </h2>
+
+
+        <p>
+
+            Rejoins une communauté qui transforme
+            chaque sortie en expérience,
+            chaque rencontre en souvenir,
+            et chaque aventure en histoire.
+
+        </p>
+
+
+        <a
+            href="inscription.html"
+            class="cta">
+
+            Commencer l’aventure
+
+            <span class="cta-arrow">→</span>
+
+        </a>
+
+    </section>
+
+
+
+    <!-- ======================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        © 2026 CLANS aventures ·
+        Nos cultures nous distinguent.
+        Nos aventures nous rapprochent.
+
+    </footer>
+
+
+</body>
+
+</html>

@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Adhésion — CLANS aventures</title>
+
+    <meta name="description"
+          content="Rejoins CLANS aventures et commence ton aventure.">
+
+    <!-- =========================
+         GOOGLE FONTS
+    ========================== -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+
+    <style>
+
+        /* =========================
+           RESET
+        ========================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+
+            background: #f5f1e8;
+
+            color: #172018;
+
+            min-height: 100vh;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .header {
+            width: 100%;
+
+            padding: 22px 35px;
+
+            background: #121810;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+
+        .logo img {
+            display: block;
+
+            height: 45px;
+
+            width: auto;
+
+            max-width: 180px;
+        }
+
+
+        .back-link {
+            color: #ffffff;
+
+            text-decoration: none;
+
+            font-size: 0.75rem;
+
+            letter-spacing: 1.5px;
+
+            text-transform: uppercase;
+
+            opacity: 0.85;
+
+            transition: all 0.3s ease;
+        }
+
+
+        .back-link:hover {
+            opacity: 1;
+        }
+
+
+        /* =========================
+           PAGE
+        ========================= */
+
+        .page {
+            width: 100%;
+
+            min-height: calc(100vh - 89px);
+
+            padding: 60px 20px 100px;
+        }
+
+
+        .container {
+            width: 100%;
+
+            max-width: 900px;
+
+            margin: auto;
+        }
+
+
+        /* =========================
+           INTRODUCTION
+        ========================= */
+
+        .intro {
+            text-align: center;
+
+            margin-bottom: 45px;
+        }
+
+
+        .intro-label {
+            font-size: 0.72rem;
+
+            letter-spacing: 3px;
+
+            text-transform: uppercase;
+
+            opacity: 0.65;
+
+            margin-bottom: 12px;
+        }
+
+
+        .intro h1 {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: clamp(2.8rem, 6vw, 5rem);
+
+            font-weight: 600;
+
+            line-height: 1;
+
+            margin-bottom: 18px;
+        }
+
+
+        .intro h1 span {
+            font-style: italic;
+        }
+
+
+        .intro p {
+            max-width: 620px;
+
+            margin: auto;
+
+            line-height: 1.8;
+
+            font-size: 0.95rem;
+
+            opacity: 0.75;
+        }
+
+
+        /* =========================
+           PROGRESS
+        ========================= */
+
+        .progress-container {
+            margin-bottom: 35px;
+        }
+
+
+        .progress-top {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 10px;
+        }
+
+
+        .progress-text {
+            font-size: 0.72rem;
+
+            letter-spacing: 1.5px;
+
+            text-transform: uppercase;
+
+            opacity: 0.65;
+        }
+
+
+        .progress-number {
+            font-size: 0.72rem;
+
+            font-weight: 600;
+        }
+
+
+        .progress-bar {
+            width: 100%;
+
+            height: 4px;
+
+            background: rgba(23, 32, 24, 0.12);
+
+            border-radius: 10px;
+
+            overflow: hidden;
+        }
+
+
+        .progress-fill {
+            width: 20%;
+
+            height: 100%;
+
+            background: #172018;
+
+            transition: width 0.4s ease;
+        }
+
+
+        /* =========================
+           FORM CARD
+        ========================= */
+
+        .form-card {
+            background: #ffffff;
+
+            border-radius: 20px;
+
+            padding: 45px;
+
+            box-shadow:
+                0 20px 60px rgba(23, 32, 24, 0.08);
+        }
+
+
+        /* =========================
+           STEP
+        ========================= */
+
+        .step {
+            display: none;
+
+            animation: fadeIn 0.4s ease;
+        }
+
+
+        .step.active {
+            display: block;
+        }
+
+
+        @keyframes fadeIn {
+
+            from {
+                opacity: 0;
+
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+
+                transform: translateY(0);
+            }
+
+        }
+
+
+        .step-header {
+            margin-bottom: 30px;
+        }
+
+
+        .step-header small {
+            display: block;
+
+            font-size: 0.7rem;
+
+            text-transform: uppercase;
+
+            letter-spacing: 2px;
+
+            opacity: 0.55;
+
+            margin-bottom: 8px;
+        }
+
+
+        .step-header h2 {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 2.6rem;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+        }
+
+
+        .step-header p {
+            font-size: 0.88rem;
+
+            line-height: 1.7;
+
+            opacity: 0.65;
+        }
+
+
+        /* =========================
+           FORM
+        ========================= */
+
+        .form-grid {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 20px;
+        }
+
+
+        .field {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+        }
+
+
+        .field.full {
+            grid-column: 1 / -1;
+        }
+
+
+        .field label {
+            font-size: 0.72rem;
+
+            font-weight: 600;
+
+            letter-spacing: 0.8px;
+
+            text-transform: uppercase;
+        }
+
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+
+            padding: 14px 15px;
+
+            border: 1px solid #ddd9cf;
+
+            border-radius: 10px;
+
+            background: #faf9f6;
+
+            color: #172018;
+
+            font-family: 'Montserrat', sans-serif;
+
+            font-size: 0.9rem;
+
+            outline: none;
+
+            transition: all 0.25s ease;
+        }
+
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: #172018;
+
+            background: #ffffff;
+        }
+
+
+        .field textarea {
+            min-height: 110px;
+
+            resize: vertical;
+        }
+
+
+        /* =========================
+           OPTIONS
+        ========================= */
+
+        .options {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 15px;
+
+            margin-top: 10px;
+        }
+
+
+        .option {
+            position: relative;
+        }
+
+
+        .option input {
+            position: absolute;
+
+            opacity: 0;
+
+            pointer-events: none;
+        }
+
+
+        .option label {
+            display: block;
+
+            padding: 20px;
+
+            border: 1px solid #ddd9cf;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition: all 0.25s ease;
+        }
+
+
+        .option label strong {
+            display: block;
+
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 1.35rem;
+
+            margin-bottom: 5px;
+        }
+
+
+        .option label span {
+            font-size: 0.75rem;
+
+            line-height: 1.5;
+
+            opacity: 0.65;
+        }
+
+
+        .option input:checked + label {
+            border-color: #172018;
+
+            background: #f0eee7;
+
+            box-shadow: inset 0 0 0 1px #172018;
+        }
+
+
+        /* =========================
+           CHECKBOX
+        ========================= */
+
+        .checkbox-row {
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 12px;
+
+            margin-top: 20px;
+        }
+
+
+        .checkbox-row input {
+            margin-top: 4px;
+
+            accent-color: #172018;
+        }
+
+
+        .checkbox-row label {
+            font-size: 0.78rem;
+
+            line-height: 1.6;
+
+            opacity: 0.75;
+        }
+
+
+        /* =========================
+           SUMMARY
+        ========================= */
+
+        .summary {
+            background: #f5f1e8;
+
+            border-radius: 15px;
+
+            padding: 25px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .summary-title {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 1.8rem;
+
+            margin-bottom: 20px;
+        }
+
+
+        .summary-row {
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 10px 0;
+
+            border-bottom: 1px solid rgba(23, 32, 24, 0.08);
+
+            font-size: 0.8rem;
+        }
+
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+
+        .summary-label {
+            opacity: 0.6;
+        }
+
+
+        .summary-value {
+            font-weight: 600;
+
+            text-align: right;
+        }
+
+
+        /* =========================
+           PAYMENT
+        ========================= */
+
+        .payment-box {
+            border: 1px solid #ddd9cf;
+
+            border-radius: 15px;
+
+            padding: 25px;
+
+            margin-top: 20px;
+        }
+
+
+        .payment-title {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 2rem;
+
+            margin-bottom: 8px;
+        }
+
+
+        .payment-description {
+            font-size: 0.82rem;
+
+            line-height: 1.7;
+
+            opacity: 0.65;
+
+            margin-bottom: 20px;
+        }
+
+
+        .price {
+            display: flex;
+
+            align-items: baseline;
+
+            gap: 8px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .price strong {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 3rem;
+        }
+
+
+        .price span {
+            font-size: 0.8rem;
+
+            opacity: 0.6;
+        }
+
+
+        .payment-note {
+            padding: 15px;
+
+            background: #f5f1e8;
+
+            border-radius: 10px;
+
+            font-size: 0.75rem;
+
+            line-height: 1.6;
+
+            opacity: 0.75;
+        }
+
+
+        /* =========================
+           BUTTONS
+        ========================= */
+
+        .buttons {
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-top: 35px;
+        }
+
+
+        .btn {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-height: 50px;
+
+            padding: 14px 25px;
+
+            border-radius: 50px;
+
+            border: none;
+
+            font-family: 'Montserrat', sans-serif;
+
+            font-size: 0.78rem;
+
+            font-weight: 700;
+
+            letter-spacing: 1.5px;
+
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            transition: all 0.3s ease;
+        }
+
+
+        .btn-primary {
+            background: #172018;
+
+            color: #ffffff;
+
+            margin-left: auto;
+        }
+
+
+        .btn-primary:hover {
+            background: #263429;
+
+            transform: translateY(-2px);
+        }
+
+
+        .btn-secondary {
+            background: transparent;
+
+            color: #172018;
+
+            border: 1px solid #172018;
+        }
+
+
+        .btn-secondary:hover {
+            background: #172018;
+
+            color: #ffffff;
+        }
+
+
+        /* =========================
+           SUCCESS
+        ========================= */
+
+        .success {
+            text-align: center;
+
+            padding: 20px 0;
+        }
+
+
+        .success-icon {
+            width: 75px;
+
+            height: 75px;
+
+            margin: 0 auto 25px;
+
+            border-radius: 50%;
+
+            background: #172018;
+
+            color: #ffffff;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 2rem;
+        }
+
+
+        .success h2 {
+            font-family: 'Cormorant Garamond', serif;
+
+            font-size: 3rem;
+
+            margin-bottom: 15px;
+        }
+
+
+        .success p {
+            max-width: 560px;
+
+            margin: auto;
+
+            font-size: 0.9rem;
+
+            line-height: 1.8;
+
+            opacity: 0.7;
+        }
+
+
+        .success-highlight {
+            margin: 30px auto;
+
+            max-width: 500px;
+
+            padding: 20px;
+
+            background: #f5f1e8;
+
+            border-radius: 12px;
+
+            font-size: 0.8rem;
+
+            line-height: 1.7;
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            padding: 25px;
+
+            text-align: center;
+
+            background: #0b0e0a;
+
+            color: #ffffff;
+
+            font-size: 0.7rem;
+
+            opacity: 0.85;
+        }
+
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 650px) {
+
+            .header {
+                padding: 18px 20px;
+            }
+
+
+            .logo img {
+                height: 38px;
+            }
+
+
+            .page {
+                padding: 40px 15px 70px;
+            }
+
+
+            .intro {
+                margin-bottom: 30px;
+            }
+
+
+            .form-card {
+                padding: 25px 20px;
+            }
+
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+
+            .field.full {
+                grid-column: auto;
+            }
+
+
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+
+            .step-header h2 {
+                font-size: 2.2rem;
+            }
+
+
+            .buttons {
+                flex-direction: column-reverse;
+            }
+
+
+            .btn {
+                width: 100%;
+            }
+
+
+            .btn-primary {
+                margin-left: 0;
+            }
+
+
+            .summary-row {
+                flex-direction: column;
+
+                gap: 4px;
+            }
+
+
+            .summary-value {
+                text-align: left;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ======================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="header">
+
+        <a href="index.html"
+           class="logo">
+
+            <img
+                src="images/logo-clans.png"
+                alt="CLANS aventures">
+
+        </a>
+
+
+        <a href="index.html"
+           class="back-link">
+
+            ← Retour
+
+        </a>
+
+    </header>
+
+
+
+    <!-- ======================================================
+         PAGE
+    ====================================================== -->
+
+    <main class="page">
+
+        <div class="container">
+
+
+            <!-- INTRO -->
+
+            <div class="intro">
+
+                <div class="intro-label">
+
+                    Rejoins CLANS aventures
+
+                </div>
+
+
+                <h1>
+
+                    Commence ton
+                    <span>aventure.</span>
+
+                </h1>
+
+
+                <p>
+
+                    Quelques questions pour mieux te connaître,
+                    comprendre ce que tu recherches et préparer
+                    ton expérience au sein de CLANS.
+
+                </p>
+
+            </div>
+
+
+
+            <!-- PROGRESSION -->
+
+            <div class="progress-container">
+
+                <div class="progress-top">
+
+                    <span class="progress-text"
+                          id="progressText">
+
+                        Ton profil
+
+                    </span>
+
+
+                    <span class="progress-number"
+                          id="progressNumber">
+
+                        01 / 05
+
+                    </span>
+
+                </div>
+
+
+                <div class="progress-bar">
+
+                    <div
+                        class="progress-fill"
+                        id="progressFill">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- FORMULAIRE -->
+
+            <div class="form-card">
+
+
+                <!-- ==================================================
+                     ETAPE 1
+                =================================================== -->
+
+                <section
+                    class="step active"
+                    data-step="1">
+
+                    <div class="step-header">
+
+                        <small>
+                            Étape 01
+                        </small>
+
+                        <h2>
+                            Faisons connaissance.
+                        </h2>
+
+                        <p>
+                            Commençons simplement. Ces informations
+                            nous permettront de créer ton profil membre.
+                        </p>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+
+                        <div class="field">
+
+                            <label for="prenom">
+                                Prénom
+                            </label>
+
+                            <input
+                                type="text"
+                                id="prenom"
+                                placeholder="Ton prénom"
+                                required>
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="nom">
+                                Nom
+                            </label>
+
+                            <input
+                                type="text"
+                                id="nom"
+                                placeholder="Ton nom"
+                                required>
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="email">
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                placeholder="ton@email.com"
+                                required>
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="telephone">
+                                Téléphone
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="telephone"
+                                placeholder="+225 07 00 00 00 00"
+                                required>
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="ville">
+                                Ville de résidence
+                            </label>
+
+                            <input
+                                type="text"
+                                id="ville"
+                                placeholder="Abidjan">
+
+                        </div>
+
+
+                        <div class="field">
+
+                            <label for="age">
+                                Tranche d'âge
+                            </label>
+
+                            <select id="age">
+
+                                <option value="">
+                                    Sélectionner
+                                </option>
+
+                                <option value="18-24">
+                                    18 – 24 ans
+                                </option>
+
+                                <option value="25-34">
+                                    25 – 34 ans
+                                </option>
+
+                                <option value="35-44">
+                                    35 – 44 ans
+                                </option>
+
+                                <option value="45-54">
+                                    45 – 54 ans
+                                </option>
+
+                                <option value="55+">
+                                    55 ans et +
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="buttons">
+
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            onclick="nextStep()">
+
+                            Continuer →
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- ==================================================
+                     ETAPE 2
+                =================================================== -->
+
+                <section
+                    class="step"
+                    data-step="2">
+
+                    <div class="step-header">
+
+                        <small>
+                            Étape 02
+                        </small>
+
+                        <h2>
+                            Qu'est-ce qui t'attire ?
+                        </h2>
+
+                        <p>
+                            CLANS rassemble plusieurs univers.
+                            Dis-nous ce que tu aimerais vivre.
+                        </p>
+
+                    </div>
+
+
+                    <div class="options">
+
+
+                        <div class="option">
+
+                            <input
+                                type="checkbox"
+                                id="aventure"
+                                name="interets"
+                                value="aventure">
+
+                            <label for="aventure">
+
+                                <strong>
+                                    🌿 Aventure
+                                </strong>
+
+                                <span>
+                                    Randonnées, campings,
+                                    excursions et nature.
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="option">
+
+                            <input
+                                type="checkbox"
+                                id="rencontres"
+                                name="interets"
+                                value="rencontres">
+
+                            <label for="rencontres">
+
+                                <strong>
+                                    ❤️ Rencontres
+                                </strong>
+
+                                <span>
+                                    Faire de nouvelles rencontres
+                                    amicales ou sentimentales.
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="option">
+
+                            <input
+                                type="checkbox"
+                                id="culture"
+                                name="interets"
+                                value="culture">
+
+                            <label for="culture">
+
+                                <strong>
+                                    🌍 Culture
+                                </strong>
+
+                                <span>
+                                    Découvrir les cultures,
+                                    traditions et patrimoines.
+                                </span>
+
+                            </label>
+
+                        </div>
+
+
+                        <div class="option">
+
+                            <input
+                                type="checkbox"
+                                id="reseau"
+                                name="interets"
+                                value="reseau">
+
+                            <label for="reseau">
+
+                                <strong>
+                                    🤝 Réseau
+                                </strong>
+
+                                <span>
+                                    Rencontres professionnelles,
+                                    entrepreneurs et créateurs.
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="buttons">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            onclick="previousStep()">
+
+                            ← Retour
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            onclick="nextStep()">
+
+                            Continuer →
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- ==================================================
+                     ETAPE 3
+                =================================================== -->
+
+                <section
+                    class="step"
+                    data-step="3">
+
+                    <div class="step-header">
+
+                        <small>
+                            Étape 03
+                        </small>
+
+                        <h2>
+                            Ton univers culturel.
+                        </h2>
+
+                        <p>
+                            CLANS valorise les cultures qui composent
+                            notre richesse. Indique-nous tes préférences.
+                        </p>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+
+                        <div class="field full">
+
+                            <label for="origine">
+                                Ton appartenance culturelle
+                            </label>
+
+                            <select id="origine">
+
+                                <option value="">
+                                    Sélectionner
+                                </option>
+
+                                <option value="akan">
+                                    Akan
+                                </option>
+
+                                <option value="krou">
+                                    Krou
+                                </option>
+
+                                <option value="mandé">
+                                    Mandé
+                                </option>
+
+                                <option value="gour">
+                                    Gour
+                                </option>
+
+                                <option value="autre">
+                                    Autre / Diaspora
+                                </option>
+
+                                <option value="aucune">
+                                    Je préfère ne pas préciser
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="field full">
+
+                            <label for="clan">
+                                Clan / univers que tu souhaites découvrir
+                            </label>
+
+                            <select id="clan">
+
+                                <option value="">
+                                    Je souhaite découvrir
+                                </option>
+
+                                <option value="akan">
+                                    Univers Akan
+                                </option>
+
+                                <option value="krou">
+                                    Univers Krou
+                                </option>
+
+                                <option value="mande">
+                                    Univers Mandé
+                                </option>
+
+                                <option value="gour">
+                                    Univers Gour
+                                </option>
+
+                                <option value="tous">
+                                    Tous les univers
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="field full">
+
+                            <label for="attente">
+                                Qu'aimerais-tu vivre avec CLANS ?
+                            </label>
+
+                            <textarea
+                                id="attente"
+                                placeholder="Parle-nous de ce que tu recherches...">
+                            </textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="buttons">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            onclick="previousStep()">
+
+                            ← Retour
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            onclick="nextStep()">
+
+                            Continuer →
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- ==================================================
+                     ETAPE 4
+                =================================================== -->
+
+                <section
+                    class="step"
+                    data-step="4">
+
+                    <div class="step-header">
+
+                        <small>
+                            Étape 04
+                        </small>
+
+                        <h2>
+                            Vérifie ton adhésion.
+                        </h2>
+
+                        <p>
+                            Voici le récapitulatif des informations
+                            que tu nous as communiquées.
+                        </p>
+
+                    </div>
+
+
+                    <div class="summary">
+
+                        <div class="summary-title">
+                            Ton profil
+                        </div>
+
+
+                        <div class="summary-row">
+
+                            <span class="summary-label">
+                                Nom
+                            </span>
+
+                            <span
+                                class="summary-value"
+                                id="summaryName">
+
+                                —
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="summary-row">
+
+                            <span class="summary-label">
+                                Email
+                            </span>
+
+                            <span
+                                class="summary-value"
+                                id="summaryEmail">
+
+                                —
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="summary-row">
+
+                            <span class="summary-label">
+                                Téléphone
+                            </span>
+
+                            <span
+                                class="summary-value"
+                                id="summaryPhone">
+
+                                —
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="summary-row">
+
+                            <span class="summary-label">
+                                Ville
+                            </span>
+
+                            <span
+                                class="summary-value"
+                                id="summaryCity">
+
+                                —
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="summary-row">
+
+                            <span class="summary-label">
+                                Univers culturel
+                            </span>
+
+                            <span
+                                class="summary-value"
+                                id="summaryClan">
+
+                                —
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="checkbox-row">
+
+                        <input
+                            type="checkbox"
+                            id="charte">
+
+                        <label for="charte">
+
+                            Je reconnais avoir pris connaissance
+                            de la charte de CLANS aventures et
+                            j'accepte de respecter les valeurs,
+                            règles et principes de la communauté.
+
+                        </label>
+
+                    </div>
+
+
+                    <div class="buttons">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            onclick="previousStep()">
+
+                            ← Retour
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            onclick="validateSummary()">
+
+                            Passer au paiement →
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- ==================================================
+                     ETAPE 5
+                =================================================== -->
+
+                <section
+                    class="step"
+                    data-step="5">
+
+                    <div class="step-header">
+
+                        <small>
+                            Étape 05
+                        </small>
+
+                        <h2>
+                            Ton aventure commence.
+                        </h2>
+
+                        <p>
+                            Finalise ton adhésion pour rejoindre
+                            officiellement CLANS aventures.
+                        </p>
+
+                    </div>
+
+
+                    <div class="payment-box">
+
+                        <div class="payment-title">
+
+                            Adhésion CLANS
+
+                        </div>
+
+
+                        <p class="payment-description">
+
+                            Ton adhésion est valable à vie.
+                            Elle te permet d'intégrer la communauté
+                            CLANS aventures et de participer à ses
+                            différentes expériences selon les
+                            conditions de chaque événement.
+
+                        </p>
+
+
+                        <div class="price">
+
+                            <strong>
+                                2 000
+                            </strong>
+
+                            <span>
+                                FCFA
+                            </span>
+
+                        </div>
+
+
+                        <div class="payment-note">
+
+                            🎟️ Ton adhésion comprend également
+                            ton <strong>pin officiel CLANS</strong>,
+                            remis lors de ta première participation.
+
+                            <br><br>
+
+                            Le paiement sécurisé sera connecté
+                            ultérieurement à la solution de paiement
+                            choisie par CLANS.
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="buttons">
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            onclick="previousStep()">
+
+                            ← Retour
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-primary"
+                            onclick="processPayment()">
+
+                            Payer mon adhésion →
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- ==================================================
+                     SUCCES
+                =================================================== -->
+
+                <section
+                    class="step"
+                    data-step="success">
+
+                    <div class="success">
+
+
+                        <div class="success-icon">
+
+                            ✓
+
+                        </div>
+
+
+                        <h2>
+
+                            Bienvenue chez CLANS.
+
+                        </h2>
+
+
+                        <p>
+
+                            Ton inscription a bien été prise
+                            en compte.
+
+                            <br>
+
+                            Tu viens de faire le premier pas
+                            vers une nouvelle aventure.
+
+                        </p>
+
+
+                        <div class="success-highlight">
+
+                            🎟️ Ton profil membre sera créé et
+                            ton <strong>pin officiel CLANS</strong>
+                            te sera remis lors de ta première
+                            participation.
+
+                        </div>
+
+
+                        <a
+                            href="index.html"
+                            class="btn btn-primary">
+
+                            Retour à l'accueil
+
+                        </a>
+
+                    </div>
+
+                </section>
+
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- ======================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        © 2026 CLANS aventures ·
+        Nos cultures nous distinguent.
+        Nos aventures nous rapprochent.
+
+    </footer>
+
+
+
+    <!-- ======================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+
+        let currentStep = 1;
+
+        const totalSteps = 5;
+
+
+        /* =========================
+           CHANGER D'ETAPE
+        ========================= */
+
+        function showStep(step) {
+
+            const steps =
+                document.querySelectorAll('.step');
+
+
+            steps.forEach(function(element) {
+
+                element.classList.remove('active');
+
+            });
+
+
+            const target =
+                document.querySelector(
+                    `.step[data-step="${step}"]`
+                );
+
+
+            if (target) {
+
+                target.classList.add('active');
+
+            }
+
+
+            currentStep = step;
+
+
+            updateProgress();
+
+
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+        }
+
+
+        /* =========================
+           PROGRESSION
+        ========================= */
+
+        function updateProgress() {
+
+            const fill =
+                document.getElementById('progressFill');
+
+            const number =
+                document.getElementById('progressNumber');
+
+            const text =
+                document.getElementById('progressText');
+
+
+            const titles = {
+
+                1: "Ton profil",
+
+                2: "Tes intérêts",
+
+                3: "Ton univers",
+
+                4: "Validation",
+
+                5: "Paiement"
+
+            };
+
+
+            if (currentStep <= totalSteps) {
+
+                const percentage =
+                    (currentStep / totalSteps) * 100;
+
+
+                fill.style.width =
+                    percentage + "%";
+
+
+                number.textContent =
+                    String(currentStep).padStart(2, '0')
+                    + " / "
+                    + String(totalSteps).padStart(2, '0');
+
+
+                text.textContent =
+                    titles[currentStep];
+
+            }
+
+        }
+
+
+        /* =========================
+           ETAPE SUIVANTE
+        ========================= */
+
+        function nextStep() {
+
+            if (currentStep === 1) {
+
+                const requiredFields = [
+                    'prenom',
+                    'nom',
+                    'email',
+                    'telephone'
+                ];
+
+
+                for (let id of requiredFields) {
+
+                    const field =
+                        document.getElementById(id);
+
+
+                    if (!field.value.trim()) {
+
+                        field.focus();
+
+                        alert(
+                            "Merci de compléter les informations demandées."
+                        );
+
+                        return;
+
+                    }
+
+                }
+
+            }
+
+
+            if (currentStep === 2) {
+
+                const interests =
+                    document.querySelectorAll(
+                        'input[name="interets"]:checked'
+                    );
+
+
+                if (interests.length === 0) {
+
+                    alert(
+                        "Sélectionne au moins un univers qui t'intéresse."
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            if (currentStep === 3) {
+
+                updateSummary();
+
+            }
+
+
+            if (currentStep < totalSteps) {
+
+                showStep(currentStep + 1);
+
+            }
+
+        }
+
+
+        /* =========================
+           ETAPE PRECEDENTE
+        ========================= */
+
+        function previousStep() {
+
+            if (currentStep > 1) {
+
+                showStep(currentStep - 1);
+
+            }
+
+        }
+
+
+        /* =========================
+           RECAPITULATIF
+        ========================= */
+
+        function updateSummary() {
+
+            const prenom =
+                document.getElementById('prenom').value;
+
+            const nom =
+                document.getElementById('nom').value;
+
+            const email =
+                document.getElementById('email').value;
+
+            const telephone =
+                document.getElementById('telephone').value;
+
+            const ville =
+                document.getElementById('ville').value;
+
+            const clanSelect =
+                document.getElementById('clan');
+
+
+            const clan =
+                clanSelect.options[
+                    clanSelect.selectedIndex
+                ].text;
+
+
+            document.getElementById(
+                'summaryName'
+            ).textContent =
+                prenom + " " + nom;
+
+
+            document.getElementById(
+                'summaryEmail'
+            ).textContent =
+                email;
+
+
+            document.getElementById(
+                'summaryPhone'
+            ).textContent =
+                telephone;
+
+
+            document.getElementById(
+                'summaryCity'
+            ).textContent =
+                ville || "Non renseignée";
+
+
+            document.getElementById(
+                'summaryClan'
+            ).textContent =
+                clan;
+
+        }
+
+
+        /* =========================
+           VALIDATION RECAP
+        ========================= */
+
+        function validateSummary() {
+
+            const charte =
+                document.getElementById('charte');
+
+
+            if (!charte.checked) {
+
+                alert(
+                    "Tu dois accepter la charte de CLANS aventures pour continuer."
+                );
+
+                return;
+
+            }
+
+
+            showStep(5);
+
+        }
+
+
+        /* =========================
+           PAIEMENT
+        ========================= */
+
+        function processPayment() {
+
+            /*
+                IMPORTANT :
+
+                Cette fonction est actuellement
+                une simulation.
+
+                Elle sera remplacée par l'intégration
+                réelle du moyen de paiement choisi
+                par CLANS.
+            */
+
+
+            const button =
+                event.currentTarget;
+
+
+            button.disabled = true;
+
+            button.textContent =
+                "Traitement...";
+
+
+            setTimeout(function() {
+
+                showSuccess();
+
+            }, 1500);
+
+        }
+
+
+        /* =========================
+           SUCCES
+        ========================= */
+
+        function showSuccess() {
+
+            const steps =
+                document.querySelectorAll('.step');
+
+
+            steps.forEach(function(element) {
+
+                element.classList.remove('active');
+
+            });
+
+
+            document.querySelector(
+                '.step[data-step="success"]'
+            ).classList.add('active');
+
+
+            document.getElementById(
+                'progressText'
+            ).textContent =
+                "Bienvenue";
+
+
+            document.getElementById(
+                'progressNumber'
+            ).textContent =
+                "✓";
+
+
+            document.getElementById(
+                'progressFill'
+            ).style.width =
+                "100%";
+
+
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+        }
+
+
+        /* =========================
+           INITIALISATION
+        ========================= */
+
+        updateProgress();
+
+    </script>
+
+
+</body>
+
+</html>

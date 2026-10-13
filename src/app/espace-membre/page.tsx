@@ -1,0 +1,316 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { CalendarDays, LoaderCircle, MessageCircle, Star, Tent, Users } from "lucide-react";
+import { Logo } from "@/components/logo";
+import { Copyright } from "@/components/site-footer";
+import { exigerMembre } from "@/lib/auth";
+import { tableauDeBord } from "@/lib/membres";
+import { NIVEAUX, libelleSeuil, progression } from "@/lib/niveaux";
+import { MemberShell } from "./member-shell";
+import { MessagesInbox } from "./messages-inbox";
+import { MessagesProvider, NombreNonLus } from "./messages-context";
+
+export const metadata: Metadata = { title: "Espace membre" };
+
+// La page lit le cookie de session : elle est rendue à chaque requête, derrière <Suspense>.
+export default function EspaceMembrePage() {
+  return (
+    <Suspense fallback={<Chargement />}>
+      <EspaceMembre />
+    </Suspense>
+  );
+}
+
+async function EspaceMembre() {
+  const connecte = await exigerMembre(); // renvoie vers /connexion si besoin
+  const donnees = await tableauDeBord(connecte);
+  const { membre } = donnees;
+  const nomComplet = `${membre.prenom} ${membre.nom}`;
+  const initiales = `${membre.prenom[0]}${membre.nom[0]}`.toUpperCase();
+  const { niveau, pourcentage, message } = progression(membre.etoiles);
+
+  return (
+    <MessagesProvider initialMessages={donnees.messages}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales}>
+        <div className="mx-auto max-w-5xl">
+          {/* BIENVENUE */}
+          <div id="tableau-de-bord" className="mb-8 scroll-mt-24">
+            <h1 className="font-titre text-4xl font-semibold sm:text-5xl">
+              Bonjour {membre.prenom}
+            </h1>
+            <p className="mt-2 text-charbon/70">
+              Bienvenue dans ton espace membre CLANS aventures.
+            </p>
+          </div>
+
+          {/* CARTE + PROGRESSION */}
+          <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr]">
+            <div
+              id="carte"
+              className="relative scroll-mt-24 overflow-hidden rounded-2xl bg-foret p-6 text-ivoire sm:p-8"
+            >
+              <MotifTextile />
+
+              <div className="relative flex items-start justify-between">
+                <div>
+                  <p className="text-[0.65rem] tracking-[3px] text-sable uppercase">
+                    Carte membre
+                  </p>
+                  <p className="mt-1 font-mono text-sm tracking-[2px]">
+                    {membre.numero}
+                  </p>
+                </div>
+                <Logo className="h-14 w-auto opacity-90" />
+              </div>
+
+              <div className="relative mt-12">
+                <p className="font-titre text-3xl font-semibold sm:text-4xl">
+                  {nomComplet}
+                </p>
+                <p className="mt-1 text-sm text-ivoire/80">
+                  Clan : <strong className="text-ivoire">{membre.clan}</strong>
+                </p>
+                <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-[1px] uppercase">
+                  <Star className="size-3.5 fill-sable text-sable" />
+                  {niveau.nom}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl bg-white p-6 sm:p-8">
+              <h2 className="font-titre text-2xl font-semibold">
+                Ma progression
+              </h2>
+              <p className="mt-4 flex items-baseline gap-2">
+                <strong className="font-titre text-6xl font-semibold text-terre">
+                  {membre.etoiles}
+                </strong>
+                <span className="text-sm text-charbon/70">
+                  étoiles disponibles
+                </span>
+              </p>
+
+              <div className="mt-6">
+                <div className="mb-2 flex justify-between text-xs font-semibold">
+                  <span>{niveau.nom}</span>
+                  <span className="text-charbon/60">
+                    {niveau.suivant === null ? "Maximum" : `${niveau.suivant} ★`}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-sable/40">
+                  <div
+                    className="h-full rounded-full bg-terre"
+                    style={{ width: `${pourcentage}%` }}
+                  />
+                </div>
+                <p className="mt-3 text-sm text-charbon/70">{message}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* STATISTIQUES */}
+          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Statistique Icone={Star} valeur={membre.etoiles} label="Solde d’étoiles" />
+            <Statistique Icone={Tent} valeur={membre.experiences} label="Expériences réalisées" />
+            <Statistique Icone={Users} valeur={membre.filleuls} label="Filleuls" />
+            <Statistique
+              Icone={MessageCircle}
+              valeur={<NombreNonLus />}
+              label="Messages non lus"
+            />
+          </div>
+
+          {/* MESSAGES */}
+          <Section id="messages" titre="Mes messages">
+            <MessagesInbox />
+          </Section>
+
+          {/* ÉVÉNEMENTS OBLIGATOIRES */}
+          <Section titre="Événements obligatoires">
+            {donnees.evenementsObligatoires.length === 0 && (
+              <Vide texte="Aucun événement obligatoire à venir." />
+            )}
+            <ul className="grid gap-3">
+              {donnees.evenementsObligatoires.map((evenement) => (
+                <li
+                  key={evenement.id}
+                  className="flex items-center justify-between gap-4 rounded-2xl border-l-4 border-bordeaux bg-white p-5"
+                >
+                  <div>
+                    <p className="font-semibold">{evenement.titre}</p>
+                    <p className="mt-1 flex items-center gap-2 text-sm text-charbon/70">
+                      <CalendarDays className="size-4" strokeWidth={1.75} />
+                      {evenement.date}
+                    </p>
+                    <p className="mt-1 text-xs text-bordeaux">
+                      Absence non justifiée : −{evenement.penalite} étoiles
+                    </p>
+                  </div>
+                  <strong className="shrink-0 font-titre text-2xl text-bordeaux">
+                    −{evenement.penalite} ★
+                  </strong>
+                </li>
+              ))}
+            </ul>
+          </Section>
+
+          {/* HISTORIQUE */}
+          <Section id="etoiles" titre="Historique de mes étoiles">
+            {donnees.historique.length === 0 ? (
+              <Vide texte="Tes premières étoiles arriveront avec tes premières expériences CLANS." />
+            ) : (
+            <ul className="divide-y divide-charbon/10 rounded-2xl bg-white px-5 sm:px-7">
+              {donnees.historique.map((ligne) => (
+                <li
+                  key={ligne.id}
+                  className="flex items-center justify-between gap-4 py-4"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{ligne.libelle}</p>
+                    <p className="text-xs text-charbon/50">{ligne.date}</p>
+                  </div>
+                  <span
+                    className={`font-semibold ${ligne.variation >= 0 ? "text-foret" : "text-bordeaux"}`}
+                  >
+                    {ligne.variation >= 0 ? "+" : "−"}
+                    {Math.abs(ligne.variation)} ★
+                  </span>
+                </li>
+              ))}
+            </ul>
+            )}
+          </Section>
+
+          {/* NIVEAUX */}
+          <Section titre="Les niveaux CLANS">
+            <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+              {NIVEAUX.map((n) => {
+                const actuel = n.nom === niveau.nom;
+                const atteint = membre.etoiles >= n.min;
+                return (
+                  <li
+                    key={n.nom}
+                    aria-current={actuel ? "step" : undefined}
+                    className={`rounded-2xl border p-4 text-center ${
+                      actuel
+                        ? "border-terre bg-sable/30"
+                        : "border-transparent bg-white"
+                    }`}
+                  >
+                    <Star
+                      className={`mx-auto size-6 ${atteint ? "fill-terre text-terre" : "text-charbon/30"}`}
+                      strokeWidth={1.5}
+                    />
+                    <p className="mt-2 text-sm font-semibold">{n.nom}</p>
+                    <p className="mt-1 text-xs text-charbon/60">
+                      {libelleSeuil(n)} ★
+                    </p>
+                  </li>
+                );
+              })}
+            </ol>
+          </Section>
+
+          {/* PROFIL */}
+          <Section id="profil" titre="Mon profil">
+            <dl className="grid gap-5 rounded-2xl bg-white p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-3">
+              <InfoProfil label="Nom complet" valeur={nomComplet} />
+              <InfoProfil label="Numéro membre" valeur={membre.numero} />
+              <InfoProfil label="Clan" valeur={membre.clan} />
+              <InfoProfil label="Date d’adhésion" valeur={membre.dateAdhesion} />
+              <InfoProfil label="Adhésion" valeur="À vie" />
+            </dl>
+          </Section>
+
+          <footer className="mt-16 border-t border-charbon/10 pt-6 text-center text-xs leading-6 text-charbon/50">
+            <p>Nos cultures nous distinguent. Nos aventures nous rapprochent.</p>
+            <Copyright />
+          </footer>
+        </div>
+      </MemberShell>
+    </MessagesProvider>
+  );
+}
+
+function Chargement() {
+  return (
+    <div className="flex min-h-svh items-center justify-center bg-ivoire text-charbon/60">
+      <LoaderCircle className="size-6 animate-spin" aria-label="Chargement de ton espace" />
+    </div>
+  );
+}
+
+function Vide({ texte }: { texte: string }) {
+  return <p className="rounded-2xl bg-white p-5 text-sm text-charbon/60">{texte}</p>;
+}
+
+function Section({
+  id,
+  titre,
+  children,
+}: {
+  id?: string;
+  titre: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="mt-12 scroll-mt-24">
+      <h2 className="mb-4 font-titre text-3xl font-semibold">{titre}</h2>
+      {children}
+    </section>
+  );
+}
+
+function Statistique({
+  Icone,
+  valeur,
+  label,
+}: {
+  Icone: typeof Star;
+  valeur: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="rounded-2xl bg-white p-5">
+      <Icone className="size-5 text-terre" strokeWidth={1.75} />
+      <p className="mt-3 font-titre text-4xl font-semibold">{valeur}</p>
+      <p className="mt-1 text-xs text-charbon/60">{label}</p>
+    </div>
+  );
+}
+
+function InfoProfil({ label, valeur }: { label: string; valeur: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-semibold tracking-[1px] text-charbon/60 uppercase">
+        {label}
+      </dt>
+      <dd className="mt-1 font-medium">{valeur}</dd>
+    </div>
+  );
+}
+
+// Triangles inspirés des textiles africains et des motifs du symbole CLANS.
+// Fondu vers la gauche pour que le motif reste discret derrière le texte.
+function MotifTextile() {
+  return (
+    <svg
+      aria-hidden
+      className="absolute inset-y-0 right-0 h-full w-3/5 text-sable opacity-20"
+      style={{ maskImage: "linear-gradient(to left, black, transparent)" }}
+    >
+      <defs>
+        <pattern
+          id="motif-textile"
+          width="28"
+          height="28"
+          patternUnits="userSpaceOnUse"
+        >
+          <path d="M0 28 L7 16 L14 28 Z M14 28 L21 16 L28 28 Z" fill="currentColor" />
+          <path d="M0 0 H28" stroke="currentColor" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#motif-textile)" />
+    </svg>
+  );
+}

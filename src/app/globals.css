@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/*
+  Charte graphique CLANS aventures.
+  Chaque couleur déclarée ici devient une classe Tailwind :
+  --color-foret  →  bg-foret, text-foret, border-foret, ...
+*/
+@theme {
+  --color-foret: #123b2a; /* Nature · Aventure · Stabilité */
+  --color-terre: #b45a2a; /* Chaleur · Énergie · Authenticité */
+  --color-bordeaux: #6b1835; /* Caractère · Tradition · Élégance */
+  --color-sable: #d9c29a; /* Nature · Soleil · Équilibre */
+  --color-ivoire: #f6f0e4; /* Pureté · Simplicité · Convivialité */
+  --color-charbon: #20201d; /* Modernité · Lisibilité · Premium */
+
+  --animate-scroll-line: scroll-line 2s infinite;
+  --animate-apparition: apparition 0.7s ease-out both;
+
+  @keyframes apparition {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes scroll-line {
+    0% {
+      transform: scaleY(0);
+      transform-origin: top;
+    }
+    50% {
+      transform: scaleY(1);
+      transform-origin: top;
+    }
+    51% {
+      transform-origin: bottom;
+    }
+    100% {
+      transform: scaleY(0);
+      transform-origin: bottom;
+    }
+  }
+}
+
+/*
+  Polices chargées par next/font dans layout.tsx.
+  "inline" car leurs valeurs sont des variables CSS définies sur <html>.
+  font-titre → Cormorant Garamond, font-sans → Montserrat (police par défaut).
+*/
+@theme inline {
+  --font-titre: var(--font-cormorant);
+  --font-sans: var(--font-montserrat);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-charbon);
+  color: #ffffff;
+}

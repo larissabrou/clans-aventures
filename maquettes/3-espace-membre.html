@@ -1,0 +1,3889 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>
+    Espace membre | CLANS aventures
+</title>
+
+
+<style>
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+:root {
+
+    --vert: #173f2a;
+
+    --vert-clair: #2d6a4f;
+
+    --vert-fonce: #102f20;
+
+    --or: #c89b3c;
+
+    --or-clair: #e4c46a;
+
+    --bronze: #a56a32;
+
+    --rouge: #b84a4a;
+
+    --rouge-clair: #f6e0e0;
+
+    --bleu: #3d6fa3;
+
+    --bleu-clair: #e8f0f8;
+
+    --creme: #f7f3e9;
+
+    --blanc: #ffffff;
+
+    --gris: #6b7280;
+
+    --gris-clair: #eef1ed;
+
+    --noir: #18221c;
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+
+    margin: 0;
+
+    padding: 0;
+
+    box-sizing: border-box;
+
+}
+
+
+body {
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background:
+        var(--creme);
+
+    color:
+        var(--noir);
+
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header {
+
+    height: 72px;
+
+    background:
+        var(--vert);
+
+    color:
+        white;
+
+    padding:
+        0 5%;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    position:
+        sticky;
+
+    top:
+        0;
+
+    z-index:
+        1000;
+
+    box-shadow:
+        0 4px 15px rgba(0,0,0,.12);
+
+}
+
+
+.logo {
+
+    font-size:
+        22px;
+
+    font-weight:
+        bold;
+
+    letter-spacing:
+        2px;
+
+}
+
+
+.logo span {
+
+    color:
+        var(--or-clair);
+
+}
+
+
+.header-right {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        15px;
+
+}
+
+
+.member-mini {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+}
+
+
+.avatar {
+
+    width:
+        42px;
+
+    height:
+        42px;
+
+    border-radius:
+        50%;
+
+    background:
+        var(--or);
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-weight:
+        bold;
+
+}
+
+
+.menu-btn {
+
+    display:
+        none;
+
+    font-size:
+        25px;
+
+    cursor:
+        pointer;
+
+}
+
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.layout {
+
+    display:
+        flex;
+
+    min-height:
+        calc(100vh - 72px);
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar {
+
+    width:
+        250px;
+
+    background:
+        var(--vert-fonce);
+
+    color:
+        white;
+
+    padding:
+        25px 15px;
+
+    flex-shrink:
+        0;
+
+}
+
+
+.sidebar-title {
+
+    font-size:
+        11px;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        1.5px;
+
+    color:
+        #aebdb3;
+
+    margin:
+        10px 15px 15px;
+
+}
+
+
+.nav-item {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        13px;
+
+    padding:
+        13px 15px;
+
+    margin-bottom:
+        5px;
+
+    border-radius:
+        9px;
+
+    cursor:
+        pointer;
+
+    color:
+        #e4ebe6;
+
+    transition:
+        .2s;
+
+    position:
+        relative;
+
+}
+
+
+.nav-item:hover,
+.nav-item.active {
+
+    background:
+        var(--vert-clair);
+
+}
+
+
+.nav-icon {
+
+    width:
+        24px;
+
+    text-align:
+        center;
+
+}
+
+
+.message-badge {
+
+    position:
+        absolute;
+
+    right:
+        12px;
+
+    top:
+        9px;
+
+    min-width:
+        20px;
+
+    height:
+        20px;
+
+    padding:
+        0 5px;
+
+    border-radius:
+        20px;
+
+    background:
+        var(--rouge);
+
+    color:
+        white;
+
+    font-size:
+        10px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-weight:
+        bold;
+
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+main {
+
+    flex:
+        1;
+
+    width:
+        100%;
+
+    max-width:
+        1500px;
+
+    padding:
+        35px;
+
+}
+
+
+/* =========================================================
+   WELCOME
+========================================================= */
+
+.welcome {
+
+    margin-bottom:
+        30px;
+
+}
+
+
+.welcome h1 {
+
+    color:
+        var(--vert);
+
+    font-size:
+        30px;
+
+    margin-bottom:
+        7px;
+
+}
+
+
+.welcome p {
+
+    color:
+        var(--gris);
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+.dashboard-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        2fr 1fr;
+
+    gap:
+        25px;
+
+}
+
+
+.card {
+
+    background:
+        white;
+
+    border-radius:
+        18px;
+
+    padding:
+        25px;
+
+    box-shadow:
+        0 5px 20px rgba(0,0,0,.06);
+
+}
+
+
+/* =========================================================
+   CARTE MEMBRE
+========================================================= */
+
+.member-card {
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(23,63,42,.98),
+            rgba(45,106,79,.96)
+        );
+
+    color:
+        white;
+
+    position:
+        relative;
+
+    overflow:
+        hidden;
+
+}
+
+
+.member-card::after {
+
+    content:
+        "";
+
+    position:
+        absolute;
+
+    width:
+        250px;
+
+    height:
+        250px;
+
+    border-radius:
+        50%;
+
+    border:
+        1px solid
+        rgba(255,255,255,.1);
+
+    right:
+        -70px;
+
+    top:
+        -80px;
+
+}
+
+
+.card-top {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    position:
+        relative;
+
+    z-index:
+        2;
+
+}
+
+
+.member-label {
+
+    font-size:
+        11px;
+
+    text-transform:
+        uppercase;
+
+    letter-spacing:
+        2px;
+
+    opacity:
+        .75;
+
+}
+
+
+.member-number {
+
+    font-size:
+        13px;
+
+    opacity:
+        .8;
+
+    margin-top:
+        5px;
+
+}
+
+
+.clans-symbol {
+
+    font-size:
+        32px;
+
+}
+
+
+.member-info {
+
+    margin-top:
+        55px;
+
+    position:
+        relative;
+
+    z-index:
+        2;
+
+}
+
+
+.member-name {
+
+    font-size:
+        26px;
+
+    font-weight:
+        bold;
+
+}
+
+
+.member-clan {
+
+    margin-top:
+        6px;
+
+    opacity:
+        .85;
+
+}
+
+
+.member-status {
+
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+    margin-top:
+        18px;
+
+    background:
+        rgba(255,255,255,.12);
+
+    padding:
+        8px 13px;
+
+    border-radius:
+        30px;
+
+    font-size:
+        13px;
+
+}
+
+
+/* =========================================================
+   ETOILES
+========================================================= */
+
+.stars-card h2 {
+
+    color:
+        var(--vert);
+
+    font-size:
+        20px;
+
+    margin-bottom:
+        18px;
+
+}
+
+
+.star-number {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+}
+
+
+.star-number strong {
+
+    font-size:
+        42px;
+
+    color:
+        var(--or);
+
+}
+
+
+.star-number span {
+
+    color:
+        var(--gris);
+
+    font-size:
+        14px;
+
+}
+
+
+.progress-container {
+
+    margin-top:
+        20px;
+
+}
+
+
+.progress-label {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    font-size:
+        12px;
+
+    color:
+        var(--gris);
+
+    margin-bottom:
+        7px;
+
+}
+
+
+.progress {
+
+    height:
+        9px;
+
+    background:
+        #e4e8e4;
+
+    border-radius:
+        10px;
+
+    overflow:
+        hidden;
+
+}
+
+
+.progress-bar {
+
+    height:
+        100%;
+
+    width:
+        0%;
+
+    background:
+        var(--or);
+
+    border-radius:
+        10px;
+
+    transition:
+        width .6s ease;
+
+}
+
+
+.next-level {
+
+    margin-top:
+        12px;
+
+    font-size:
+        13px;
+
+    color:
+        var(--gris);
+
+}
+
+
+/* =========================================================
+   STATISTIQUES
+========================================================= */
+
+.stats {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:
+        18px;
+
+    margin-top:
+        25px;
+
+}
+
+
+.stat-card {
+
+    background:
+        white;
+
+    border-radius:
+        15px;
+
+    padding:
+        20px;
+
+    box-shadow:
+        0 5px 20px rgba(0,0,0,.05);
+
+}
+
+
+.stat-icon {
+
+    font-size:
+        24px;
+
+    margin-bottom:
+        10px;
+
+}
+
+
+.stat-number {
+
+    font-size:
+        27px;
+
+    font-weight:
+        bold;
+
+    color:
+        var(--vert);
+
+}
+
+
+.stat-label {
+
+    font-size:
+        12px;
+
+    color:
+        var(--gris);
+
+    margin-top:
+        5px;
+
+}
+
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.section {
+
+    margin-top:
+        30px;
+
+}
+
+
+.section-title {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    margin-bottom:
+        15px;
+
+}
+
+
+.section-title h2 {
+
+    color:
+        var(--vert);
+
+    font-size:
+        21px;
+
+}
+
+
+/* =========================================================
+   EVENEMENTS OBLIGATOIRES
+========================================================= */
+
+.mandatory-event {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        20px;
+
+    padding:
+        18px;
+
+    background:
+        white;
+
+    border-radius:
+        14px;
+
+    border-left:
+        5px solid var(--or);
+
+    margin-bottom:
+        12px;
+
+    box-shadow:
+        0 4px 15px rgba(0,0,0,.05);
+
+}
+
+
+.mandatory-title {
+
+    font-weight:
+        bold;
+
+    color:
+        var(--vert);
+
+}
+
+
+.mandatory-date {
+
+    margin-top:
+        5px;
+
+    font-size:
+        12px;
+
+    color:
+        var(--gris);
+
+}
+
+
+.mandatory-warning {
+
+    margin-top:
+        7px;
+
+    font-size:
+        12px;
+
+    color:
+        var(--rouge);
+
+    font-weight:
+        bold;
+
+}
+
+
+/* =========================================================
+   HISTORIQUE ETOILES
+========================================================= */
+
+.history-item {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        15px;
+
+    padding:
+        16px 0;
+
+    border-bottom:
+        1px solid #edf0ed;
+
+}
+
+
+.history-item:last-child {
+
+    border-bottom:
+        none;
+
+}
+
+
+.history-left {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        13px;
+
+}
+
+
+.history-icon {
+
+    width:
+        42px;
+
+    height:
+        42px;
+
+    border-radius:
+        10px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    background:
+        var(--gris-clair);
+
+}
+
+
+.history-reason {
+
+    font-size:
+        14px;
+
+    font-weight:
+        bold;
+
+}
+
+
+.history-date {
+
+    margin-top:
+        4px;
+
+    color:
+        var(--gris);
+
+    font-size:
+        11px;
+
+}
+
+
+.gain {
+
+    color:
+        var(--vert-clair);
+
+    font-weight:
+        bold;
+
+}
+
+
+.loss {
+
+    color:
+        var(--rouge);
+
+    font-weight:
+        bold;
+
+}
+
+
+/* =========================================================
+   MESSAGERIE
+========================================================= */
+
+.message-card {
+
+    background:
+        white;
+
+    border-radius:
+        18px;
+
+    padding:
+        0;
+
+    overflow:
+        hidden;
+
+    box-shadow:
+        0 5px 20px rgba(0,0,0,.06);
+
+}
+
+
+.message-header {
+
+    padding:
+        22px 25px;
+
+    background:
+        var(--vert);
+
+    color:
+        white;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+}
+
+
+.message-header h2 {
+
+    font-size:
+        20px;
+
+}
+
+
+.unread-counter {
+
+    background:
+        var(--rouge);
+
+    color:
+        white;
+
+    min-width:
+        28px;
+
+    height:
+        28px;
+
+    border-radius:
+        50%;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    font-size:
+        12px;
+
+    font-weight:
+        bold;
+
+}
+
+
+.message-list {
+
+    padding:
+        0 25px;
+
+}
+
+
+.message-item {
+
+    padding:
+        20px 0;
+
+    border-bottom:
+        1px solid #edf0ed;
+
+    cursor:
+        pointer;
+
+    transition:
+        .2s;
+
+}
+
+
+.message-item:last-child {
+
+    border-bottom:
+        none;
+
+}
+
+
+.message-item:hover {
+
+    transform:
+        translateX(3px);
+
+}
+
+
+.message-item.unread {
+
+    background:
+        #faf8ef;
+
+    margin:
+        0 -25px;
+
+    padding:
+        20px 25px;
+
+    border-left:
+        4px solid var(--or);
+
+}
+
+
+.message-top {
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    gap:
+        15px;
+
+}
+
+
+.message-title {
+
+    font-size:
+        15px;
+
+    font-weight:
+        bold;
+
+    color:
+        var(--vert);
+
+}
+
+
+.message-date {
+
+    font-size:
+        11px;
+
+    color:
+        var(--gris);
+
+    white-space:
+        nowrap;
+
+}
+
+
+.message-preview {
+
+    margin-top:
+        7px;
+
+    color:
+        var(--gris);
+
+    font-size:
+        13px;
+
+    line-height:
+        1.5;
+
+}
+
+
+.message-type {
+
+    display:
+        inline-block;
+
+    margin-top:
+        10px;
+
+    padding:
+        4px 9px;
+
+    border-radius:
+        20px;
+
+    font-size:
+        10px;
+
+    font-weight:
+        bold;
+
+    text-transform:
+        uppercase;
+
+}
+
+
+.type-info {
+
+    background:
+        var(--bleu-clair);
+
+    color:
+        var(--bleu);
+
+}
+
+
+.type-event {
+
+    background:
+        #fff4dd;
+
+    color:
+        #76571e;
+
+}
+
+
+.type-warning {
+
+    background:
+        var(--rouge-clair);
+
+    color:
+        #8d3030;
+
+}
+
+
+.type-star {
+
+    background:
+        #f5ead5;
+
+    color:
+        var(--bronze);
+
+}
+
+
+.message-status {
+
+    margin-top:
+        8px;
+
+    font-size:
+        10px;
+
+    color:
+        var(--rouge);
+
+    font-weight:
+        bold;
+
+}
+
+
+/* =========================================================
+   FENETRE MESSAGE
+========================================================= */
+
+.message-modal {
+
+    position:
+        fixed;
+
+    inset:
+        0;
+
+    background:
+        rgba(0,0,0,.55);
+
+    display:
+        none;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    padding:
+        20px;
+
+    z-index:
+        3000;
+
+}
+
+
+.message-modal.show {
+
+    display:
+        flex;
+
+}
+
+
+.message-box {
+
+    width:
+        100%;
+
+    max-width:
+        600px;
+
+    background:
+        white;
+
+    border-radius:
+        18px;
+
+    overflow:
+        hidden;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.25);
+
+}
+
+
+.message-box-header {
+
+    background:
+        var(--vert);
+
+    color:
+        white;
+
+    padding:
+        20px 25px;
+
+    display:
+        flex;
+
+    justify-content:
+        space-between;
+
+    align-items:
+        center;
+
+}
+
+
+.message-box-header h3 {
+
+    font-size:
+        19px;
+
+}
+
+
+.close-message {
+
+    cursor:
+        pointer;
+
+    font-size:
+        24px;
+
+}
+
+
+.message-box-body {
+
+    padding:
+        25px;
+
+}
+
+
+.message-full-date {
+
+    color:
+        var(--gris);
+
+    font-size:
+        12px;
+
+    margin-bottom:
+        20px;
+
+}
+
+
+.message-full-content {
+
+    font-size:
+        14px;
+
+    line-height:
+        1.7;
+
+    color:
+        #39423c;
+
+    white-space:
+        pre-line;
+
+}
+
+
+.message-box-footer {
+
+    padding:
+        15px 25px;
+
+    border-top:
+        1px solid #edf0ed;
+
+    display:
+        flex;
+
+    justify-content:
+        flex-end;
+
+}
+
+
+.close-button {
+
+    border:
+        none;
+
+    background:
+        var(--vert);
+
+    color:
+        white;
+
+    padding:
+        10px 18px;
+
+    border-radius:
+        8px;
+
+    cursor:
+        pointer;
+
+}
+
+
+/* =========================================================
+   NIVEAUX
+========================================================= */
+
+.levels {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap:
+        12px;
+
+}
+
+
+.level {
+
+    padding:
+        16px;
+
+    background:
+        var(--gris-clair);
+
+    border-radius:
+        12px;
+
+    text-align:
+        center;
+
+}
+
+
+.level.current {
+
+    background:
+        #f3e7d5;
+
+    border:
+        1px solid var(--or);
+
+}
+
+
+.level-star {
+
+    font-size:
+        25px;
+
+}
+
+
+.level-name {
+
+    font-size:
+        12px;
+
+    font-weight:
+        bold;
+
+    margin-top:
+        7px;
+
+}
+
+
+.level-stars {
+
+    font-size:
+        11px;
+
+    color:
+        var(--gris);
+
+    margin-top:
+        3px;
+
+}
+
+
+/* =========================================================
+   PROFIL
+========================================================= */
+
+.profile-grid {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(2,1fr);
+
+    gap:
+        20px;
+
+}
+
+
+.profile-item {
+
+    padding:
+        13px 0;
+
+    border-bottom:
+        1px solid #edf0ed;
+
+}
+
+
+.profile-label {
+
+    font-size:
+        11px;
+
+    color:
+        var(--gris);
+
+    text-transform:
+        uppercase;
+
+}
+
+
+.profile-value {
+
+    margin-top:
+        5px;
+
+    font-weight:
+        bold;
+
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer {
+
+    text-align:
+        center;
+
+    padding:
+        30px;
+
+    color:
+        var(--gris);
+
+    font-size:
+        12px;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:1000px) {
+
+    .dashboard-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .stats {
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+    }
+
+    .levels {
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+    }
+
+}
+
+
+@media(max-width:700px) {
+
+    header {
+
+        padding:
+            0 18px;
+
+    }
+
+    .menu-btn {
+
+        display:
+            block;
+
+    }
+
+    .sidebar {
+
+        position:
+            fixed;
+
+        left:
+            -270px;
+
+        top:
+            72px;
+
+        height:
+            calc(100vh - 72px);
+
+        z-index:
+            900;
+
+        transition:
+            .3s;
+
+    }
+
+    .sidebar.open {
+
+        left:
+            0;
+
+    }
+
+    main {
+
+        padding:
+            22px 16px;
+
+    }
+
+    .member-mini span {
+
+        display:
+            none;
+
+    }
+
+    .welcome h1 {
+
+        font-size:
+            25px;
+
+    }
+
+    .mandatory-event {
+
+        flex-direction:
+            column;
+
+        align-items:
+            flex-start;
+
+    }
+
+    .profile-grid {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+}
+
+
+@media(max-width:430px) {
+
+    .stats {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+    .levels {
+
+        grid-template-columns:
+            repeat(2,1fr);
+
+    }
+
+    .message-top {
+
+        flex-direction:
+            column;
+
+    }
+
+    .message-date {
+
+        white-space:
+            normal;
+
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <div class="logo">
+
+        CLANS
+        <span>aventures</span>
+
+    </div>
+
+
+    <div class="header-right">
+
+        <div class="member-mini">
+
+            <div
+                class="avatar"
+                id="headerAvatar">
+
+                OS
+
+            </div>
+
+            <span id="headerName">
+
+                Olly Silvère
+
+            </span>
+
+        </div>
+
+
+        <div
+            class="menu-btn"
+            onclick="toggleMenu()">
+
+            ☰
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<div class="layout">
+
+
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
+
+<aside
+    class="sidebar"
+    id="sidebar">
+
+
+    <div class="sidebar-title">
+
+        Mon espace
+
+    </div>
+
+
+    <div class="nav-item active">
+
+        <div class="nav-icon">
+            ⌂
+        </div>
+
+        Tableau de bord
+
+    </div>
+
+
+    <div class="nav-item">
+
+        <div class="nav-icon">
+            🪪
+        </div>
+
+        Ma carte CLANS
+
+    </div>
+
+
+    <div class="nav-item">
+
+        <div class="nav-icon">
+            ⭐
+        </div>
+
+        Mes étoiles
+
+    </div>
+
+
+    <!-- MESSAGERIE -->
+
+    <div
+        class="nav-item"
+        onclick="ouvrirMessagerie()">
+
+        <div class="nav-icon">
+            💬
+        </div>
+
+        Messages
+
+
+        <span
+            class="message-badge"
+            id="sidebarMessageBadge">
+
+            0
+
+        </span>
+
+    </div>
+
+
+    <div class="nav-item">
+
+        <div class="nav-icon">
+            🌿
+        </div>
+
+        Mon clan
+
+    </div>
+
+
+    <div class="nav-item">
+
+        <div class="nav-icon">
+            🏕️
+        </div>
+
+        Expériences
+
+    </div>
+
+
+    <div class="nav-item">
+
+        <div class="nav-icon">
+            👥
+        </div>
+
+        Parrainage
+
+    </div>
+
+
+    <div class="nav-item">
+
+        <div class="nav-icon">
+            👤
+        </div>
+
+        Mon profil
+
+    </div>
+
+
+    <div
+        class="sidebar-title"
+        style="margin-top:30px">
+
+        Communauté
+
+    </div>
+
+
+    <div class="nav-item">
+
+        <div class="nav-icon">
+            📢
+        </div>
+
+        Actualités
+
+    </div>
+
+
+</aside>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main>
+
+
+<!-- =====================================================
+     BIENVENUE
+===================================================== -->
+
+<div class="welcome">
+
+    <h1>
+
+        Bonjour
+        <span id="welcomeName">
+            Olly
+        </span>
+        👋
+
+    </h1>
+
+
+    <p>
+
+        Bienvenue dans ton espace membre
+        CLANS aventures.
+
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     CARTE + PROGRESSION
+===================================================== -->
+
+<div class="dashboard-grid">
+
+
+    <!-- CARTE -->
+
+    <div class="card member-card">
+
+
+        <div class="card-top">
+
+
+            <div>
+
+                <div class="member-label">
+
+                    Carte membre
+
+                </div>
+
+
+                <div class="member-number">
+
+                    CLANS-000124
+
+                </div>
+
+            </div>
+
+
+            <div class="clans-symbol">
+
+                ◈
+
+            </div>
+
+        </div>
+
+
+        <div class="member-info">
+
+
+            <div
+                class="member-name"
+                id="memberName">
+
+                Olly Silvère
+
+            </div>
+
+
+            <div class="member-clan">
+
+                Clan :
+                <strong id="memberClan">
+                    À définir
+                </strong>
+
+            </div>
+
+
+            <div class="member-status">
+
+                <span id="statusStar">
+                    ☆
+                </span>
+
+
+                <span id="memberStatus">
+
+                    Nouveau membre
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- PROGRESSION -->
+
+    <div class="card stars-card">
+
+
+        <h2>
+
+            Ma progression
+
+        </h2>
+
+
+        <div class="star-number">
+
+            <strong id="starCount">
+
+                7
+
+            </strong>
+
+
+            <span>
+
+                étoiles disponibles
+
+            </span>
+
+        </div>
+
+
+        <div class="progress-container">
+
+
+            <div class="progress-label">
+
+                <span id="currentLevel">
+
+                    Nouveau membre
+
+                </span>
+
+
+                <span id="nextLevel">
+
+                    10 ⭐
+
+                </span>
+
+            </div>
+
+
+            <div class="progress">
+
+                <div
+                    class="progress-bar"
+                    id="progressBar">
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="next-level"
+                id="progressMessage">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     STATISTIQUES
+===================================================== -->
+
+<div class="stats">
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            ⭐
+        </div>
+
+        <div
+            class="stat-number"
+            id="statStars">
+
+            7
+
+        </div>
+
+        <div class="stat-label">
+
+            Solde d'étoiles
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            🏕️
+        </div>
+
+        <div
+            class="stat-number"
+            id="statParticipations">
+
+            2
+
+        </div>
+
+        <div class="stat-label">
+
+            Expériences réalisées
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            👥
+        </div>
+
+        <div class="stat-number">
+
+            3
+
+        </div>
+
+        <div class="stat-label">
+
+            Filleuls
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-icon">
+            💬
+        </div>
+
+        <div
+            class="stat-number"
+            id="statMessages">
+
+            0
+
+        </div>
+
+        <div class="stat-label">
+
+            Messages non lus
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MESSAGES
+===================================================== -->
+
+<section
+    class="section"
+    id="messagesSection">
+
+
+    <div class="section-title">
+
+        <h2>
+
+            Mes messages
+
+        </h2>
+
+    </div>
+
+
+    <div class="message-card">
+
+
+        <div class="message-header">
+
+
+            <h2>
+
+                📩 Boîte de réception
+
+            </h2>
+
+
+            <div
+                class="unread-counter"
+                id="messageCounter">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="message-list"
+            id="messageList">
+
+            <!-- Messages générés automatiquement -->
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     EVENEMENTS OBLIGATOIRES
+===================================================== -->
+
+<section class="section">
+
+
+    <div class="section-title">
+
+        <h2>
+
+            Événements obligatoires
+
+        </h2>
+
+    </div>
+
+
+    <div class="mandatory-event">
+
+
+        <div>
+
+            <div class="mandatory-title">
+
+                Grand rassemblement annuel CLANS
+
+            </div>
+
+
+            <div class="mandatory-date">
+
+                📅 15 novembre 2026
+
+            </div>
+
+
+            <div class="mandatory-warning">
+
+                Absence non justifiée :
+                -3 ⭐
+
+            </div>
+
+        </div>
+
+
+        <strong>
+
+            -3 ⭐
+
+        </strong>
+
+    </div>
+
+
+    <div class="mandatory-event">
+
+
+        <div>
+
+            <div class="mandatory-title">
+
+                Rencontre obligatoire de ton Clan
+
+            </div>
+
+
+            <div class="mandatory-date">
+
+                📅 29 novembre 2026
+
+            </div>
+
+
+            <div class="mandatory-warning">
+
+                Absence non justifiée :
+                -2 ⭐
+
+            </div>
+
+        </div>
+
+
+        <strong>
+
+            -2 ⭐
+
+        </strong>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     HISTORIQUE ETOILES
+===================================================== -->
+
+<section class="section">
+
+
+    <div class="section-title">
+
+        <h2>
+
+            Historique de mes étoiles
+
+        </h2>
+
+    </div>
+
+
+    <div class="card">
+
+        <div id="starHistory">
+
+            <!-- Généré automatiquement -->
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     NIVEAUX
+===================================================== -->
+
+<section class="section">
+
+
+    <div class="section-title">
+
+        <h2>
+
+            Les niveaux CLANS
+
+        </h2>
+
+    </div>
+
+
+    <div class="levels">
+
+
+        <div
+            class="level"
+            id="levelNew">
+
+            <div class="level-star">
+                ☆
+            </div>
+
+            <div class="level-name">
+                Nouveau membre
+            </div>
+
+            <div class="level-stars">
+                0 – 9 ⭐
+            </div>
+
+        </div>
+
+
+        <div
+            class="level"
+            id="levelActive">
+
+            <div class="level-star">
+                🟤⭐
+            </div>
+
+            <div class="level-name">
+                Membre actif
+            </div>
+
+            <div class="level-stars">
+                10 – 24 ⭐
+            </div>
+
+        </div>
+
+
+        <div
+            class="level"
+            id="levelEngaged">
+
+            <div class="level-star">
+                ⭐
+            </div>
+
+            <div class="level-name">
+                Membre engagé
+            </div>
+
+            <div class="level-stars">
+                25 – 49 ⭐
+            </div>
+
+        </div>
+
+
+        <div
+            class="level"
+            id="levelConfirmed">
+
+            <div class="level-star">
+                ⭐
+            </div>
+
+            <div class="level-name">
+                Membre confirmé
+            </div>
+
+            <div class="level-stars">
+                50 – 99 ⭐
+            </div>
+
+        </div>
+
+
+        <div
+            class="level"
+            id="levelAmbassador">
+
+            <div class="level-star">
+                ⭐
+            </div>
+
+            <div class="level-name">
+                Ambassadeur
+            </div>
+
+            <div class="level-stars">
+                100 – 199 ⭐
+            </div>
+
+        </div>
+
+
+        <div
+            class="level"
+            id="levelExcellence">
+
+            <div class="level-star">
+                ⭐
+            </div>
+
+            <div class="level-name">
+                Excellence
+            </div>
+
+            <div class="level-stars">
+                200 – 499 ⭐
+            </div>
+
+        </div>
+
+
+        <div
+            class="level"
+            id="levelLegend">
+
+            <div class="level-star">
+                ⭐
+            </div>
+
+            <div class="level-name">
+                Légende
+            </div>
+
+            <div class="level-stars">
+                500+ ⭐
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     PROFIL
+===================================================== -->
+
+<section class="section">
+
+
+    <div class="section-title">
+
+        <h2>
+
+            Mon profil
+
+        </h2>
+
+    </div>
+
+
+    <div class="card">
+
+
+        <div class="profile-grid">
+
+
+            <div class="profile-item">
+
+                <div class="profile-label">
+                    Nom complet
+                </div>
+
+                <div class="profile-value">
+                    Olly Silvère
+                </div>
+
+            </div>
+
+
+            <div class="profile-item">
+
+                <div class="profile-label">
+                    Numéro membre
+                </div>
+
+                <div class="profile-value">
+                    CLANS-000124
+                </div>
+
+            </div>
+
+
+            <div class="profile-item">
+
+                <div class="profile-label">
+                    Clan
+                </div>
+
+                <div class="profile-value">
+                    À définir
+                </div>
+
+            </div>
+
+
+            <div class="profile-item">
+
+                <div class="profile-label">
+                    Date d'adhésion
+                </div>
+
+                <div class="profile-value">
+                    15 septembre 2026
+                </div>
+
+            </div>
+
+
+            <div class="profile-item">
+
+                <div class="profile-label">
+                    Adhésion
+                </div>
+
+                <div class="profile-value">
+                    À vie
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<footer>
+
+    © 2026 CLANS aventures
+    —
+    Nature • Culture • Aventure • Rencontres
+
+</footer>
+
+
+</main>
+
+</div>
+
+
+
+<!-- =====================================================
+     FENETRE DE LECTURE DU MESSAGE
+===================================================== -->
+
+<div
+    class="message-modal"
+    id="messageModal">
+
+
+    <div class="message-box">
+
+
+        <div class="message-box-header">
+
+
+            <h3
+                id="modalMessageTitle">
+
+                Message
+
+            </h3>
+
+
+            <div
+                class="close-message"
+                onclick="fermerMessage()">
+
+                ×
+
+            </div>
+
+        </div>
+
+
+        <div class="message-box-body">
+
+
+            <div
+                class="message-full-date"
+                id="modalMessageDate">
+
+            </div>
+
+
+            <div
+                class="message-full-content"
+                id="modalMessageContent">
+
+            </div>
+
+        </div>
+
+
+        <div class="message-box-footer">
+
+
+            <button
+                class="close-button"
+                onclick="fermerMessage()">
+
+                Fermer
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+/* =========================================================
+   DONNEES DU MEMBRE
+========================================================= */
+
+const membre = {
+
+    prenom:
+        "Olly",
+
+    nom:
+        "Silvère",
+
+    clan:
+        "À définir",
+
+    numero:
+        "CLANS-000124",
+
+    etoiles:
+        7
+
+};
+
+
+
+/* =========================================================
+   MESSAGES ADMINISTRATION
+=========================================================
+
+   Dans la vraie version, ces messages viendront
+   de la base de données.
+
+========================================================= */
+
+let messages = [
+
+    {
+
+        id:
+            1,
+
+        titre:
+            "Bienvenue dans CLANS aventures",
+
+        contenu:
+            `Bienvenue dans ton espace membre CLANS aventures.
+
+Tu fais désormais partie de notre communauté.
+
+Nous sommes heureux de t'accueillir dans cette aventure humaine, culturelle et naturelle.
+
+N'hésite pas à consulter régulièrement ton espace membre afin de ne manquer aucune information importante.`,
+
+        date:
+            "08 octobre 2026 — 09:15",
+
+        type:
+            "info",
+
+        lu:
+            false
+
+    },
+
+
+    {
+
+        id:
+            2,
+
+        titre:
+            "Prochaine rencontre CLANS",
+
+        contenu:
+            `Une nouvelle rencontre CLANS aventures est prévue prochainement.
+
+Les informations concernant le lieu, l'heure et les modalités de participation seront communiquées dans ton espace membre.
+
+Reste attentif aux prochaines notifications.`,
+
+        date:
+            "07 octobre 2026 — 18:40",
+
+        type:
+            "event",
+
+        lu:
+            false
+
+    },
+
+
+    {
+
+        id:
+            3,
+
+        titre:
+            "Ton solde d'étoiles",
+
+        contenu:
+            `Ton solde actuel est de 7 étoiles.
+
+Continue à participer aux activités, expériences et missions de la communauté pour progresser dans les niveaux CLANS.`,
+
+        date:
+            "05 octobre 2026 — 20:10",
+
+        type:
+            "star",
+
+        lu:
+            true
+
+    }
+
+];
+
+
+
+/* =========================================================
+   AFFICHER MEMBRE
+========================================================= */
+
+function afficherMembre() {
+
+    const nomComplet =
+        membre.prenom +
+        " " +
+        membre.nom;
+
+
+    document.getElementById(
+        "memberName"
+    ).textContent =
+        nomComplet;
+
+
+    document.getElementById(
+        "headerName"
+    ).textContent =
+        nomComplet;
+
+
+    document.getElementById(
+        "welcomeName"
+    ).textContent =
+        membre.prenom;
+
+
+    document.getElementById(
+        "memberClan"
+    ).textContent =
+        membre.clan;
+
+
+    document.getElementById(
+        "headerAvatar"
+    ).textContent =
+
+        (
+            membre.prenom.charAt(0) +
+            membre.nom.charAt(0)
+        ).toUpperCase();
+
+}
+
+
+
+/* =========================================================
+   STATUT
+========================================================= */
+
+function calculerStatut(etoiles) {
+
+
+    if (etoiles >= 500) {
+
+        return {
+
+            nom:
+                "Légende",
+
+            min:
+                500,
+
+            suivant:
+                null,
+
+            symbole:
+                "⭐"
+
+        };
+
+    }
+
+
+    if (etoiles >= 200) {
+
+        return {
+
+            nom:
+                "Excellence",
+
+            min:
+                200,
+
+            suivant:
+                500,
+
+            symbole:
+                "⭐"
+
+        };
+
+    }
+
+
+    if (etoiles >= 100) {
+
+        return {
+
+            nom:
+                "Ambassadeur",
+
+            min:
+                100,
+
+            suivant:
+                200,
+
+            symbole:
+                "⭐"
+
+        };
+
+    }
+
+
+    if (etoiles >= 50) {
+
+        return {
+
+            nom:
+                "Membre confirmé",
+
+            min:
+                50,
+
+            suivant:
+                100,
+
+            symbole:
+                "⭐"
+
+        };
+
+    }
+
+
+    if (etoiles >= 25) {
+
+        return {
+
+            nom:
+                "Membre engagé",
+
+            min:
+                25,
+
+            suivant:
+                50,
+
+            symbole:
+                "⭐"
+
+        };
+
+    }
+
+
+    if (etoiles >= 10) {
+
+        return {
+
+            nom:
+                "Membre actif",
+
+            min:
+                10,
+
+            suivant:
+                25,
+
+            symbole:
+                "🟤⭐"
+
+        };
+
+    }
+
+
+    return {
+
+        nom:
+            "Nouveau membre",
+
+        min:
+            0,
+
+        suivant:
+            10,
+
+        symbole:
+            "☆"
+
+    };
+
+}
+
+
+
+/* =========================================================
+   PROGRESSION
+========================================================= */
+
+function afficherProgression() {
+
+
+    const statut =
+        calculerStatut(
+            membre.etoiles
+        );
+
+
+    document.getElementById(
+        "starCount"
+    ).textContent =
+        membre.etoiles;
+
+
+    document.getElementById(
+        "statStars"
+    ).textContent =
+        membre.etoiles;
+
+
+    document.getElementById(
+        "memberStatus"
+    ).textContent =
+        statut.nom;
+
+
+    document.getElementById(
+        "statusStar"
+    ).textContent =
+        statut.symbole;
+
+
+    document.getElementById(
+        "currentLevel"
+    ).textContent =
+        statut.nom;
+
+
+    if (statut.suivant !== null) {
+
+
+        const progression =
+
+            (
+                (
+                    membre.etoiles -
+                    statut.min
+                )
+                /
+                (
+                    statut.suivant -
+                    statut.min
+                )
+            )
+            * 100;
+
+
+        document.getElementById(
+            "progressBar"
+        ).style.width =
+
+            Math.min(
+                Math.max(
+                    progression,
+                    0
+                ),
+                100
+            ) + "%";
+
+
+        document.getElementById(
+            "nextLevel"
+        ).textContent =
+
+            statut.suivant +
+            " ⭐";
+
+
+        const restantes =
+
+            statut.suivant -
+            membre.etoiles;
+
+
+        document.getElementById(
+            "progressMessage"
+        ).textContent =
+
+            "Encore " +
+            restantes +
+            " étoile" +
+            (
+                restantes > 1
+                    ? "s"
+                    : ""
+            ) +
+            " pour atteindre le prochain niveau.";
+
+
+    } else {
+
+
+        document.getElementById(
+            "progressBar"
+        ).style.width =
+            "100%";
+
+
+        document.getElementById(
+            "nextLevel"
+        ).textContent =
+            "Maximum";
+
+
+        document.getElementById(
+            "progressMessage"
+        ).textContent =
+
+            "Tu as atteint le niveau Légende.";
+
+    }
+
+
+    document
+        .querySelectorAll(".level")
+        .forEach(
+            element =>
+                element.classList.remove(
+                    "current"
+                )
+        );
+
+
+    if (membre.etoiles < 10)
+
+        document
+            .getElementById("levelNew")
+            .classList.add("current");
+
+
+    else if (membre.etoiles < 25)
+
+        document
+            .getElementById("levelActive")
+            .classList.add("current");
+
+
+    else if (membre.etoiles < 50)
+
+        document
+            .getElementById("levelEngaged")
+            .classList.add("current");
+
+
+    else if (membre.etoiles < 100)
+
+        document
+            .getElementById("levelConfirmed")
+            .classList.add("current");
+
+
+    else if (membre.etoiles < 200)
+
+        document
+            .getElementById("levelAmbassador")
+            .classList.add("current");
+
+
+    else if (membre.etoiles < 500)
+
+        document
+            .getElementById("levelExcellence")
+            .classList.add("current");
+
+
+    else
+
+        document
+            .getElementById("levelLegend")
+            .classList.add("current");
+
+}
+
+
+
+/* =========================================================
+   AFFICHER LES MESSAGES
+========================================================= */
+
+function afficherMessages() {
+
+
+    const container =
+        document.getElementById(
+            "messageList"
+        );
+
+
+    container.innerHTML = "";
+
+
+    if (messages.length === 0) {
+
+        container.innerHTML = `
+
+            <div
+                style="
+                    padding:30px 0;
+                    text-align:center;
+                    color:#6b7280;
+                ">
+
+                📭
+
+                <br><br>
+
+                Tu n'as aucun message
+                pour le moment.
+
+            </div>
+
+        `;
+
+        mettreAJourCompteurMessages();
+
+        return;
+
+    }
+
+
+    messages.forEach(
+        message => {
+
+
+            const element =
+                document.createElement(
+                    "div"
+                );
+
+
+            element.className =
+                "message-item" +
+                (
+                    !message.lu
+                        ? " unread"
+                        : ""
+                );
+
+
+            let typeClasse =
+                "type-info";
+
+
+            let typeNom =
+                "Information";
+
+
+            if (
+                message.type ===
+                "event"
+            ) {
+
+                typeClasse =
+                    "type-event";
+
+                typeNom =
+                    "Événement";
+
+            }
+
+
+            if (
+                message.type ===
+                "warning"
+            ) {
+
+                typeClasse =
+                    "type-warning";
+
+                typeNom =
+                    "Important";
+
+            }
+
+
+            if (
+                message.type ===
+                "star"
+            ) {
+
+                typeClasse =
+                    "type-star";
+
+                typeNom =
+                    "Étoiles";
+
+            }
+
+
+            element.innerHTML = `
+
+                <div class="message-top">
+
+                    <div class="message-title">
+
+                        ${message.titre}
+
+                    </div>
+
+
+                    <div class="message-date">
+
+                        ${message.date}
+
+                    </div>
+
+                </div>
+
+
+                <div class="message-preview">
+
+                    ${message.contenu.substring(
+                        0,
+                        130
+                    )}
+
+                    ${message.contenu.length > 130
+                        ? "..."
+                        : ""}
+
+                </div>
+
+
+                <span
+                    class="
+                        message-type
+                        ${typeClasse}
+                    ">
+
+                    ${typeNom}
+
+                </span>
+
+
+                ${
+                    !message.lu
+
+                    ?
+
+                    `
+                    <div
+                        class="message-status">
+
+                        ● Nouveau message
+
+                    </div>
+                    `
+
+                    :
+
+                    ""
+
+                }
+
+            `;
+
+
+            element.onclick =
+                () =>
+                    ouvrirMessage(
+                        message.id
+                    );
+
+
+            container.appendChild(
+                element
+            );
+
+        }
+    );
+
+
+    mettreAJourCompteurMessages();
+
+}
+
+
+
+/* =========================================================
+   COMPTEUR MESSAGES NON LUS
+========================================================= */
+
+function mettreAJourCompteurMessages() {
+
+
+    const nonLus =
+        messages.filter(
+            message =>
+                !message.lu
+        ).length;
+
+
+    document.getElementById(
+        "messageCounter"
+    ).textContent =
+        nonLus;
+
+
+    document.getElementById(
+        "sidebarMessageBadge"
+    ).textContent =
+        nonLus;
+
+
+    document.getElementById(
+        "statMessages"
+    ).textContent =
+        nonLus;
+
+
+    /*
+     * Si aucun message non lu,
+     * on cache le badge.
+     */
+
+    if (nonLus === 0) {
+
+        document.getElementById(
+            "sidebarMessageBadge"
+        ).style.display =
+            "none";
+
+    } else {
+
+        document.getElementById(
+            "sidebarMessageBadge"
+        ).style.display =
+            "flex";
+
+    }
+
+}
+
+
+
+/* =========================================================
+   OUVRIR UN MESSAGE
+========================================================= */
+
+function ouvrirMessage(id) {
+
+
+    const message =
+        messages.find(
+            element =>
+                element.id === id
+        );
+
+
+    if (!message) {
+        return;
+    }
+
+
+    /*
+     * Le message devient automatiquement
+     * "lu" lorsqu'il est ouvert.
+     */
+
+    message.lu =
+        true;
+
+
+    document.getElementById(
+        "modalMessageTitle"
+    ).textContent =
+        message.titre;
+
+
+    document.getElementById(
+        "modalMessageDate"
+    ).textContent =
+        message.date;
+
+
+    document.getElementById(
+        "modalMessageContent"
+    ).textContent =
+        message.contenu;
+
+
+    document.getElementById(
+        "messageModal"
+    ).classList.add(
+        "show"
+    );
+
+
+    afficherMessages();
+
+}
+
+
+
+/* =========================================================
+   FERMER MESSAGE
+========================================================= */
+
+function fermerMessage() {
+
+    document.getElementById(
+        "messageModal"
+    ).classList.remove(
+        "show"
+    );
+
+}
+
+
+
+/* =========================================================
+   OUVRIR RUBRIQUE MESSAGES
+========================================================= */
+
+function ouvrirMessagerie() {
+
+
+    const section =
+        document.getElementById(
+            "messagesSection"
+        );
+
+
+    section.scrollIntoView({
+
+        behavior:
+            "smooth"
+
+    });
+
+
+    /*
+     * Ferme le menu mobile
+     */
+
+    document
+        .getElementById("sidebar")
+        .classList.remove("open");
+
+}
+
+
+
+/* =========================================================
+   AJOUTER UN MESSAGE
+=========================================================
+
+   Cette fonction représente ce que l'administration
+   pourra faire dans le futur.
+
+========================================================= */
+
+function envoyerMessageAuMembre(
+
+    titre,
+    contenu,
+    type = "info"
+
+) {
+
+
+    const nouveauMessage = {
+
+        id:
+            Date.now(),
+
+        titre:
+            titre,
+
+        contenu:
+            contenu,
+
+        date:
+            new Date()
+                .toLocaleDateString(
+                    "fr-FR"
+                ),
+
+        type:
+            type,
+
+        lu:
+            false
+
+    };
+
+
+    messages.unshift(
+        nouveauMessage
+    );
+
+
+    afficherMessages();
+
+
+    /*
+     * Notification visuelle
+     */
+
+    alert(
+        "Nouveau message reçu dans votre espace membre."
+    );
+
+}
+
+
+
+/* =========================================================
+   MENU MOBILE
+========================================================= */
+
+function toggleMenu() {
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+
+/* =========================================================
+   INITIALISATION
+========================================================= */
+
+afficherMembre();
+
+afficherProgression();
+
+afficherMessages();
+
+
+</script>
+
+</body>
+
+</html>
+
