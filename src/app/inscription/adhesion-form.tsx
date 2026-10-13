@@ -697,8 +697,8 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
               <p className="flex gap-3 rounded-xl bg-ivoire px-4 py-3">
                 <Smartphone className="mt-0.5 size-5 shrink-0 text-foret" />
                 <span>
-                  Tu vas recevoir sur WhatsApp ton accès membre et les liens des
-                  groupes qui te correspondent.
+                  Tu vas recevoir par email ton accès membre. Les liens des
+                  groupes qui te correspondent t’attendent dans ton espace.
                 </span>
               </p>
             </div>

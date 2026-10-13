@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { ArrowRight, LoaderCircle, MessageCircle } from "lucide-react";
+import { ArrowRight, LoaderCircle, Mail } from "lucide-react";
 import { buttonClasses } from "@/components/button-styles";
 import { demanderCode, verifierCode } from "./actions";
 
@@ -10,9 +10,9 @@ const inputClasses =
   "w-full rounded-xl border border-charbon/15 bg-white px-4 py-3 text-charbon placeholder:text-charbon/40 focus:border-terre focus:ring-2 focus:ring-terre/20 focus:outline-none";
 
 export function ConnexionForm() {
-  const [etape, setEtape] = useState<"telephone" | "code">("telephone");
-  const [telephone, setTelephone] = useState("");
-  const [telephoneMasque, setTelephoneMasque] = useState("");
+  const [etape, setEtape] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
+  const [emailMasque, setEmailMasque] = useState("");
   const [code, setCode] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, demarrer] = useTransition();
@@ -21,9 +21,9 @@ export function ConnexionForm() {
     event.preventDefault();
     setErreur(null);
     demarrer(async () => {
-      const resultat = await demanderCode(telephone);
+      const resultat = await demanderCode(email);
       if (resultat.ok) {
-        setTelephoneMasque(resultat.telephoneMasque);
+        setEmailMasque(resultat.emailMasque);
         setCode("");
         setEtape("code");
       } else {
@@ -37,34 +37,34 @@ export function ConnexionForm() {
     setErreur(null);
     demarrer(async () => {
       // En cas de succès, le serveur redirige vers l'espace membre.
-      const resultat = await verifierCode(telephone, code);
+      const resultat = await verifierCode(email, code);
       if (!resultat.ok) setErreur(resultat.message);
     });
   }
 
   return (
     <div className="rounded-3xl bg-white p-6 text-charbon shadow-[0_30px_80px_rgba(32,32,29,0.18)] sm:p-10">
-      {etape === "telephone" ? (
+      {etape === "email" ? (
         <form onSubmit={envoyerCode}>
           <label
-            htmlFor="telephone"
+            htmlFor="email"
             className="mb-2 block text-xs font-semibold tracking-[1px] text-charbon/70 uppercase"
           >
-            Ton numéro WhatsApp
+            Ton adresse email
           </label>
           <input
-            id="telephone"
-            type="tel"
-            autoComplete="tel"
+            id="email"
+            type="email"
+            autoComplete="email"
             className={inputClasses}
-            placeholder="+225 07 00 00 00 00"
-            value={telephone}
-            onChange={(e) => setTelephone(e.target.value)}
+            placeholder="ton@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <p className="mt-3 flex gap-2 text-sm leading-6 text-charbon/70">
-            <MessageCircle className="mt-1 size-4 shrink-0 text-foret" />
-            Nous t’envoyons un code de connexion sur WhatsApp. Utilise le numéro
-            indiqué lors de ton adhésion.
+            <Mail className="mt-1 size-4 shrink-0 text-foret" />
+            Nous t’envoyons un code de connexion par email. Utilise l’adresse
+            indiquée lors de ton adhésion.
           </p>
           <MessageErreur erreur={erreur} />
           <button type="submit" disabled={enCours} className={`${buttonClasses("primary")} mt-2 w-full`}>
@@ -76,8 +76,9 @@ export function ConnexionForm() {
       ) : (
         <form onSubmit={valider}>
           <p className="mb-5 text-sm leading-6 text-charbon/75">
-            Si ce numéro est membre, un code vient d’être envoyé sur WhatsApp au{" "}
-            <strong className="whitespace-nowrap">{telephoneMasque}</strong>.
+            Si cette adresse est celle d’un membre, un code vient d’être envoyé à{" "}
+            <strong className="break-all">{emailMasque}</strong>. Pense à vérifier
+            tes courriers indésirables.
           </p>
           <label
             htmlFor="code"
@@ -108,12 +109,12 @@ export function ConnexionForm() {
           <button
             type="button"
             onClick={() => {
-              setEtape("telephone");
+              setEtape("email");
               setErreur(null);
             }}
             className="mt-4 w-full text-sm text-charbon/60 underline-offset-4 hover:underline"
           >
-            Changer de numéro ou renvoyer un code
+            Changer d’adresse ou renvoyer un code
           </button>
         </form>
       )}

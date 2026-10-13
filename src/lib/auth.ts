@@ -7,9 +7,9 @@ import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { codesConnexion, membres, sessions, type Membre } from "./db/schema";
 import { enProduction, secretAuth } from "./env";
-import { envoyerModele } from "./whatsapp";
+import { envoyerNotification } from "./notifications";
 
-// Connexion sans mot de passe : un code à 6 chiffres est envoyé sur le WhatsApp du membre,
+// Connexion sans mot de passe : un code à 6 chiffres est envoyé par email au membre,
 // puis une session est ouverte dans un cookie httpOnly.
 
 const COOKIE_SESSION = "clans_session";
@@ -20,8 +20,8 @@ const CODES_MAX_PAR_HEURE = 5;
 const DELAI_ENTRE_CODES_SECONDES = 60;
 
 const empreinteJeton = (jeton: string) => createHash("sha256").update(jeton).digest("hex");
-const empreinteCode = (telephone: string, code: string) =>
-  createHmac("sha256", secretAuth()).update(`${telephone}:${code}`).digest("hex");
+const empreinteCode = (identifiant: string, code: string) =>
+  createHmac("sha256", secretAuth()).update(`${identifiant}:${code}`).digest("hex");
 
 // ---------- Sessions ----------
 
@@ -72,25 +72,28 @@ export async function exigerMembre(): Promise<Membre> {
   return membre;
 }
 
-// ---------- Codes de connexion ----------
+// ---------- Codes de connexion (par email pour l'instant) ----------
 
 export type ResultatDemandeCode = { ok: true } | { ok: false; message: string };
 
-export async function envoyerCodeConnexion(telephone: string): Promise<ResultatDemandeCode> {
+const membreParEmail = async (email: string) => {
   const [membre] = await db
     .select({ id: membres.id })
     .from(membres)
-    .where(and(eq(membres.telephone, telephone), eq(membres.statut, "membre")))
+    .where(and(eq(membres.email, email), eq(membres.statut, "membre")))
     .limit(1);
+  return membre;
+};
 
-  // Même réponse que le numéro soit membre ou non : on ne révèle pas qui est inscrit.
-  if (!membre) return { ok: true };
+export async function envoyerCodeConnexion(email: string): Promise<ResultatDemandeCode> {
+  // Même réponse que l'adresse soit membre ou non : on ne révèle pas qui est inscrit.
+  if (!(await membreParEmail(email))) return { ok: true };
 
   const ilYaUneHeure = new Date(Date.now() - 3600 * 1000);
   const [{ total }] = await db
     .select({ total: count() })
     .from(codesConnexion)
-    .where(and(eq(codesConnexion.telephone, telephone), gt(codesConnexion.creeLe, ilYaUneHeure)));
+    .where(and(eq(codesConnexion.email, email), gt(codesConnexion.creeLe, ilYaUneHeure)));
   if (total >= CODES_MAX_PAR_HEURE) {
     return { ok: false, message: "Trop de demandes. Réessaie dans une heure." };
   }
@@ -98,7 +101,7 @@ export async function envoyerCodeConnexion(telephone: string): Promise<ResultatD
   const [dernier] = await db
     .select({ creeLe: codesConnexion.creeLe })
     .from(codesConnexion)
-    .where(eq(codesConnexion.telephone, telephone))
+    .where(eq(codesConnexion.email, email))
     .orderBy(desc(codesConnexion.creeLe))
     .limit(1);
   if (dernier && Date.now() - dernier.creeLe.getTime() < DELAI_ENTRE_CODES_SECONDES * 1000) {
@@ -107,29 +110,29 @@ export async function envoyerCodeConnexion(telephone: string): Promise<ResultatD
 
   const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
   await db.insert(codesConnexion).values({
-    telephone,
-    empreinte: empreinteCode(telephone, code),
+    email,
+    empreinte: empreinteCode(email, code),
     expireLe: new Date(Date.now() + DUREE_CODE_MINUTES * 60 * 1000),
   });
 
   // Envoi immédiat (pas de file d'attente) : la personne attend le code devant l'écran.
-  await envoyerModele(telephone, "code", [code]);
+  await envoyerNotification({ modele: "code", email, code });
   return { ok: true };
 }
 
 /** Vérifie le code et ouvre la session. */
-export async function verifierCodeConnexion(telephone: string, code: string): Promise<boolean> {
+export async function verifierCodeConnexion(email: string, code: string): Promise<boolean> {
   const [dernier] = await db
     .select()
     .from(codesConnexion)
-    .where(and(eq(codesConnexion.telephone, telephone), gt(codesConnexion.expireLe, new Date())))
+    .where(and(eq(codesConnexion.email, email), gt(codesConnexion.expireLe, new Date())))
     .orderBy(desc(codesConnexion.creeLe))
     .limit(1);
 
   if (!dernier || dernier.tentatives >= ESSAIS_MAX_PAR_CODE) return false;
 
   const attendue = Buffer.from(dernier.empreinte);
-  const recue = Buffer.from(empreinteCode(telephone, code));
+  const recue = Buffer.from(empreinteCode(email, code));
   if (!timingSafeEqual(attendue, recue)) {
     await db
       .update(codesConnexion)
@@ -138,14 +141,10 @@ export async function verifierCodeConnexion(telephone: string, code: string): Pr
     return false;
   }
 
-  const [membre] = await db
-    .select({ id: membres.id })
-    .from(membres)
-    .where(and(eq(membres.telephone, telephone), eq(membres.statut, "membre")))
-    .limit(1);
+  const membre = await membreParEmail(email);
   if (!membre) return false;
 
-  await db.delete(codesConnexion).where(eq(codesConnexion.telephone, telephone));
+  await db.delete(codesConnexion).where(eq(codesConnexion.email, email));
   await ouvrirSession(membre.id);
   return true;
 }

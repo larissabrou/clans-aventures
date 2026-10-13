@@ -9,8 +9,8 @@ _« Viens avec ta culture. Repars avec une histoire. »_
 - **Tailwind CSS 4**, avec la charte graphique déclarée dans `src/app/globals.css`
 - Polices **Cormorant Garamond** (titres) et **Montserrat** (textes) via `next/font`
 - **PostgreSQL** + **Drizzle ORM** (tables et migrations en TypeScript)
-- Connexion des membres par **code à usage unique envoyé sur WhatsApp** (sessions en cookie httpOnly)
-- **WhatsApp Business Cloud API** (Meta) pour les codes et les messages aux membres
+- Connexion des membres par **code à usage unique envoyé par email** (sessions en cookie httpOnly)
+- **Emails par SMTP** (Nodemailer) pour les codes et les messages aux membres ; WhatsApp prévu plus tard (`lib/whatsapp.ts`)
 - **pg-boss** : file de tâches dans PostgreSQL (messages différés, nouveaux essais automatiques)
 - **Zod** pour valider les données reçues
 - Paiement Mobile Money (Orange Money, MTN MoMo, Moov Money, Wave) via le **Payment Gateway** de Czotick
@@ -29,7 +29,7 @@ npm run dev
 
 Puis ouvrir http://localhost:3000. Au démarrage, les migrations sont appliquées automatiquement.
 
-Sans configuration WhatsApp, les messages (dont **le code de connexion**) s'affichent dans le terminal du serveur : `[WhatsApp simulé] code → +225… [ '123456' ]`. En développement, les tâches différées s'exécutent immédiatement.
+Sans `SMTP_HOST`, les emails (dont **le code de connexion**) s'affichent dans le terminal du serveur : `[Email simulé] à aya@… — Ton code de connexion CLANS : 123456`. En développement, les tâches différées s'exécutent immédiatement.
 
 | Commande | Rôle |
 |---|---|
@@ -56,7 +56,7 @@ src/
       member-shell.tsx      En-tête + menu latéral (mobile inclus)
       messages-*.tsx        Messagerie : état partagé + boîte de réception
       actions.ts            Server Functions : marquer un message comme lu
-    connexion/            /connexion      (numéro WhatsApp → code à 6 chiffres)
+    connexion/            /connexion      (adresse email → code à 6 chiffres)
       actions.ts            Server Functions : demander / vérifier le code, se déconnecter
     api/paiement/         POST : enregistre la demande et lance le paiement ; GET [reference] : relit son statut
     api/sante/            Contrôle de santé pour Coolify
@@ -68,7 +68,9 @@ src/
     adhesions.ts            Enregistrement d'une demande, confirmation du paiement
     auth.ts                 Codes de connexion et sessions
     membres.ts              Données de l'espace membre
-    whatsapp.ts             Envoi des modèles WhatsApp
+    notifications.ts        Contenu des emails (code, accès, bienvenue) aux couleurs de la charte
+    email.ts                Envoi SMTP
+    whatsapp.ts             Envoi des modèles WhatsApp (pas encore utilisé)
     jobs.ts                 File de tâches pg-boss
     paiement/               Opérateurs et pays (partagé) ; passerelle et suivi des paiements (serveur)
 drizzle/                  Migrations SQL générées (appliquées au démarrage)
@@ -101,9 +103,9 @@ Même passerelle que Czotick (AggregPay, `https://payment.czotick.com`). Le serv
 
 ## Parcours d'adhésion côté serveur
 
-1. `POST /api/paiement` valide le formulaire (Zod), crée la fiche « en attente » et le paiement, puis lance le payin. Un numéro WhatsApp déjà membre est refusé.
-2. Paiement confirmé (relecture ou webhook) : la fiche devient « membre », reçoit son numéro `CLANS-000001`, trois messages dans l'espace membre (bienvenue, groupes WhatsApp, mission 01), et deux messages WhatsApp sont programmés (accès immédiat, bienvenue 3 h plus tard).
-3. Le navigateur qui a payé est connecté directement ; ensuite, la connexion se fait sur `/connexion` avec un code reçu sur WhatsApp.
+1. `POST /api/paiement` valide le formulaire (Zod), crée la fiche « en attente » et le paiement, puis lance le payin. Un numéro WhatsApp ou une adresse email déjà membre est refusé.
+2. Paiement confirmé (relecture ou webhook) : la fiche devient « membre », reçoit son numéro `CLANS-000001`, trois messages dans l'espace membre (bienvenue, groupes WhatsApp, mission 01), et deux emails sont programmés (accès immédiat, bienvenue 3 h plus tard).
+3. Le navigateur qui a payé est connecté directement ; ensuite, la connexion se fait sur `/connexion` avec un code reçu par email.
 
 ## Administration (en attendant un back-office)
 
@@ -111,9 +113,15 @@ Même passerelle que Czotick (AggregPay, `https://payment.czotick.com`). Le serv
 
 Pour la base de production : lancer Drizzle Studio en local avec l'URL publique de la base Coolify (à activer temporairement), ou passer par le terminal de la ressource PostgreSQL dans Coolify.
 
-## Modèles WhatsApp à faire valider chez Meta
+## Emails (SMTP)
 
-Dans le WhatsApp Manager, créer ces trois modèles en français (langue `fr`) :
+Boîte LWS `noreply@clans-aventures.com` : `SMTP_HOST=mail.clans-aventures.com`, `SMTP_PORT=465` (SSL), `SMTP_USER` = l'adresse complète, `SMTP_PASSWORD` = le mot de passe de la boîte.
+
+Pour que les emails n'arrivent pas en courrier indésirable, vérifier dans la zone DNS (Cloudflare) les enregistrements **SPF** (TXT `v=spf1 …` incluant LWS), **DKIM** (fourni par LWS) et **DMARC** (`_dmarc`).
+
+## Plus tard : modèles WhatsApp à faire valider chez Meta
+
+Pour passer les messages sur WhatsApp, créer ces trois modèles en français (langue `fr`) dans le WhatsApp Manager :
 
 | Modèle | Catégorie | Contenu |
 |---|---|---|
@@ -130,7 +138,7 @@ Puis renseigner `WHATSAPP_TOKEN` (jeton permanent d'un utilisateur système) et 
 3. **Variables d'environnement** (onglet Environment Variables) : celles de `.env.example`, avec
    - `DATABASE_URL` = l'URL interne de l'étape 1,
    - `NEXT_PUBLIC_SITE_URL=https://clans-aventures.com` (à cocher aussi comme *Build Variable*),
-   - `AUTH_SECRET`, `PAYMENT_GATEWAY_API_KEY`, `PAYMENT_GATEWAY_WEBHOOK_SECRET`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`.
+   - `AUTH_SECRET`, `PAYMENT_GATEWAY_API_KEY`, `PAYMENT_GATEWAY_WEBHOOK_SECRET`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`.
 4. **Domaine** : `https://clans-aventures.com` (et `https://www.clans-aventures.com`). Coolify génère le certificat HTTPS. Avec Cloudflare : mode SSL/TLS **Full (strict)**.
 5. **Healthcheck** : déjà défini dans le `Dockerfile` (`/api/sante`, qui vérifie aussi la base).
 6. **Premier déploiement** : les migrations s'appliquent au démarrage, rien à lancer à la main. Vérifier dans les logs : « migrations appliquées » puis « travailleurs pg-boss démarrés ».

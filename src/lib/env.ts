@@ -26,7 +26,7 @@ export function secretAuth(): string {
   return "secret-de-developpement-a-ne-pas-utiliser-en-production";
 }
 
-/** Adresse publique du site, sans « / » final (liens envoyés sur WhatsApp). */
+/** Adresse publique du site, sans « / » final (liens envoyés par email). */
 export function urlSite(): string {
   return (variable("NEXT_PUBLIC_SITE_URL") ?? "http://localhost:3000").replace(/\/+$/, "");
 }

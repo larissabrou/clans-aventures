@@ -3,8 +3,7 @@ import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
 import { groupesWhatsapp, membres, messages, numeroMembreSeq, paiements } from "./db/schema";
-import { urlSite } from "./env";
-import { programmerWhatsapp } from "./jobs";
+import { programmerNotification } from "./jobs";
 import { estOperateur, estPays, PAYS } from "./paiement/operateurs";
 import { normaliserTelephone, telephoneValide } from "./telephone";
 import { UNIVERS } from "./univers";
@@ -105,6 +104,18 @@ export async function enregistrerDemande(
     if (existant && existant.statut !== "en_attente") {
       throw new ErreurAdhesion(
         "Ce numéro WhatsApp est déjà membre de CLANS. Connecte-toi à ton espace membre.",
+      );
+    }
+
+    // L'email sert à se connecter : il ne peut appartenir qu'à un seul membre.
+    const [emailPris] = await tx
+      .select({ id: membres.id })
+      .from(membres)
+      .where(and(eq(membres.email, profil.email), eq(membres.statut, "membre")))
+      .limit(1);
+    if (emailPris) {
+      throw new ErreurAdhesion(
+        "Cette adresse email est déjà utilisée par un membre. Connecte-toi à ton espace membre.",
       );
     }
 
@@ -217,21 +228,22 @@ export async function confirmerPaiement(
 
   if (confirmation.resultat !== "confirme") return confirmation;
 
-  // Après la transaction : les envois WhatsApp passent par la file (réessais automatiques).
+  // Après la transaction : les emails passent par la file (réessais automatiques).
   const { membre } = confirmation;
   try {
-    await programmerWhatsapp({
-      telephone: membre.telephone,
+    await programmerNotification({
       modele: "acces",
-      parametres: [membre.prenom, membre.numero ?? "", `${urlSite()}/connexion`],
+      email: membre.email,
+      prenom: membre.prenom,
+      numero: membre.numero ?? "",
     });
-    await programmerWhatsapp(
-      { telephone: membre.telephone, modele: "bienvenue", parametres: [membre.prenom] },
+    await programmerNotification(
+      { modele: "bienvenue", email: membre.email, prenom: membre.prenom },
       DELAI_MESSAGE_BIENVENUE_SECONDES,
     );
   } catch (erreur) {
     // L'adhésion est enregistrée : un échec d'envoi ne doit pas la faire échouer.
-    console.error("Adhésion : messages WhatsApp non programmés", { reference, erreur });
+    console.error("Adhésion : emails non programmés", { reference, erreur });
   }
 
   return { resultat: "confirme", membreId: membre.id };

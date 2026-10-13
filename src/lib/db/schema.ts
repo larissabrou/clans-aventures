@@ -38,7 +38,7 @@ export const membres = pgTable(
     prenom: text("prenom").notNull(),
     nom: text("nom").notNull(),
     email: text("email").notNull(),
-    // Numéro WhatsApp international, chiffres uniquement (ex. 2250700000000) : sert à la connexion.
+    // Numéro WhatsApp international, chiffres uniquement (ex. 2250700000000).
     telephone: text("telephone").notNull(),
     ville: text("ville"),
     trancheAge: text("tranche_age"),
@@ -60,7 +60,7 @@ export const membres = pgTable(
     creeLe: horodatage("cree_le").notNull().defaultNow(),
     modifieLe: horodatage("modifie_le").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("membres_telephone_idx").on(t.telephone)],
+  (t) => [uniqueIndex("membres_telephone_idx").on(t.telephone), index("membres_email_idx").on(t.email)],
 );
 
 export const statutPaiement = pgEnum("statut_paiement", [
@@ -185,18 +185,20 @@ export const sessions = pgTable(
   (t) => [index("sessions_membre_idx").on(t.membreId)],
 );
 
-/** Codes de connexion à usage unique envoyés sur WhatsApp (stockés signés, jamais en clair). */
+/** Codes de connexion à usage unique (stockés signés, jamais en clair). */
 export const codesConnexion = pgTable(
   "codes_connexion",
   {
     id: serial("id").primaryKey(),
-    telephone: text("telephone").notNull(),
+    // Destinataire du code : email pour l'instant, téléphone quand WhatsApp sera branché.
+    email: text("email"),
+    telephone: text("telephone"),
     empreinte: text("empreinte").notNull(),
     tentatives: integer("tentatives").notNull().default(0),
     expireLe: horodatage("expire_le").notNull(),
     creeLe: horodatage("cree_le").notNull().defaultNow(),
   },
-  (t) => [index("codes_telephone_idx").on(t.telephone)],
+  (t) => [index("codes_telephone_idx").on(t.telephone), index("codes_email_idx").on(t.email)],
 );
 
 export type Membre = typeof membres.$inferSelect;
