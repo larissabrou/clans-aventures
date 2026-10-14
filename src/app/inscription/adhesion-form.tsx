@@ -1,6 +1,7 @@
 "use client";
 
 // Composant client : il garde en mémoire l'étape et les réponses pendant que la personne remplit le parcours.
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -406,7 +407,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
               texte="CLANS rassemble plusieurs univers. Dis-nous ce que tu aimerais vivre."
             />
             <div className="grid gap-4 sm:grid-cols-2">
-              {UNIVERS.map(({ id, titre, texte, Icone }) => {
+              {UNIVERS.map(({ id, titre, texte, icone }) => {
                 const choisi = donnees.interets.includes(id);
                 return (
                   <label
@@ -423,9 +424,13 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                       checked={choisi}
                       onChange={() => basculerInteret(id)}
                     />
-                    <Icone
-                      className="mt-0.5 size-6 shrink-0 text-terre"
-                      strokeWidth={1.5}
+                    <Image
+                      src={icone}
+                      alt=""
+                      width={30}
+                      height={30}
+                      unoptimized
+                      className="size-8 shrink-0"
                     />
                     <span>
                       <strong className="mb-1 block font-titre text-xl">

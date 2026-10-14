@@ -32,7 +32,7 @@ export function MessagesInbox() {
   return (
     <div className="rounded-2xl bg-white p-5 sm:p-7">
       <div className="mb-5 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 font-semibold">
+        <h3 className="flex items-center gap-2 font-titre text-xl font-semibold">
           <Inbox className="size-5 text-terre" strokeWidth={1.75} />
           Boîte de réception
         </h3>

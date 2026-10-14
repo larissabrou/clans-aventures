@@ -91,7 +91,7 @@ export function ConnexionForm() {
             inputMode="numeric"
             autoComplete="one-time-code"
             maxLength={6}
-            className={`${inputClasses} text-center font-mono text-2xl tracking-[0.5em]`}
+            className={`${inputClasses} text-center text-2xl font-semibold tracking-[0.5em]`}
             placeholder="••••••"
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}

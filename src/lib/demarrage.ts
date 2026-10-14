@@ -1,10 +1,12 @@
 import path from "node:path";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { db } from "./db";
+import { verifierSmtp } from "./email";
 import { demarrerTravailleurs } from "./jobs";
 
 // Exécuté une fois au démarrage du serveur (voir src/instrumentation.ts) :
-// 1. applique les migrations SQL de /drizzle, 2. lance le traitement des tâches pg-boss.
+// 1. applique les migrations SQL de /drizzle, 2. lance le traitement des tâches pg-boss,
+// 3. teste la connexion SMTP et l'écrit dans les logs.
 export async function demarrer() {
   if (!process.env.DATABASE_URL) {
     console.warn("DATABASE_URL absente : base de données et tâches désactivées (voir .env.example).");
@@ -17,4 +19,7 @@ export async function demarrer() {
   if (await demarrerTravailleurs()) {
     console.info("Tâches : travailleurs pg-boss démarrés.");
   }
+
+  const smtp = await verifierSmtp();
+  (smtp.ok ? console.info : console.error)(`SMTP : ${smtp.detail}`);
 }

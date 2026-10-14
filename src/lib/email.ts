@@ -9,6 +9,10 @@ export type Email = { a: string; sujet: string; texte: string; html: string };
 
 const globalPourSmtp = globalThis as unknown as { smtpClans?: Transporter };
 
+export function smtpConfigure(): boolean {
+  return variable("SMTP_HOST") !== undefined;
+}
+
 function transporteur(): Transporter | null {
   const hote = variable("SMTP_HOST");
   if (!hote) return null;
@@ -21,8 +25,33 @@ function transporteur(): Transporter | null {
     auth: variable("SMTP_USER")
       ? { user: variable("SMTP_USER"), pass: variable("SMTP_PASSWORD") }
       : undefined,
+    connectionTimeout: 15_000,
+    greetingTimeout: 15_000,
   });
   return globalPourSmtp.smtpClans;
+}
+
+/** Message d'erreur SMTP lisible, sans jamais inclure le mot de passe. */
+export function erreurLisible(erreur: unknown): string {
+  const e = erreur as { code?: string; responseCode?: number; message?: string };
+  const message = (e.message ?? String(erreur)).replace(/\s+/g, " ").slice(0, 200);
+  const code = e.code ?? (e.responseCode ? `SMTP ${e.responseCode}` : "");
+  return code ? `${code} — ${message}` : message;
+}
+
+/**
+ * Teste la connexion et l'authentification SMTP (sans envoyer d'email).
+ * Appelé au démarrage du serveur et par /api/sante.
+ */
+export async function verifierSmtp(): Promise<{ ok: boolean; detail: string }> {
+  const smtp = transporteur();
+  if (!smtp) return { ok: false, detail: "non configuré (SMTP_HOST absent)" };
+  try {
+    await smtp.verify();
+    return { ok: true, detail: `connexion et authentification OK (${variable("SMTP_HOST")}:${variable("SMTP_PORT") ?? 465})` };
+  } catch (erreur) {
+    return { ok: false, detail: erreurLisible(erreur) };
+  }
 }
 
 export async function envoyerEmail({ a, sujet, texte, html }: Email): Promise<void> {
@@ -36,11 +65,17 @@ export async function envoyerEmail({ a, sujet, texte, html }: Email): Promise<vo
     return;
   }
 
-  await smtp.sendMail({
-    from: variable("SMTP_FROM") ?? variable("SMTP_USER"),
-    to: a,
-    subject: sujet,
-    text: texte,
-    html,
-  });
+  try {
+    const info = await smtp.sendMail({
+      from: variable("SMTP_FROM") ?? variable("SMTP_USER"),
+      to: a,
+      subject: sujet,
+      text: texte,
+      html,
+    });
+    console.info(`Email envoyé à ${a} — « ${sujet} » — réponse serveur : ${info.response}`);
+  } catch (erreur) {
+    console.error(`Email NON envoyé à ${a} — « ${sujet} » — ${erreurLisible(erreur)}`);
+    throw erreur;
+  }
 }

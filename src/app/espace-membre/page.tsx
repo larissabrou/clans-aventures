@@ -56,7 +56,7 @@ async function EspaceMembre() {
                   <p className="text-[0.65rem] tracking-[3px] text-sable uppercase">
                     Carte membre
                   </p>
-                  <p className="mt-1 font-mono text-sm tracking-[2px]">
+                  <p className="mt-1 text-sm font-semibold tracking-[2px]">
                     {membre.numero}
                   </p>
                 </div>
