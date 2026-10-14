@@ -30,7 +30,7 @@ export function MessagesInbox() {
   }
 
   return (
-    <div className="rounded-2xl bg-white p-5 sm:p-7">
+    <div className="rounded-2xl bg-white p-5 text-charbon sm:p-7">
       <div className="mb-5 flex items-center justify-between">
         <h3 className="flex items-center gap-2 font-titre text-xl font-semibold">
           <Inbox className="size-5 text-terre" strokeWidth={1.75} />
@@ -91,7 +91,7 @@ export function MessagesInbox() {
       >
         {ouvert && (
           <div>
-            <div className="flex items-start justify-between gap-4 border-b border-charbon/10 bg-foret px-6 py-5 text-ivoire">
+            <div className="flex items-start justify-between gap-4 border-b border-terre/40 bg-charbon px-6 py-5 text-ivoire">
               <h3 className="font-titre text-2xl font-semibold">{ouvert.titre}</h3>
               <button
                 type="button"

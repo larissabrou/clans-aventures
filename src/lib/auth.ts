@@ -7,10 +7,11 @@ import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { codesConnexion, membres, sessions, type Membre } from "./db/schema";
 import { enProduction, secretAuth } from "./env";
+import { motDePasseValide } from "./mot-de-passe";
 import { envoyerNotification } from "./notifications";
 
-// Connexion sans mot de passe : un code à 6 chiffres est envoyé par email au membre,
-// puis une session est ouverte dans un cookie httpOnly.
+// Connexion par email + mot de passe (reçu à l'adhésion), ou en secours par un code à 6 chiffres
+// envoyé par email. Dans les deux cas, une session est ouverte dans un cookie httpOnly.
 
 const COOKIE_SESSION = "clans_session";
 const DUREE_SESSION_JOURS = 30;
@@ -145,6 +146,22 @@ export async function verifierCodeConnexion(email: string, code: string): Promis
   if (!membre) return false;
 
   await db.delete(codesConnexion).where(eq(codesConnexion.email, email));
+  await ouvrirSession(membre.id);
+  return true;
+}
+
+// ---------- Mot de passe ----------
+
+/** Vérifie email + mot de passe et ouvre la session. scrypt rend chaque essai volontairement lent. */
+export async function connexionParMotDePasse(email: string, motDePasse: string): Promise<boolean> {
+  const [membre] = await db
+    .select({ id: membres.id, empreinte: membres.motDePasseHash })
+    .from(membres)
+    .where(and(eq(membres.email, email), eq(membres.statut, "membre")))
+    .limit(1);
+
+  if (!membre?.empreinte || !motDePasseValide(motDePasse, membre.empreinte)) return false;
+
   await ouvrirSession(membre.id);
   return true;
 }

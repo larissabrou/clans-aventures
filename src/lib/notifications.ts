@@ -6,7 +6,7 @@ import { urlSite } from "./env";
 
 export type Notification =
   | { modele: "code"; email: string; code: string }
-  | { modele: "acces"; email: string; prenom: string; numero: string }
+  | { modele: "acces"; email: string; prenom: string; numero: string; motDePasse: string }
   | { modele: "bienvenue"; email: string; prenom: string };
 
 export async function envoyerNotification(notification: Notification) {
@@ -52,7 +52,8 @@ function contenu(notification: Notification): Contenu {
         paragraphes: [
           `Bienvenue ${echapper(notification.prenom)} !`,
           `Ton adhésion est confirmée. Ton numéro membre : <strong>${echapper(notification.numero)}</strong>.`,
-          "Pour te connecter à ton espace membre, indique simplement ton adresse email : nous t’enverrons un code à chaque connexion.",
+          `Ton mot de passe : <strong style="font-size:20px;letter-spacing:3px;color:#123B2A">${echapper(notification.motDePasse)}</strong>`,
+          "Pour te connecter à ton espace membre, utilise ton adresse email et ce mot de passe. Garde cet email précieusement.",
           "Dans ton espace, tu retrouveras ta progression, tes messages et les liens de tes groupes WhatsApp.",
         ],
         bouton: { libelle: "Accéder à mon espace", lien: connexion },

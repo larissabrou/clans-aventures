@@ -54,6 +54,8 @@ export const membres = pgTable(
       onDelete: "set null",
     }),
     pinRemis: boolean("pin_remis").notNull().default(false),
+    // Empreinte scrypt du mot de passe envoyé par email à l'adhésion (voir lib/mot-de-passe.ts).
+    motDePasseHash: text("mot_de_passe_hash"),
 
     charteAccepteeLe: horodatage("charte_acceptee_le").notNull(),
     adhereLe: horodatage("adhere_le"),

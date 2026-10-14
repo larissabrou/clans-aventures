@@ -3,7 +3,12 @@
 // Server Functions de la connexion : exécutées sur le serveur, appelées depuis le formulaire.
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { envoyerCodeConnexion, fermerSession, verifierCodeConnexion } from "@/lib/auth";
+import {
+  connexionParMotDePasse,
+  envoyerCodeConnexion,
+  fermerSession,
+  verifierCodeConnexion,
+} from "@/lib/auth";
 
 export type EtatConnexion = { ok: true; emailMasque: string } | { ok: false; message: string };
 
@@ -18,6 +23,24 @@ const masquer = (email: string) => {
   return `${nom.slice(0, 1)}${"•".repeat(Math.max(nom.length - 1, 3))}@${domaine}`;
 };
 
+/** Connexion habituelle : email + mot de passe reçu à l'adhésion. */
+export async function connexion(saisie: string, motDePasse: string): Promise<EtatConnexion> {
+  const email = emailValide(saisie);
+  if (!email || !String(motDePasse ?? "").trim()) {
+    return { ok: false, message: "Indique ton adresse email et ton mot de passe." };
+  }
+
+  const valide = await connexionParMotDePasse(email, String(motDePasse).trim());
+  if (!valide) {
+    return {
+      ok: false,
+      message: "Email ou mot de passe incorrect. Tu peux aussi recevoir un code de connexion par email.",
+    };
+  }
+  redirect("/espace-membre");
+}
+
+/** Secours : un code à usage unique envoyé par email. */
 export async function demanderCode(saisie: string): Promise<EtatConnexion> {
   const email = emailValide(saisie);
   if (!email) {

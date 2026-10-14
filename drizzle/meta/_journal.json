@@ -15,6 +15,13 @@
       "when": 1791932032981,
       "tag": "0001_connexion_par_email",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792006665584,
+      "tag": "0002_mot_de_passe",
+      "breakpoints": true
     }
   ]
 }

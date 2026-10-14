@@ -145,9 +145,9 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
   // Renvoie un message d'erreur si l'étape courante n'est pas complète.
   function verifierEtape(): string | null {
     if (etape === 1) {
-      const { prenom, nom, email, telephone } = donnees;
-      if (!prenom.trim() || !nom.trim() || !email.trim() || !telephone.trim()) {
-        return "Merci de compléter ton prénom, ton nom, ton email et ton téléphone.";
+      const { prenom, nom, email, telephone, age } = donnees;
+      if (!prenom.trim() || !nom.trim() || !email.trim() || !telephone.trim() || !age) {
+        return "Merci de compléter tous les champs marqués d’un astérisque.";
       }
       if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
         return "Ton adresse email ne semble pas valide.";
@@ -155,6 +155,9 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
     }
     if (etape === 2 && donnees.interets.length === 0) {
       return "Sélectionne au moins un univers qui t’intéresse.";
+    }
+    if (etape === 3 && (!donnees.appartenance || !donnees.attente.trim())) {
+      return "Merci d’indiquer ton univers culturel et ce que tu aimerais vivre avec CLANS.";
     }
     if (etape === 4 && !donnees.charteAcceptee) {
       return "Tu dois accepter la charte de CLANS aventures pour continuer.";
@@ -327,7 +330,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
               texte="Commençons simplement. Ces informations nous permettront de créer ton profil membre."
             />
             <div className="grid gap-5 sm:grid-cols-2">
-              <Champ label="Prénom" id="prenom">
+              <Champ label="Prénom" id="prenom" requis>
                 <input
                   id="prenom"
                   className={inputClasses}
@@ -337,7 +340,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                   onChange={(e) => maj("prenom", e.target.value)}
                 />
               </Champ>
-              <Champ label="Nom" id="nom">
+              <Champ label="Nom" id="nom" requis>
                 <input
                   id="nom"
                   className={inputClasses}
@@ -347,7 +350,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                   onChange={(e) => maj("nom", e.target.value)}
                 />
               </Champ>
-              <Champ label="Email" id="email">
+              <Champ label="Email" id="email" requis>
                 <input
                   id="email"
                   type="email"
@@ -358,7 +361,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                   onChange={(e) => maj("email", e.target.value)}
                 />
               </Champ>
-              <Champ label="Téléphone (WhatsApp)" id="telephone">
+              <Champ label="Téléphone (WhatsApp)" id="telephone" requis>
                 <input
                   id="telephone"
                   type="tel"
@@ -379,7 +382,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                   onChange={(e) => maj("ville", e.target.value)}
                 />
               </Champ>
-              <Champ label="Tranche d’âge" id="age">
+              <Champ label="Tranche d’âge" id="age" requis>
                 <select
                   id="age"
                   className={inputClasses}
@@ -456,12 +459,13 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
             <EnteteEtape
               numero={3}
               titre="Ton univers culturel."
-              texte="CLANS valorise les cultures qui composent notre richesse. Ces questions sont facultatives."
+              texte="CLANS valorise les cultures qui composent notre richesse. Les questions marquées d’un astérisque sont obligatoires."
             />
             <div className="grid gap-5">
               <Champ
                 label="À quel univers culturel te sens-tu rattaché·e ?"
                 id="appartenance"
+                requis
               >
                 <select
                   id="appartenance"
@@ -514,7 +518,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                 </select>
               </Champ>
 
-              <Champ label="Qu’aimerais-tu vivre avec CLANS ?" id="attente">
+              <Champ label="Qu’aimerais-tu vivre avec CLANS ?" id="attente" requis>
                 <textarea
                   id="attente"
                   rows={4}
@@ -572,9 +576,18 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                 checked={donnees.charteAcceptee}
                 onChange={(e) => maj("charteAcceptee", e.target.checked)}
               />
-              Je reconnais avoir pris connaissance de la charte de CLANS
-              aventures et j’accepte de respecter les valeurs, règles et
-              principes de la communauté.
+              <span>
+                Je reconnais avoir pris connaissance de la{" "}
+                <a
+                  href="/documents/charte-clans-aventures.pdf"
+                  download="Charte CLANS aventures.pdf"
+                  className="font-bold text-foret underline underline-offset-4 hover:text-terre"
+                >
+                  charte de CLANS aventures
+                </a>{" "}
+                et j’accepte de respecter les valeurs, règles et principes de la
+                communauté.
+              </span>
             </label>
           </section>
         )}
@@ -692,8 +705,8 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
             </p>
 
             <div className="mx-auto mt-8 grid max-w-md gap-3 text-left text-sm leading-6">
-              <p className="flex gap-3 rounded-xl bg-sable/30 px-4 py-3">
-                <BadgeCheck className="mt-0.5 size-5 shrink-0 text-bordeaux" />
+              <p className="flex gap-3 rounded-xl bg-bordeaux px-4 py-3 text-ivoire">
+                <BadgeCheck className="mt-0.5 size-5 shrink-0 text-sable" />
                 <span>
                   Ton <strong>pin officiel CLANS</strong> te sera remis lors de
                   ta première participation physique.
@@ -702,7 +715,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
               <p className="flex gap-3 rounded-xl bg-ivoire px-4 py-3">
                 <Smartphone className="mt-0.5 size-5 shrink-0 text-foret" />
                 <span>
-                  Tu vas recevoir par email ton accès membre. Les liens des
+                  Tu vas recevoir par email ton mot de passe d’accès à ton espace membre. Les liens des
                   groupes qui te correspondent t’attendent dans ton espace.
                 </span>
               </p>
@@ -814,16 +827,23 @@ function EnteteEtape({
 function Champ({
   label,
   id,
+  requis = false,
   children,
 }: {
   label: string;
   id: string;
+  requis?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div>
       <label htmlFor={id} className={labelClasses}>
         {label}
+        {requis && (
+          <span className="ml-1 text-bordeaux" title="Obligatoire" aria-label="obligatoire">
+            *
+          </span>
+        )}
       </label>
       {children}
     </div>

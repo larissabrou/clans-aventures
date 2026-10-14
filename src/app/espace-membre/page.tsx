@@ -38,7 +38,7 @@ async function EspaceMembre() {
             <h1 className="font-titre text-4xl font-semibold sm:text-5xl">
               Bonjour {membre.prenom}
             </h1>
-            <p className="mt-2 text-charbon/70">
+            <p className="mt-2 text-ivoire/70">
               Bienvenue dans ton espace membre CLANS aventures.
             </p>
           </div>
@@ -47,7 +47,7 @@ async function EspaceMembre() {
           <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr]">
             <div
               id="carte"
-              className="relative scroll-mt-24 overflow-hidden rounded-2xl bg-foret p-6 text-ivoire sm:p-8"
+              className="relative scroll-mt-24 overflow-hidden rounded-2xl bg-linear-to-br from-charbon via-charbon to-terre p-6 text-ivoire ring-1 ring-terre/50 sm:p-8"
             >
               <MotifTextile />
 
@@ -77,7 +77,7 @@ async function EspaceMembre() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-6 sm:p-8">
+            <div className="rounded-2xl bg-white text-charbon p-6 sm:p-8">
               <h2 className="font-titre text-2xl font-semibold">
                 Ma progression
               </h2>
@@ -159,7 +159,7 @@ async function EspaceMembre() {
             {donnees.historique.length === 0 ? (
               <Vide texte="Tes premières étoiles arriveront avec tes premières expériences CLANS." />
             ) : (
-            <ul className="divide-y divide-charbon/10 rounded-2xl bg-white px-5 sm:px-7">
+            <ul className="divide-y divide-charbon/10 rounded-2xl bg-white text-charbon px-5 sm:px-7">
               {donnees.historique.map((ligne) => (
                 <li
                   key={ligne.id}
@@ -193,8 +193,8 @@ async function EspaceMembre() {
                     aria-current={actuel ? "step" : undefined}
                     className={`rounded-2xl border p-4 text-center ${
                       actuel
-                        ? "border-terre bg-sable/30"
-                        : "border-transparent bg-white"
+                        ? "border-terre bg-sable text-charbon"
+                        : "border-transparent bg-white text-charbon"
                     }`}
                   >
                     <Star
@@ -213,7 +213,7 @@ async function EspaceMembre() {
 
           {/* PROFIL */}
           <Section id="profil" titre="Mon profil">
-            <dl className="grid gap-5 rounded-2xl bg-white p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-3">
+            <dl className="grid gap-5 rounded-2xl bg-white text-charbon p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-3">
               <InfoProfil label="Nom complet" valeur={nomComplet} />
               <InfoProfil label="Numéro membre" valeur={membre.numero} />
               <InfoProfil label="Clan" valeur={membre.clan} />
@@ -222,7 +222,7 @@ async function EspaceMembre() {
             </dl>
           </Section>
 
-          <footer className="mt-16 border-t border-charbon/10 pt-6 text-center text-xs leading-6 text-charbon/50">
+          <footer className="mt-16 border-t border-ivoire/10 pt-6 text-center text-xs leading-6 text-ivoire/50">
             <p>Nos cultures nous distinguent. Nos aventures nous rapprochent.</p>
             <Copyright />
           </footer>
@@ -234,14 +234,14 @@ async function EspaceMembre() {
 
 function Chargement() {
   return (
-    <div className="flex min-h-svh items-center justify-center bg-ivoire text-charbon/60">
+    <div className="flex min-h-svh items-center justify-center bg-charbon text-ivoire/60">
       <LoaderCircle className="size-6 animate-spin" aria-label="Chargement de ton espace" />
     </div>
   );
 }
 
 function Vide({ texte }: { texte: string }) {
-  return <p className="rounded-2xl bg-white p-5 text-sm text-charbon/60">{texte}</p>;
+  return <p className="rounded-2xl bg-white text-charbon p-5 text-sm text-charbon/60">{texte}</p>;
 }
 
 function Section({
@@ -271,7 +271,7 @@ function Statistique({
   label: string;
 }) {
   return (
-    <div className="rounded-2xl bg-white p-5">
+    <div className="rounded-2xl bg-white text-charbon p-5">
       <Icone className="size-5 text-terre" strokeWidth={1.75} />
       <p className="mt-3 font-titre text-4xl font-semibold">{valeur}</p>
       <p className="mt-1 text-xs text-charbon/60">{label}</p>

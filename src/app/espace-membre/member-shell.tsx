@@ -81,7 +81,7 @@ export function MemberShell({
           <a
             href={href}
             onClick={() => setMenuOuvert(false)}
-            className={`${classes} text-ivoire/85 hover:bg-white/10 hover:text-white`}
+            className={`${classes} text-ivoire/85 hover:bg-terre/25 hover:text-white`}
           >
             {contenu}
           </a>
@@ -95,9 +95,9 @@ export function MemberShell({
   }
 
   return (
-    <div className="min-h-svh bg-ivoire text-charbon">
+    <div className="min-h-svh bg-charbon text-ivoire">
       {/* EN-TÊTE */}
-      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-white/10 bg-foret px-4 text-ivoire sm:px-6">
+      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-terre/40 bg-charbon px-4 text-ivoire sm:px-6">
         <Link href="/" className="flex items-center gap-3">
           <Logo className="h-10 w-auto" />
           <span className="font-titre text-2xl font-semibold">
@@ -107,7 +107,7 @@ export function MemberShell({
 
         <div className="flex items-center gap-3">
           <span className="hidden text-sm sm:inline">{nomComplet}</span>
-          <span className="flex size-10 items-center justify-center rounded-full bg-sable text-sm font-bold text-charbon">
+          <span className="flex size-10 items-center justify-center rounded-full bg-terre text-sm font-bold text-white">
             {initiales}
           </span>
           <button
@@ -133,26 +133,26 @@ export function MemberShell({
 
         {/* MENU LATÉRAL */}
         <aside
-          className={`fixed top-18 bottom-0 left-0 z-20 w-64 shrink-0 overflow-y-auto bg-foret px-3 py-6 text-ivoire transition-transform lg:sticky lg:h-[calc(100svh-4.5rem)] lg:translate-x-0 ${
+          className={`fixed top-18 bottom-0 left-0 z-20 w-64 shrink-0 overflow-y-auto border-r border-terre/30 bg-charbon px-3 py-6 text-ivoire transition-transform lg:sticky lg:h-[calc(100svh-4.5rem)] lg:translate-x-0 ${
             menuOuvert ? "translate-x-0" : "-translate-x-full"
           }`}
         >
           <nav aria-label="Espace membre">
-            <p className="mx-4 mb-3 text-[0.65rem] tracking-[2px] text-sable uppercase">
+            <p className="mx-4 mb-3 text-[0.65rem] tracking-[2px] text-terre uppercase">
               Mon espace
             </p>
             <ul className="grid gap-1">{MON_ESPACE.map(lien)}</ul>
 
-            <p className="mx-4 mt-8 mb-3 text-[0.65rem] tracking-[2px] text-sable uppercase">
+            <p className="mx-4 mt-8 mb-3 text-[0.65rem] tracking-[2px] text-terre uppercase">
               Communauté
             </p>
             <ul className="grid gap-1">{COMMUNAUTE.map(lien)}</ul>
           </nav>
 
-          <form action={deconnexion} className="mt-8 border-t border-white/10 pt-4">
+          <form action={deconnexion} className="mt-8 border-t border-terre/30 pt-4">
             <button
               type="submit"
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-ivoire/70 transition hover:bg-white/10 hover:text-white"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-ivoire/70 transition hover:bg-terre/25 hover:text-white"
             >
               <LogOut className="size-[18px] shrink-0" strokeWidth={1.75} />
               Se déconnecter

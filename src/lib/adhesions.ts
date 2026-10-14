@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "./db";
 import { groupesWhatsapp, membres, messages, numeroMembreSeq, paiements } from "./db/schema";
 import { programmerNotification } from "./jobs";
+import { genererMotDePasse, hacherMotDePasse } from "./mot-de-passe";
 import { estOperateur, estPays, PAYS } from "./paiement/operateurs";
 import { normaliserTelephone, telephoneValide } from "./telephone";
 import { UNIVERS } from "./univers";
@@ -45,21 +46,16 @@ export const demandeAdhesionSchema = z.object({
   email: z.email({ error: "Ton adresse email ne semble pas valide." }).trim().max(200),
   telephone: texteRequis("Indique ton numéro WhatsApp.", 30),
   ville: texteOptionnel,
-  age: texteOptionnel,
+  age: texteRequis("Indique ta tranche d’âge.", 20),
   interets: z
     .array(z.enum(UNIVERS.map((u) => u.id) as [string, ...string[]]), {
       error: "Sélectionne au moins un univers.",
     })
     .min(1, "Sélectionne au moins un univers."),
-  appartenance: texteOptionnel,
+  appartenance: texteRequis("Indique ton univers culturel.", 80),
   appartenanceAutre: texteOptionnel,
   universADecouvrir: texteOptionnel,
-  attente: z
-    .string()
-    .trim()
-    .max(2000)
-    .optional()
-    .transform((v) => v || null),
+  attente: texteRequis("Dis-nous ce que tu aimerais vivre avec CLANS.", 2000),
   charteAcceptee: z.literal(true, { error: "Tu dois accepter la charte de CLANS aventures." }),
   pays: z.string({ error: "Choisis ton pays." }).refine(estPays, "Pays non pris en charge."),
   operateur: z
@@ -180,6 +176,9 @@ export async function confirmerPaiement(
   reference: string,
   montantRecu?: number,
 ): Promise<Confirmation> {
+  // Mot de passe envoyé par email ; seule son empreinte est conservée en base.
+  const motDePasse = genererMotDePasse();
+
   const confirmation = await db.transaction(async (tx) => {
     const [paiement] = await tx
       .select()
@@ -208,6 +207,7 @@ export async function confirmerPaiement(
         statut: "membre",
         numero: sql`coalesce(${membres.numero}, 'CLANS-' || lpad(nextval(${numeroMembreSeq.seqName})::text, 6, '0'))`,
         adhereLe: sql`coalesce(${membres.adhereLe}, now())`,
+        motDePasseHash: hacherMotDePasse(motDePasse),
         modifieLe: new Date(),
       })
       .where(eq(membres.id, paiement.membreId))
@@ -245,6 +245,7 @@ export async function confirmerPaiement(
       email: membre.email,
       prenom: membre.prenom,
       numero: membre.numero ?? "",
+      motDePasse,
     });
     await programmerNotification(
       { modele: "bienvenue", email: membre.email, prenom: membre.prenom },
