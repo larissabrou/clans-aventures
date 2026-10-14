@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Hero, type VersionHero } from "@/components/hero";
 import { UNIVERS } from "@/lib/univers";
 
-// Version du hero affichée sur l'accueil : "vert" ou "blanc" (comparaison sur /propositions/hero).
+// Version du hero affichée sur l'accueil : "vert", "blanc", "campement" ou "barre" (comparaison sur /propositions/hero).
 const VERSION_HERO: VersionHero = "vert";
 
 export default function HomePage() {

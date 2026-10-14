@@ -18,6 +18,16 @@ const PROPOSITIONS: { version: VersionHero; titre: string; note: string }[] = [
     titre: "Version B — fond vert forêt",
     note: "Vidéo sous un voile vert forêt · logo blanc · textes clairs · bouton blanc",
   },
+  {
+    version: "campement",
+    titre: "Version C — campement de nuit (HD)",
+    note: "Vidéo paysage HD sous un voile léger · logo blanc · textes clairs · bouton blanc",
+  },
+  {
+    version: "barre",
+    titre: "Version D — en-tête blanc + campement (HD)",
+    note: "Barre d’en-tête blanche avec logo coloré · vidéo HD en fond · textes clairs · bouton blanc",
+  },
 ];
 
 export default function PropositionsHeroPage() {

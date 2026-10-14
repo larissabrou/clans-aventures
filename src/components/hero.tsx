@@ -1,15 +1,21 @@
 import { CtaLink } from "@/components/cta-link";
 import { SiteHeader } from "@/components/site-header";
 
-// Vidéo de fond du hero (portrait 360×640, sans son, lue en boucle).
-// Pour une meilleure qualité sur grand écran, la remplacer par une vidéo paysage HD (1920×1080).
-const HERO_VIDEO = "/videos/clans-aventures-presentation.mp4";
+// Vidéos de fond (sans son, lues en boucle).
+const FEU_DE_CAMP = "/videos/clans-aventures-presentation.mp4"; // portrait 360×640
+const CAMPEMENT_HD = "/videos/clans-aventures-hero-hd.mp4"; // paysage 1920×1080 : tente, feu, lac
 
-// Deux versions, la vidéo en fond dans les deux cas :
-// - "blanc" : voile blanc, logo coloré, textes foncés ;
-// - "vert"  : voile vert forêt, logo blanc, textes clairs.
+// Trois versions, la vidéo en fond dans tous les cas :
+// - "blanc"      : feu de camp sous un voile blanc, logo coloré, textes foncés ;
+// - "vert"       : feu de camp sous un voile vert forêt, logo blanc, textes clairs ;
+// - "campement"  : campement de nuit en HD sous un voile léger, logo blanc, textes clairs ;
+// - "barre"      : comme « campement », avec un en-tête sur barre blanche et le logo coloré.
+// `entete` : style de l'en-tête ; `fond` : style du bouton (clair = bouton vert, sombre = bouton blanc).
 const VERSIONS = {
   blanc: {
+    video: FEU_DE_CAMP,
+    cadrage: "object-center",
+    entete: "clair",
     fond: "clair",
     section: "bg-white text-charbon",
     voile: "bg-linear-to-b from-white/85 via-white/70 to-white/90",
@@ -20,12 +26,43 @@ const VERSIONS = {
     trait: "bg-charbon/40",
   },
   vert: {
+    video: FEU_DE_CAMP,
+    cadrage: "object-center",
+    entete: "sombre",
     fond: "sombre",
     section: "bg-charbon text-white",
     voile: "bg-linear-to-b from-foret/55 via-charbon/45 to-foret/85",
     marque: "",
     devise: "text-sable",
     description: "text-white/85",
+    decouvrir: "text-white/70",
+    trait: "bg-white",
+  },
+  campement: {
+    video: CAMPEMENT_HD,
+    // Sur écran étroit, garde la tente et le feu (à gauche de l'image) dans le cadre.
+    cadrage: "object-[28%_center] md:object-center",
+    entete: "sombre",
+    fond: "sombre",
+    section: "bg-charbon text-white",
+    voile: "bg-linear-to-b from-charbon/50 via-charbon/25 to-charbon/75",
+    marque: "",
+    devise: "text-sable",
+    description: "text-white/90",
+    decouvrir: "text-white/70",
+    trait: "bg-white",
+  },
+  barre: {
+    video: CAMPEMENT_HD,
+    cadrage: "object-[28%_center] md:object-center",
+    entete: "barre",
+    fond: "sombre",
+    section: "bg-charbon text-white",
+    // Le haut de la vidéo est sous la barre blanche : voile plus léger en haut.
+    voile: "bg-linear-to-b from-charbon/30 via-charbon/25 to-charbon/75",
+    marque: "",
+    devise: "text-sable",
+    description: "text-white/90",
     decouvrir: "text-white/70",
     trait: "bg-white",
   },
@@ -40,11 +77,11 @@ export function Hero({ version }: { version: VersionHero }) {
     <section
       className={`relative flex min-h-svh items-center justify-center overflow-hidden text-center ${v.section}`}
     >
-      <SiteHeader fond={v.fond} />
+      <SiteHeader fond={v.entete} />
 
       <video
-        className="absolute inset-0 h-full w-full object-cover"
-        src={HERO_VIDEO}
+        className={`absolute inset-0 h-full w-full object-cover ${v.cadrage}`}
+        src={v.video}
         autoPlay
         muted
         loop
@@ -53,7 +90,7 @@ export function Hero({ version }: { version: VersionHero }) {
       />
       <div className={`absolute inset-0 ${v.voile}`} />
 
-      <div className="relative max-w-212 px-5 py-8 sm:px-6 sm:py-10">
+      <div className="relative max-w-212 px-5 pt-24 pb-8 sm:px-6 sm:pt-28 sm:pb-10">
         <p
           className={`mb-2.5 font-titre text-[clamp(3rem,8vw,6.5rem)] leading-none font-semibold tracking-[3px] ${v.marque}`}
         >
