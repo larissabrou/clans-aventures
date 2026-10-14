@@ -115,7 +115,9 @@ Pour la base de production : lancer Drizzle Studio en local avec l'URL publique 
 
 ## Emails (SMTP)
 
-Boîte LWS `noreply@clans-aventures.com` : `SMTP_HOST=mail.clans-aventures.com`, `SMTP_PORT=465` (SSL), `SMTP_USER` = l'adresse complète, `SMTP_PASSWORD` = le mot de passe de la boîte.
+Boîte LWS `noreply@clans-aventures.com` : `SMTP_HOST=mail16.lwspanel.com` (le nom du serveur LWS, dont le certificat TLS est au nom de `*.lwspanel.com` ; avec `mail.clans-aventures.com` la connexion est refusée), `SMTP_PORT=465` (SSL), `SMTP_USER` = l'adresse complète, `SMTP_PASSWORD` = le mot de passe de la boîte.
+
+Diagnostic : `https://clans-aventures.com/api/sante` indique l'état SMTP, les compteurs de la file d'emails et la dernière erreur ; au démarrage, les logs affichent `SMTP : …`. Depuis le terminal Coolify : `node scripts/test-email.mjs votre@adresse.com`.
 
 Pour que les emails n'arrivent pas en courrier indésirable, vérifier dans la zone DNS (Cloudflare) les enregistrements **SPF** (TXT `v=spf1 …` incluant LWS), **DKIM** (fourni par LWS) et **DMARC** (`_dmarc`).
 
