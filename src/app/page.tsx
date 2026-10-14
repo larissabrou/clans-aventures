@@ -3,18 +3,18 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { UNIVERS } from "@/lib/univers";
 
-// Mettre la vidéo dans public/videos/ puis renseigner son chemin ici,
-// par ex. "/videos/camping-foret.mp4". Sans vidéo, le fond reste vert forêt.
+// Hero sur fond blanc avec le logo coloré. Pour une vidéo plein écran, la mettre dans public/videos/
+// et renseigner son chemin ici (ex. "/videos/camping-foret.mp4") : un voile blanc garde le texte lisible.
 const HERO_VIDEO: string | null = null;
 
 export default function HomePage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader fond="clair" />
 
       <main>
         {/* HERO */}
-        <section className="relative flex min-h-svh items-center justify-center overflow-hidden bg-foret text-center">
+        <section className="relative flex min-h-svh items-center justify-center overflow-hidden bg-white text-center text-charbon">
           {HERO_VIDEO && (
             <video
               className="absolute inset-0 h-full w-full object-cover"
@@ -27,14 +27,14 @@ export default function HomePage() {
             </video>
           )}
 
-          <div className="absolute inset-0 bg-linear-to-b from-foret/40 to-foret/85" />
+          {HERO_VIDEO && <div className="absolute inset-0 bg-white/75" />}
 
           <div className="relative max-w-212 px-5 py-8 sm:px-6 sm:py-10">
-            <p className="mb-2.5 font-titre text-[clamp(3rem,8vw,6.5rem)] leading-none font-semibold tracking-[3px]">
+            <p className="mb-2.5 font-titre text-[clamp(3rem,8vw,6.5rem)] leading-none font-semibold tracking-[3px] text-foret">
               clans <span className="italic">aventures</span>
             </p>
 
-            <p className="mb-9 text-[clamp(1rem,2vw,1.35rem)] tracking-[2px] uppercase opacity-90 sm:tracking-[4px]">
+            <p className="mb-9 text-[clamp(1rem,2vw,1.35rem)] tracking-[2px] text-terre uppercase sm:tracking-[4px]">
               Nature · Culture · Rencontres
             </p>
 
@@ -42,19 +42,50 @@ export default function HomePage() {
               Et si ta prochaine histoire commençait autour d’un feu ?
             </h1>
 
-            <p className="mx-auto mb-9 max-w-162 text-sm leading-7 opacity-90 sm:text-base sm:leading-8">
+            <p className="mx-auto mb-9 max-w-162 text-sm leading-7 text-charbon/75 sm:text-base sm:leading-8">
               Une communauté africaine qui se retrouve, explore, partage et crée
               des souvenirs loin du quotidien.
               <br />
               Des campings. Des découvertes. Des rencontres. Des histoires.
             </p>
 
-            <CtaLink href="#aventure">Commencer l’aventure</CtaLink>
+            <CtaLink href="#aventure" fond="clair">
+              Commencer l’aventure
+            </CtaLink>
           </div>
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.7rem] tracking-[3px] uppercase opacity-70">
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.7rem] tracking-[3px] text-charbon/60 uppercase">
             Découvrir
-            <div className="mx-auto mt-2 h-10 w-px animate-scroll-line bg-white" />
+            <div className="mx-auto mt-2 h-10 w-px animate-scroll-line bg-charbon/40" />
+          </div>
+        </section>
+
+        {/* VIDÉO DE PRÉSENTATION (format portrait, sans son : lecture automatique en boucle) */}
+        <section className="bg-foret px-6 py-20 sm:py-24">
+          <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 md:flex-row md:justify-between">
+            <div className="max-w-md text-center md:text-left">
+              <p className="mb-4 text-xs tracking-[3px] text-sable uppercase">
+                CLANS en images
+              </p>
+              <p className="font-titre text-[clamp(2.25rem,5vw,3.75rem)] leading-tight font-medium">
+                Viens avec ta culture.
+                <br />
+                <span className="italic">Repars avec une histoire.</span>
+              </p>
+            </div>
+
+            <video
+              className="w-full max-w-72 rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:max-w-80"
+              src="/videos/clans-aventures-presentation.mp4"
+              width={360}
+              height={640}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Vidéo de présentation de CLANS aventures"
+            />
           </div>
         </section>
 
