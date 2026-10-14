@@ -1,20 +1,24 @@
 import Link from "next/link";
 
 // Bouton principal arrondi, réutilisé sur toute la landing.
-// fond "sombre" : bouton blanc (sections vertes) ; "clair" : bouton vert forêt (hero blanc).
+// fond "sombre" : bouton blanc (sections vertes) ; "clair" : bouton vert forêt (fonds blancs) ;
+// "noir" : bouton charbon, texte blanc (hero sur vidéo).
 export function CtaLink({
   href,
   fond = "sombre",
   children,
 }: {
   href: string;
-  fond?: "clair" | "sombre";
+  fond?: "clair" | "sombre" | "noir";
   children: React.ReactNode;
 }) {
-  const couleurs =
-    fond === "clair"
-      ? "bg-foret text-ivoire shadow-[0_10px_30px_rgba(18,59,42,0.25)] hover:bg-terre hover:shadow-[0_15px_40px_rgba(18,59,42,0.3)]"
-      : "bg-white text-charbon shadow-[0_10px_40px_rgba(0,0,0,0.25)] hover:bg-sable hover:shadow-[0_15px_45px_rgba(0,0,0,0.4)]";
+  const couleurs = {
+    clair:
+      "bg-foret text-ivoire shadow-[0_10px_30px_rgba(18,59,42,0.25)] hover:bg-terre hover:shadow-[0_15px_40px_rgba(18,59,42,0.3)]",
+    sombre:
+      "bg-white text-charbon shadow-[0_10px_40px_rgba(0,0,0,0.25)] hover:bg-sable hover:shadow-[0_15px_45px_rgba(0,0,0,0.4)]",
+    noir: "bg-charbon text-white shadow-[0_10px_40px_rgba(0,0,0,0.35)] hover:bg-foret hover:shadow-[0_15px_45px_rgba(0,0,0,0.45)]",
+  }[fond];
 
   return (
     <Link

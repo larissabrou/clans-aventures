@@ -23,11 +23,12 @@ export function SiteHeader({
       }`}
     >
       <Link href="/" aria-label="CLANS aventures — accueil">
-        <Logo
-          variant={fondClair ? "couleur" : "blanc"}
-          className="h-12 w-auto sm:h-14"
-          preload
-        />
+        {fondClair ? (
+          // Logo complet (symbole + nom), assez grand pour que le nom reste lisible.
+          <Logo variant="complet" className="h-16 w-auto sm:h-20" preload />
+        ) : (
+          <Logo variant="blanc" className="h-12 w-auto sm:h-14" preload />
+        )}
       </Link>
 
       <Link
