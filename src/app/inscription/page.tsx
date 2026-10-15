@@ -13,20 +13,32 @@ export const metadata: Metadata = {
 export default function InscriptionPage({ searchParams }: PageProps<"/inscription">) {
   return (
     <>
-      <SiteHeader variant="retour" />
+      {/* Même en-tête que l'accueil : barre blanche et logo complet. */}
+      <SiteHeader variant="retour" fond="barre" />
 
-      <main className="bg-ivoire">
-        <section className="bg-foret px-6 pt-36 pb-32 text-center">
-          <p className="mb-4 text-xs tracking-[3px] text-sable uppercase">
+      {/* Fond : photo du campement derrière le formulaire. */}
+      <main
+        className="bg-charbon bg-cover bg-center"
+        style={{ backgroundImage: "url(/images/fond-campement.jpg)" }}
+      >
+        {/* Bandeau : motifs CLANS sur fond ivoire, le centre vide accueille le titre. */}
+        <section
+          className="bg-ivoire bg-cover bg-center px-6 pt-40 pb-32 text-center text-charbon sm:pt-44"
+          style={{ backgroundImage: "url(/images/banniere-motifs.png)" }}
+        >
+          {/* Sur petit écran, voile ivoire derrière le texte : les motifs restent lisibles sans gêner. */}
+          <div className="mx-auto max-w-2xl rounded-3xl bg-ivoire/85 px-4 py-6 sm:bg-transparent sm:p-0">
+          <p className="mb-4 text-xs tracking-[3px] text-terre uppercase">
             Rejoins CLANS aventures
           </p>
-          <h1 className="font-titre text-[clamp(2.75rem,7vw,5rem)] leading-none font-medium">
+          <h1 className="font-titre text-[clamp(2.75rem,7vw,5rem)] leading-none font-medium text-foret">
             Commence ton <span className="italic">aventure.</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl leading-7 text-ivoire/85">
+          <p className="mx-auto mt-5 max-w-xl leading-7 text-charbon/75">
             Quelques questions pour mieux te connaître, comprendre ce que tu
             recherches et préparer ton expérience au sein de CLANS.
           </p>
+          </div>
         </section>
 
         <div className="mx-auto -mt-20 max-w-3xl px-4 pb-24">
