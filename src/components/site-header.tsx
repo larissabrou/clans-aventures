@@ -12,31 +12,81 @@ export function SiteHeader({
   fond?: "clair" | "barre" | "sombre";
 }) {
   const fondClair = fond !== "sombre";
-  const lien = fondClair
-    ? "border-charbon/30 text-charbon hover:bg-foret hover:border-foret hover:text-ivoire"
-    : "border-white/75 hover:bg-white hover:text-charbon";
+
+  // Bouton secondaire (contour) et principal (plein), selon le fond.
+  const contour = fondClair
+    ? "border-charbon/25 text-charbon hover:bg-ivoire hover:border-charbon/40"
+    : "border-white/70 text-white hover:bg-white/15";
+  const plein = fondClair
+    ? "border-foret bg-foret text-ivoire hover:bg-terre hover:border-terre"
+    : "border-white bg-white text-charbon hover:bg-sable hover:border-sable";
+
+  const bouton =
+    "inline-flex min-h-[38px] items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-[0.62rem] font-semibold tracking-[1px] uppercase transition duration-300 sm:min-h-[42px] sm:gap-2 sm:px-4 sm:text-xs sm:tracking-[1.5px]";
 
   return (
     <header
-      className={`absolute inset-x-0 top-0 z-10 flex items-center justify-between px-5 py-4 sm:px-9 sm:py-5 ${
+      className={`absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-9 sm:py-5 ${
         fond === "barre" ? "bg-white shadow-[0_2px_20px_rgba(32,32,29,0.12)]" : ""
       }`}
     >
-      <Link href="/" aria-label="CLANS aventures — accueil">
+      <Link href="/" aria-label="CLANS aventures — accueil" className="shrink-0">
         {fondClair ? (
           // Logo complet (symbole + nom), assez grand pour que le nom reste lisible.
-          <Logo variant="complet" className="h-16 w-auto sm:h-20" preload />
+          <Logo variant="complet" className="h-14 w-auto max-[379px]:h-12 sm:h-20" preload />
         ) : (
           <Logo variant="blanc" className="h-12 w-auto sm:h-14" preload />
         )}
       </Link>
 
-      <Link
-        href={variant === "retour" ? "/" : "/espace-membre"}
-        className={`inline-flex items-center rounded-full border px-3.5 py-2.5 text-[0.62rem] font-semibold tracking-[1.5px] uppercase transition duration-300 sm:px-5 sm:text-xs ${lien}`}
-      >
-        {variant === "retour" ? "← Retour" : "Espace membre"}
-      </Link>
+      <nav aria-label="Navigation principale" className="flex items-center gap-1.5 sm:gap-3">
+        <Link href="/grenier" className={`${bouton} ${contour}`}>
+          <IconeGrenier />
+          {/* Sur très petit écran (< 380 px), icône seule : le libellé reste lu par les lecteurs d'écran. */}
+          <span className="max-[379px]:sr-only">Le Grenier</span>
+        </Link>
+
+        {variant === "retour" ? (
+          <Link href="/" className={`${bouton} ${plein}`}>
+            ← Retour
+          </Link>
+        ) : (
+          <Link href="/espace-membre" className={`${bouton} ${plein}`}>
+            <IconeMembre />
+            Espace membre
+          </Link>
+        )}
+      </nav>
     </header>
+  );
+}
+
+const traitIcone = {
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.7,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  className: "size-4 shrink-0 sm:size-[19px]",
+  "aria-hidden": true,
+} as const;
+
+function IconeGrenier() {
+  return (
+    <svg {...traitIcone}>
+      <path d="M3 9h18l-1.5 12h-15L3 9Z" />
+      <path d="M8 9V6a4 4 0 0 1 8 0v3" />
+      <path d="M9 13v1M15 13v1" />
+    </svg>
+  );
+}
+
+function IconeMembre() {
+  return (
+    <svg {...traitIcone}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </svg>
   );
 }

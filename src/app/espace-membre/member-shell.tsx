@@ -3,16 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
-  IdCard,
   LayoutDashboard,
   LogOut,
-  Megaphone,
   Menu,
   MessageCircle,
-  Star,
   Tent,
-  TreePine,
-  User,
   Users,
   X,
   type LucideIcon,
@@ -30,17 +25,11 @@ type Lien = {
 };
 
 const MON_ESPACE: Lien[] = [
-  { label: "Tableau de bord", Icone: LayoutDashboard, href: "#tableau-de-bord" },
-  { label: "Ma carte CLANS", Icone: IdCard, href: "#carte" },
-  { label: "Mes étoiles", Icone: Star, href: "#etoiles" },
+  { label: "Tableau CLANS", Icone: LayoutDashboard, href: "#tableau-de-bord" },
   { label: "Messages", Icone: MessageCircle, href: "#messages", badgeMessages: true },
-  { label: "Mon clan", Icone: TreePine },
   { label: "Expériences", Icone: Tent },
   { label: "Parrainage", Icone: Users },
-  { label: "Mon profil", Icone: User, href: "#profil" },
 ];
-
-const COMMUNAUTE: Lien[] = [{ label: "Actualités", Icone: Megaphone }];
 
 export function MemberShell({
   nomComplet,
@@ -65,7 +54,7 @@ export function MemberShell({
           </span>
         )}
         {!href && (
-          <span className="text-[0.6rem] tracking-[1px] text-ivoire/40 uppercase">
+          <span className="text-[0.6rem] tracking-[1px] text-sable/50 uppercase">
             Bientôt
           </span>
         )}
@@ -81,12 +70,12 @@ export function MemberShell({
           <a
             href={href}
             onClick={() => setMenuOuvert(false)}
-            className={`${classes} text-ivoire/85 hover:bg-terre/25 hover:text-white`}
+            className={`${classes} text-sable hover:bg-terre/25 hover:text-ivoire`}
           >
             {contenu}
           </a>
         ) : (
-          <span className={`${classes} cursor-default text-ivoire/45`}>
+          <span className={`${classes} cursor-default text-sable/55`}>
             {contenu}
           </span>
         )}
@@ -142,17 +131,12 @@ export function MemberShell({
               Mon espace
             </p>
             <ul className="grid gap-1">{MON_ESPACE.map(lien)}</ul>
-
-            <p className="mx-4 mt-8 mb-3 text-[0.65rem] tracking-[2px] text-terre uppercase">
-              Communauté
-            </p>
-            <ul className="grid gap-1">{COMMUNAUTE.map(lien)}</ul>
           </nav>
 
           <form action={deconnexion} className="mt-8 border-t border-terre/30 pt-4">
             <button
               type="submit"
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-ivoire/70 transition hover:bg-terre/25 hover:text-white"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-sable/80 transition hover:bg-terre/25 hover:text-ivoire"
             >
               <LogOut className="size-[18px] shrink-0" strokeWidth={1.75} />
               Se déconnecter
