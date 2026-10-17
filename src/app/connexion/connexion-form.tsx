@@ -4,20 +4,23 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ArrowRight, LoaderCircle, Mail } from "lucide-react";
 import { buttonClasses } from "@/components/button-styles";
-import { connexion, demanderCode, verifierCode } from "./actions";
+import { connexion, demanderCode, reinitialiser } from "./actions";
 
 const inputClasses =
   "w-full rounded-xl border border-charbon/15 bg-white px-4 py-3 text-charbon placeholder:text-charbon/40 focus:border-terre focus:ring-2 focus:ring-terre/20 focus:outline-none";
 
 const labelClasses = "mb-2 block text-xs font-semibold tracking-[1px] text-charbon/70 uppercase";
 
-// Trois écrans : "motdepasse" (connexion habituelle), "email" puis "code" (secours sans mot de passe).
+// Trois écrans : "motdepasse" (connexion habituelle) ; en cas d'oubli, "email" (envoi d'un code)
+// puis "nouveau" (code reçu + choix d'un nouveau mot de passe).
 export function ConnexionForm() {
-  const [etape, setEtape] = useState<"motdepasse" | "email" | "code">("motdepasse");
+  const [etape, setEtape] = useState<"motdepasse" | "email" | "nouveau">("motdepasse");
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [emailMasque, setEmailMasque] = useState("");
   const [code, setCode] = useState("");
+  const [nouveau, setNouveau] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, demarrer] = useTransition();
 
@@ -39,18 +42,21 @@ export function ConnexionForm() {
       if (resultat.ok) {
         setEmailMasque(resultat.emailMasque);
         setCode("");
-        setEtape("code");
+        setNouveau("");
+        setConfirmation("");
+        setEtape("nouveau");
       } else {
         setErreur(resultat.message);
       }
     });
   }
 
-  function validerCode(event: React.FormEvent) {
+  function definirNouveau(event: React.FormEvent) {
     event.preventDefault();
     setErreur(null);
     demarrer(async () => {
-      const resultat = await verifierCode(email, code);
+      // En cas de succès, le serveur redirige vers l'espace membre.
+      const resultat = await reinitialiser(email, code, nouveau, confirmation);
       if (!resultat.ok) setErreur(resultat.message);
     });
   }
@@ -77,6 +83,8 @@ export function ConnexionForm() {
     </div>
   );
 
+  const lienSecondaire = "text-sm text-charbon/60 underline-offset-4 hover:underline";
+
   return (
     <div className="rounded-3xl bg-white p-6 text-charbon shadow-[0_30px_80px_rgba(32,32,29,0.18)] sm:p-10">
       {etape === "motdepasse" && (
@@ -102,42 +110,37 @@ export function ConnexionForm() {
             Me connecter
             {!enCours && <ArrowRight className="size-4" />}
           </button>
-          <button
-            type="button"
-            onClick={() => basculer("email")}
-            className="text-sm text-charbon/60 underline-offset-4 hover:underline"
-          >
-            Mot de passe oublié ? Recevoir un code de connexion par email
+          <button type="button" onClick={() => basculer("email")} className={lienSecondaire}>
+            Mot de passe oublié ?
           </button>
         </form>
       )}
 
       {etape === "email" && (
         <form onSubmit={envoyerCode} className="grid gap-5">
+          <div>
+            <h2 className="font-titre text-2xl font-semibold">Mot de passe oublié</h2>
+            <p className="mt-2 flex gap-2 text-sm leading-6 text-charbon/70">
+              <Mail className="mt-1 size-4 shrink-0 text-foret" />
+              Indique l’adresse email de ton adhésion : nous t’envoyons un code
+              pour choisir un nouveau mot de passe.
+            </p>
+          </div>
           {champEmail}
-          <p className="flex gap-2 text-sm leading-6 text-charbon/70">
-            <Mail className="mt-1 size-4 shrink-0 text-foret" />
-            Nous t’envoyons un code de connexion par email. Utilise l’adresse
-            indiquée lors de ton adhésion.
-          </p>
           <MessageErreur erreur={erreur} />
           <button type="submit" disabled={enCours} className={`${buttonClasses("primary")} w-full`}>
             {enCours ? <LoaderCircle className="size-4 animate-spin" /> : null}
             Recevoir mon code
             {!enCours && <ArrowRight className="size-4" />}
           </button>
-          <button
-            type="button"
-            onClick={() => basculer("motdepasse")}
-            className="text-sm text-charbon/60 underline-offset-4 hover:underline"
-          >
-            Retour à la connexion par mot de passe
+          <button type="button" onClick={() => basculer("motdepasse")} className={lienSecondaire}>
+            Retour à la connexion
           </button>
         </form>
       )}
 
-      {etape === "code" && (
-        <form onSubmit={validerCode} className="grid gap-5">
+      {etape === "nouveau" && (
+        <form onSubmit={definirNouveau} className="grid gap-5">
           <p className="text-sm leading-6 text-charbon/75">
             Si cette adresse est celle d’un membre, un code vient d’être envoyé à{" "}
             <strong className="break-all">{emailMasque}</strong>. Pense à vérifier
@@ -159,6 +162,34 @@ export function ConnexionForm() {
               autoFocus
             />
           </div>
+          <div>
+            <label htmlFor="nouveau" className={labelClasses}>
+              Nouveau mot de passe
+            </label>
+            <input
+              id="nouveau"
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              className={inputClasses}
+              placeholder="8 caractères minimum"
+              value={nouveau}
+              onChange={(e) => setNouveau(e.target.value)}
+            />
+          </div>
+          <div>
+            <label htmlFor="confirmation" className={labelClasses}>
+              Confirme le nouveau mot de passe
+            </label>
+            <input
+              id="confirmation"
+              type="password"
+              autoComplete="new-password"
+              className={inputClasses}
+              value={confirmation}
+              onChange={(e) => setConfirmation(e.target.value)}
+            />
+          </div>
           <MessageErreur erreur={erreur} />
           <button
             type="submit"
@@ -166,13 +197,9 @@ export function ConnexionForm() {
             className={`${buttonClasses("primary")} w-full`}
           >
             {enCours ? <LoaderCircle className="size-4 animate-spin" /> : null}
-            Me connecter
+            Enregistrer et me connecter
           </button>
-          <button
-            type="button"
-            onClick={() => basculer("email")}
-            className="text-sm text-charbon/60 underline-offset-4 hover:underline"
-          >
+          <button type="button" onClick={() => basculer("email")} className={lienSecondaire}>
             Changer d’adresse ou renvoyer un code
           </button>
         </form>

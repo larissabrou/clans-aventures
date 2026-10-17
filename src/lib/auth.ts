@@ -7,7 +7,7 @@ import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "./db";
 import { codesConnexion, membres, sessions, type Membre } from "./db/schema";
 import { enProduction, secretAuth } from "./env";
-import { motDePasseValide } from "./mot-de-passe";
+import { hacherMotDePasse, motDePasseValide } from "./mot-de-passe";
 import { envoyerNotification } from "./notifications";
 
 // Connexion par email + mot de passe (reçu à l'adhésion), ou en secours par un code à 6 chiffres
@@ -123,6 +123,17 @@ export async function envoyerCodeConnexion(email: string): Promise<ResultatDeman
 
 /** Vérifie le code et ouvre la session. */
 export async function verifierCodeConnexion(email: string, code: string): Promise<boolean> {
+  const membreId = await consommerCode(email, code);
+  if (!membreId) return false;
+  await ouvrirSession(membreId);
+  return true;
+}
+
+/**
+ * Vérifie le dernier code envoyé à cet email et le détruit s'il est bon.
+ * Renvoie l'identifiant du membre, ou null (code faux, expiré ou trop d'essais).
+ */
+async function consommerCode(email: string, code: string): Promise<string | null> {
   const [dernier] = await db
     .select()
     .from(codesConnexion)
@@ -130,7 +141,7 @@ export async function verifierCodeConnexion(email: string, code: string): Promis
     .orderBy(desc(codesConnexion.creeLe))
     .limit(1);
 
-  if (!dernier || dernier.tentatives >= ESSAIS_MAX_PAR_CODE) return false;
+  if (!dernier || dernier.tentatives >= ESSAIS_MAX_PAR_CODE) return null;
 
   const attendue = Buffer.from(dernier.empreinte);
   const recue = Buffer.from(empreinteCode(email, code));
@@ -139,15 +150,14 @@ export async function verifierCodeConnexion(email: string, code: string): Promis
       .update(codesConnexion)
       .set({ tentatives: dernier.tentatives + 1 })
       .where(eq(codesConnexion.id, dernier.id));
-    return false;
+    return null;
   }
 
   const membre = await membreParEmail(email);
-  if (!membre) return false;
+  if (!membre) return null;
 
   await db.delete(codesConnexion).where(eq(codesConnexion.email, email));
-  await ouvrirSession(membre.id);
-  return true;
+  return membre.id;
 }
 
 // ---------- Mot de passe ----------
@@ -164,4 +174,38 @@ export async function connexionParMotDePasse(email: string, motDePasse: string):
 
   await ouvrirSession(membre.id);
   return true;
+}
+
+/** Enregistre le nouveau mot de passe, déconnecte tous les appareils, puis reconnecte celui-ci. */
+async function remplacerMotDePasse(membreId: string, nouveau: string) {
+  await db
+    .update(membres)
+    .set({ motDePasseHash: hacherMotDePasse(nouveau), modifieLe: new Date() })
+    .where(eq(membres.id, membreId));
+  await db.delete(sessions).where(eq(sessions.membreId, membreId));
+  await ouvrirSession(membreId);
+}
+
+/** Mot de passe oublié : le code reçu par email autorise le choix d'un nouveau mot de passe. */
+export async function reinitialiserMotDePasse(email: string, code: string, nouveau: string): Promise<boolean> {
+  const membreId = await consommerCode(email, code);
+  if (!membreId) return false;
+  await remplacerMotDePasse(membreId, nouveau);
+  return true;
+}
+
+/**
+ * Changement depuis l'espace membre. Le mot de passe actuel est exigé s'il existe
+ * (les membres inscrits avant l'arrivée des mots de passe n'en ont pas).
+ */
+export async function changerMotDePasse(
+  membre: Membre,
+  actuel: string,
+  nouveau: string,
+): Promise<"ok" | "actuel_incorrect"> {
+  if (membre.motDePasseHash && !motDePasseValide(actuel, membre.motDePasseHash)) {
+    return "actuel_incorrect";
+  }
+  await remplacerMotDePasse(membre.id, nouveau);
+  return "ok";
 }

@@ -14,6 +14,14 @@ export function genererMotDePasse(longueur = 10): string {
   return resultat;
 }
 
+/** Règle des mots de passe choisis par les membres. Renvoie un message d'erreur, ou null si conforme. */
+export function erreurNouveauMotDePasse(nouveau: string, confirmation: string): string | null {
+  if (nouveau.length < 8) return "Ton nouveau mot de passe doit contenir au moins 8 caractères.";
+  if (nouveau.length > 128) return "Ton nouveau mot de passe est trop long (128 caractères au maximum).";
+  if (nouveau !== confirmation) return "Les deux mots de passe ne sont pas identiques.";
+  return null;
+}
+
 /** Empreinte « scrypt$sel$hash » : le mot de passe lui-même n'est jamais stocké. */
 export function hacherMotDePasse(motDePasse: string): string {
   const sel = randomBytes(16).toString("hex");

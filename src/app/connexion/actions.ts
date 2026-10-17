@@ -7,8 +7,10 @@ import {
   connexionParMotDePasse,
   envoyerCodeConnexion,
   fermerSession,
+  reinitialiserMotDePasse,
   verifierCodeConnexion,
 } from "@/lib/auth";
+import { erreurNouveauMotDePasse } from "@/lib/mot-de-passe";
 
 export type EtatConnexion = { ok: true; emailMasque: string } | { ok: false; message: string };
 
@@ -34,7 +36,7 @@ export async function connexion(saisie: string, motDePasse: string): Promise<Eta
   if (!valide) {
     return {
       ok: false,
-      message: "Email ou mot de passe incorrect. Tu peux aussi recevoir un code de connexion par email.",
+      message: "Email ou mot de passe incorrect. Si tu l’as oublié, clique sur « Mot de passe oublié ? ».",
     };
   }
   redirect("/espace-membre");
@@ -65,6 +67,28 @@ export async function verifierCode(saisie: string, code: string): Promise<EtatCo
   }
 
   const valide = await verifierCodeConnexion(email, chiffres);
+  if (!valide) {
+    return { ok: false, message: "Code incorrect ou expiré. Vérifie-le ou demande un nouveau code." };
+  }
+  redirect("/espace-membre");
+}
+
+/** Mot de passe oublié : code reçu par email + nouveau mot de passe, puis connexion. */
+export async function reinitialiser(
+  saisie: string,
+  code: string,
+  nouveau: string,
+  confirmation: string,
+): Promise<EtatConnexion> {
+  const email = emailValide(saisie);
+  const chiffres = String(code ?? "").replace(/\D/g, "");
+  if (!email || chiffres.length !== 6) {
+    return { ok: false, message: "Le code reçu par email contient 6 chiffres." };
+  }
+  const erreur = erreurNouveauMotDePasse(String(nouveau ?? ""), String(confirmation ?? ""));
+  if (erreur) return { ok: false, message: erreur };
+
+  const valide = await reinitialiserMotDePasse(email, chiffres, String(nouveau));
   if (!valide) {
     return { ok: false, message: "Code incorrect ou expiré. Vérifie-le ou demande un nouveau code." };
   }

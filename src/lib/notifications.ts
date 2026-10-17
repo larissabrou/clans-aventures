@@ -39,11 +39,11 @@ function contenu(notification: Notification): Contenu {
   switch (notification.modele) {
     case "code":
       return {
-        sujet: "Ton code de connexion CLANS",
+        sujet: "Ton code de vérification CLANS",
         paragraphes: [
-          "Voici ton code pour te connecter à ton espace membre CLANS aventures :",
+          "Voici ton code de vérification pour choisir un nouveau mot de passe sur ton espace membre CLANS aventures :",
           `<strong style="font-size:32px;letter-spacing:8px;color:#123B2A">${notification.code}</strong>`,
-          "Il est valable 10 minutes. Si tu n’as pas demandé ce code, ignore simplement cet email.",
+          "Il est valable 10 minutes. Si tu n’as rien demandé, ignore simplement cet email : ton mot de passe actuel reste inchangé.",
         ],
       };
     case "acces":

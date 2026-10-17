@@ -6,6 +6,7 @@ import { Copyright } from "@/components/site-footer";
 import { exigerMembre } from "@/lib/auth";
 import { tableauDeBord } from "@/lib/membres";
 import { NIVEAUX, libelleSeuil, progression } from "@/lib/niveaux";
+import { ChangerMotDePasse } from "./changer-mot-de-passe";
 import { MemberShell } from "./member-shell";
 import { MessagesInbox } from "./messages-inbox";
 import { MessagesProvider, NombreNonLus } from "./messages-context";
@@ -220,6 +221,7 @@ async function EspaceMembre() {
               <InfoProfil label="Date d’adhésion" valeur={membre.dateAdhesion} />
               <InfoProfil label="Adhésion" valeur="À vie" />
             </dl>
+            <ChangerMotDePasse aUnMotDePasse={Boolean(connecte.motDePasseHash)} />
           </Section>
 
           <footer className="mt-16 border-t border-ivoire/10 pt-6 text-center text-xs leading-6 text-ivoire/50">
