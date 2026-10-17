@@ -1,7 +1,6 @@
 "use client";
 
 // Composant client : il garde en mémoire l'étape et les réponses pendant que la personne remplit le parcours.
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -15,6 +14,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { buttonClasses } from "@/components/button-styles";
+import { IconeUnivers } from "@/components/icone-univers";
 import {
   APPARTENANCES_CULTURELLES,
   AVANTAGES_ADHESION,
@@ -156,8 +156,8 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
     if (etape === 2 && donnees.interets.length === 0) {
       return "Sélectionne au moins un univers qui t’intéresse.";
     }
-    if (etape === 3 && (!donnees.appartenance || !donnees.attente.trim())) {
-      return "Merci d’indiquer ton univers culturel et ce que tu aimerais vivre avec CLANS.";
+    if (etape === 3 && !donnees.appartenance) {
+      return "Merci d’indiquer ton univers culturel.";
     }
     if (etape === 4 && !donnees.charteAcceptee) {
       return "Tu dois accepter la charte de CLANS aventures pour continuer.";
@@ -410,7 +410,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
               texte="CLANS rassemble plusieurs univers. Dis-nous ce que tu aimerais vivre."
             />
             <div className="grid gap-4 sm:grid-cols-2">
-              {UNIVERS.map(({ id, titre, texte, icone }) => {
+              {UNIVERS.map(({ id, titre, texte }) => {
                 const choisi = donnees.interets.includes(id);
                 return (
                   <label
@@ -427,14 +427,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                       checked={choisi}
                       onChange={() => basculerInteret(id)}
                     />
-                    <Image
-                      src={icone}
-                      alt=""
-                      width={30}
-                      height={30}
-                      unoptimized
-                      className="size-8 shrink-0"
-                    />
+                    <IconeUnivers id={id} className="size-10 shrink-0" />
                     <span>
                       <strong className="mb-1 block font-titre text-xl">
                         {titre}
@@ -518,7 +511,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                 </select>
               </Champ>
 
-              <Champ label="Qu’aimerais-tu vivre avec CLANS ?" id="attente" requis>
+              <Champ label="Qu’aimerais-tu vivre avec CLANS ?" id="attente">
                 <textarea
                   id="attente"
                   rows={4}

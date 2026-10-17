@@ -1,7 +1,7 @@
-import Image from "next/image";
 import { CtaLink } from "@/components/cta-link";
 import { SiteFooter } from "@/components/site-footer";
 import { Hero } from "@/components/hero";
+import { IconeUnivers } from "@/components/icone-univers";
 import { UNIVERS } from "@/lib/univers";
 
 export default function HomePage() {
@@ -34,19 +34,12 @@ export default function HomePage() {
           </p>
 
           <div className="mx-auto mt-14 grid max-w-275 grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-5">
-            {UNIVERS.map(({ id, titre, texte, icone }) => (
+            {UNIVERS.map(({ id, titre, texte }) => (
               <div
                 key={id}
                 className="rounded-2xl bg-white px-6 py-9 transition duration-300 hover:-translate-y-2"
               >
-                <Image
-                  src={icone}
-                  alt=""
-                  width={30}
-                  height={30}
-                  unoptimized
-                  className="mx-auto mb-4 size-10"
-                />
+                <IconeUnivers id={id} className="mx-auto mb-4 size-14" />
                 <h3 className="mb-2.5 font-titre text-[1.7rem]">{titre}</h3>
                 <p className="text-sm leading-7 opacity-75">{texte}</p>
               </div>

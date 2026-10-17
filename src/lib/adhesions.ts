@@ -55,7 +55,12 @@ export const demandeAdhesionSchema = z.object({
   appartenance: texteRequis("Indique ton univers culturel.", 80),
   appartenanceAutre: texteOptionnel,
   universADecouvrir: texteOptionnel,
-  attente: texteRequis("Dis-nous ce que tu aimerais vivre avec CLANS.", 2000),
+  attente: z
+    .string()
+    .trim()
+    .max(2000)
+    .optional()
+    .transform((v) => v || null),
   charteAcceptee: z.literal(true, { error: "Tu dois accepter la charte de CLANS aventures." }),
   pays: z.string({ error: "Choisis ton pays." }).refine(estPays, "Pays non pris en charge."),
   operateur: z

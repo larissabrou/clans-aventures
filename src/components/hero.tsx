@@ -24,7 +24,8 @@ export function Hero() {
       <div className="absolute inset-0 bg-linear-to-b from-charbon/30 via-charbon/25 to-charbon/75" />
 
       {/* Le nom « clans aventures » est déjà dans le logo de l'en-tête : le hero commence par la devise. */}
-      <div className="relative max-w-212 px-5 pt-28 pb-8 sm:px-6 sm:pt-32 sm:pb-10">
+      {/* pb-28 : réserve la place de l’indicateur « Découvrir » (absolu, en bas) pour qu’il ne chevauche jamais le bouton. */}
+      <div className="relative max-w-212 px-5 pt-28 pb-28 sm:px-6 sm:pt-32">
         <p className="mb-6 text-[clamp(1rem,2vw,1.35rem)] tracking-[2px] text-sable uppercase sm:tracking-[4px]">
           Nature · Culture · Rencontres
         </p>
