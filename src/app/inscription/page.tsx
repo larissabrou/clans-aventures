@@ -23,7 +23,7 @@ export default function InscriptionPage({ searchParams }: PageProps<"/inscriptio
       >
         {/* Bandeau : motifs CLANS sur fond ivoire, le centre vide accueille le titre. */}
         <section
-          className="bg-ivoire bg-cover bg-center px-6 pt-40 pb-32 text-center text-charbon sm:pt-44"
+          className="bg-ivoire bg-cover bg-center px-6 pt-28 pb-32 text-center text-charbon sm:pt-32"
           style={{ backgroundImage: "url(/images/banniere-motifs.png)" }}
         >
           {/* Sur petit écran, voile ivoire derrière le texte : les motifs restent lisibles sans gêner. */}

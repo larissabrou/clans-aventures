@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   LogOut,
@@ -41,9 +41,30 @@ export function MemberShell({
   children: React.ReactNode;
 }) {
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const [actif, setActif] = useState<string>(MON_ESPACE[0].href ?? "");
   const { nonLus } = useMessages();
 
+  // La rubrique active suit le défilement : celle dont la section occupe le haut de l'écran.
+  useEffect(() => {
+    const sections = MON_ESPACE.flatMap(({ href }) =>
+      href ? [document.querySelector<HTMLElement>(href)].filter((s) => s !== null) : [],
+    );
+    if (sections.length === 0) return;
+
+    const observateur = new IntersectionObserver(
+      (entrees) => {
+        const visible = entrees.find((e) => e.isIntersecting);
+        if (visible) setActif(`#${visible.target.id}`);
+      },
+      // Zone d'observation : bande sous l'en-tête collant, en haut de l'écran.
+      { rootMargin: "-80px 0px -60% 0px" },
+    );
+    sections.forEach((s) => observateur.observe(s));
+    return () => observateur.disconnect();
+  }, []);
+
   function lien({ label, Icone, href, badgeMessages }: Lien) {
+    const estActif = href !== undefined && href === actif;
     const contenu = (
       <>
         <Icone className="size-[18px] shrink-0" strokeWidth={1.75} />
@@ -69,13 +90,21 @@ export function MemberShell({
         {href ? (
           <a
             href={href}
-            onClick={() => setMenuOuvert(false)}
-            className={`${classes} text-sable hover:bg-terre/25 hover:text-ivoire`}
+            aria-current={estActif ? "location" : undefined}
+            onClick={() => {
+              setActif(href);
+              setMenuOuvert(false);
+            }}
+            className={`${classes} border-l-[3px] ${
+              estActif
+                ? "border-sable bg-terre/35 font-semibold text-ivoire"
+                : "border-transparent text-sable hover:bg-terre/20 hover:text-ivoire"
+            }`}
           >
             {contenu}
           </a>
         ) : (
-          <span className={`${classes} cursor-default text-sable/55`}>
+          <span className={`${classes} cursor-default border-l-[3px] border-transparent text-sable/55`}>
             {contenu}
           </span>
         )}
@@ -95,10 +124,19 @@ export function MemberShell({
         </Link>
 
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm sm:inline">{nomComplet}</span>
-          <span className="flex size-10 items-center justify-center rounded-full bg-terre text-sm font-bold text-white">
-            {initiales}
-          </span>
+          {/* Nom + pastille : ouvre la rubrique « Mon profil » (infos et mot de passe). */}
+          <a
+            href="#profil"
+            onClick={() => setMenuOuvert(false)}
+            aria-label="Mon profil"
+            title="Mon profil"
+            className="group flex items-center gap-3 rounded-full transition"
+          >
+            <span className="hidden text-sm group-hover:text-sable sm:inline">{nomComplet}</span>
+            <span className="flex size-10 items-center justify-center rounded-full bg-terre text-sm font-bold text-white ring-2 ring-transparent transition group-hover:ring-sable">
+              {initiales}
+            </span>
+          </a>
           <button
             type="button"
             onClick={() => setMenuOuvert(!menuOuvert)}

@@ -26,14 +26,14 @@ export function SiteHeader({
 
   return (
     <header
-      className={`absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-9 sm:py-5 ${
+      className={`absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-4 py-2 sm:px-9 sm:py-2.5 ${
         fond === "barre" ? "bg-white shadow-[0_2px_20px_rgba(32,32,29,0.12)]" : ""
       }`}
     >
       <Link href="/" aria-label="CLANS aventures — accueil" className="shrink-0">
         {fondClair ? (
           // Logo complet (symbole + nom), assez grand pour que le nom reste lisible.
-          <Logo variant="complet" className="h-14 w-auto max-[379px]:h-12 sm:h-20" preload />
+          <Logo variant="complet" className="h-12 w-auto sm:h-14" preload />
         ) : (
           <Logo variant="blanc" className="h-12 w-auto sm:h-14" preload />
         )}

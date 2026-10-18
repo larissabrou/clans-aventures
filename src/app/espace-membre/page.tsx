@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { CalendarDays, LoaderCircle, MessageCircle, Star, Tent, Users } from "lucide-react";
+import { CalendarDays, LoaderCircle, Star, Tent, Users } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Copyright } from "@/components/site-footer";
 import { exigerMembre } from "@/lib/auth";
@@ -9,7 +9,7 @@ import { NIVEAUX, libelleSeuil, progression } from "@/lib/niveaux";
 import { ChangerMotDePasse } from "./changer-mot-de-passe";
 import { MemberShell } from "./member-shell";
 import { MessagesInbox } from "./messages-inbox";
-import { MessagesProvider, NombreNonLus } from "./messages-context";
+import { MessagesProvider } from "./messages-context";
 
 export const metadata: Metadata = { title: "Espace membre" };
 
@@ -78,47 +78,41 @@ async function EspaceMembre() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white text-charbon p-6 sm:p-8">
-              <h2 className="font-titre text-2xl font-semibold">
-                Ma progression
-              </h2>
-              <p className="mt-4 flex items-baseline gap-2">
-                <strong className="font-titre text-6xl font-semibold text-terre">
-                  {membre.etoiles}
-                </strong>
-                <span className="text-sm text-charbon/70">
-                  étoiles disponibles
-                </span>
-              </p>
+            {/* Colonne de droite : progression (compacte) + 2 statistiques, à la hauteur de la carte membre. */}
+            <div className="flex flex-col gap-4">
+              <div className="rounded-2xl bg-white p-5 text-charbon sm:px-6">
+                <div className="flex items-baseline justify-between gap-3">
+                  <h2 className="font-titre text-xl font-semibold">Ma progression</h2>
+                  <p className="flex items-baseline gap-1.5">
+                    <strong className="font-titre text-4xl leading-none font-semibold text-terre">
+                      {membre.etoiles}
+                    </strong>
+                    <span className="text-xs text-charbon/70">étoiles</span>
+                  </p>
+                </div>
 
-              <div className="mt-6">
-                <div className="mb-2 flex justify-between text-xs font-semibold">
-                  <span>{niveau.nom}</span>
-                  <span className="text-charbon/60">
-                    {niveau.suivant === null ? "Maximum" : `${niveau.suivant} ★`}
-                  </span>
+                <div className="mt-3">
+                  <div className="mb-1.5 flex justify-between text-xs font-semibold">
+                    <span>{niveau.nom}</span>
+                    <span className="text-charbon/60">
+                      {niveau.suivant === null ? "Maximum" : `${niveau.suivant} ★`}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-sable/40">
+                    <div
+                      className="h-full rounded-full bg-terre"
+                      style={{ width: `${pourcentage}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-charbon/70">{message}</p>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-sable/40">
-                  <div
-                    className="h-full rounded-full bg-terre"
-                    style={{ width: `${pourcentage}%` }}
-                  />
-                </div>
-                <p className="mt-3 text-sm text-charbon/70">{message}</p>
+              </div>
+
+              <div className="grid flex-1 grid-cols-2 gap-4">
+                <Statistique Icone={Tent} valeur={membre.experiences} label="Expériences réalisées" />
+                <Statistique Icone={Users} valeur={membre.filleuls} label="Filleuls" />
               </div>
             </div>
-          </div>
-
-          {/* STATISTIQUES */}
-          <div className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Statistique Icone={Star} valeur={membre.etoiles} label="Solde d’étoiles" />
-            <Statistique Icone={Tent} valeur={membre.experiences} label="Expériences réalisées" />
-            <Statistique Icone={Users} valeur={membre.filleuls} label="Filleuls" />
-            <Statistique
-              Icone={MessageCircle}
-              valeur={<NombreNonLus />}
-              label="Messages non lus"
-            />
           </div>
 
           {/* MESSAGES */}
@@ -273,9 +267,9 @@ function Statistique({
   label: string;
 }) {
   return (
-    <div className="rounded-2xl bg-white text-charbon p-5">
+    <div className="flex flex-col justify-center rounded-2xl bg-white p-4 text-charbon">
       <Icone className="size-5 text-terre" strokeWidth={1.75} />
-      <p className="mt-3 font-titre text-4xl font-semibold">{valeur}</p>
+      <p className="mt-2 font-titre text-3xl leading-none font-semibold">{valeur}</p>
       <p className="mt-1 text-xs text-charbon/60">{label}</p>
     </div>
   );
