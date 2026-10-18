@@ -2,6 +2,7 @@
 // Après une modification : `npm run db:generate` crée la migration SQL dans /drizzle.
 import {
   boolean,
+  customType,
   index,
   integer,
   jsonb,
@@ -199,6 +200,24 @@ export const evenements = pgTable("evenements", {
   // Étoiles retirées en cas d'absence non justifiée à un événement obligatoire.
   penalite: integer("penalite").notNull().default(0),
   creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
+/** Octets bruts (PostgreSQL bytea) : le pilote pg les renvoie sous forme de Buffer. */
+const octets = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
+
+/**
+ * Image d'un événement, stockée en base : le disque du conteneur Coolify est effacé à chaque
+ * déploiement, la base est conservée. Table séparée : lister les événements ne charge pas les octets.
+ */
+export const imagesEvenements = pgTable("images_evenements", {
+  evenementId: integer("evenement_id")
+    .primaryKey()
+    .references(() => evenements.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // image/jpeg, image/png ou image/webp
+  donnees: octets("donnees").notNull(),
+  taille: integer("taille").notNull(),
+  // Sert aussi de version dans l'URL de l'image (cache du navigateur).
+  modifieLe: horodatage("modifie_le").notNull().defaultNow(),
 });
 
 export const participations = pgTable(

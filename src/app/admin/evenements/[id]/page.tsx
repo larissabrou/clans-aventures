@@ -5,6 +5,7 @@ import { ArrowLeft, Check } from "lucide-react";
 import { exigerAdmin } from "@/lib/admin";
 import { listeTypesActions } from "@/lib/bareme";
 import { evenementDetail } from "@/lib/evenements";
+import { urlImageEvenement } from "@/lib/images";
 import { formaterDateHeure } from "@/lib/membres";
 import {
   actionAjouterParticipant,
@@ -103,7 +104,11 @@ export default async function EvenementAdmin({ params }: PageProps<"/admin/evene
       <Carte titre="Modifier l’événement" className="mt-8">
         <FormulaireAdmin action={actionModifierEvenement} className="grid gap-5">
           <input type="hidden" name="id" value={evenement.id} />
-          <ChampsEvenement evenement={evenement} types={types} />
+          <ChampsEvenement
+            evenement={evenement}
+            types={types}
+            imageUrl={urlImageEvenement(evenement.id, evenement.imageMaj)}
+          />
           <div>
             <BoutonEnvoi>Enregistrer</BoutonEnvoi>
           </div>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { CalendarDays, ImageOff, MapPin, Users } from "lucide-react";
 import { exigerAdmin } from "@/lib/admin";
 import { formatFcfa } from "@/lib/adhesion";
 import { listeTypesActions } from "@/lib/bareme";
 import { listeEvenements } from "@/lib/evenements";
+import { urlImageEvenement } from "@/lib/images";
 import { formaterDateHeure } from "@/lib/membres";
 import { actionCreerEvenement } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
@@ -44,6 +45,18 @@ export default async function EvenementsAdmin() {
   );
 }
 
+function Vignette({ url }: { url: string | null }) {
+  if (!url) {
+    return (
+      <span className="flex h-16 w-24 shrink-0 items-center justify-center rounded-xl border border-white/20 text-ivoire/30">
+        <ImageOff className="size-5" strokeWidth={1.5} />
+      </span>
+    );
+  }
+  // eslint-disable-next-line @next/next/no-img-element -- image servie par /api (stockée en base)
+  return <img src={url} alt="" className="h-16 w-24 shrink-0 rounded-xl object-cover" />;
+}
+
 function Liste({ evenements }: { evenements: Ligne[] }) {
   return (
     <ul className="grid gap-3">
@@ -55,7 +68,8 @@ function Liste({ evenements }: { evenements: Ligne[] }) {
               e.obligatoire ? "border-l-4 border-l-bordeaux" : ""
             }`}
           >
-            <div>
+            <Vignette url={urlImageEvenement(e.id, e.imageMaj)} />
+            <div className="min-w-0 flex-1">
               <p className="font-semibold">
                 {e.titre}
                 {e.obligatoire && <span className="ml-2 text-xs text-sable">Obligatoire</span>}

@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { db } from "./db";
-import { evenements, membres, mouvementsEtoiles, participations, typesActions } from "./db/schema";
+import { evenements, imagesEvenements, membres, mouvementsEtoiles, participations, typesActions } from "./db/schema";
 import { normaliserCodeParrainage } from "./adhesions";
 
 // Événements CLANS gérés depuis l'admin : création, participants, présences.
@@ -22,6 +22,11 @@ export type DonneesEvenement = {
   penalite: number;
 };
 
+/** Date de l'image de l'événement (null s'il n'en a pas) ; sert à construire son URL. */
+const imageMaj = sql<Date | null>`(select ${imagesEvenements.modifieLe} from ${imagesEvenements} where ${imagesEvenements.evenementId} = ${evenements.id})`.mapWith(
+  imagesEvenements.modifieLe,
+);
+
 const colonnesListe = {
   id: evenements.id,
   titre: evenements.titre,
@@ -34,6 +39,7 @@ const colonnesListe = {
   etoiles: typesActions.etoiles,
   inscrits: count(participations.id),
   presents: sql<number>`count(${participations.id}) filter (where ${participations.present})`.mapWith(Number),
+  imageMaj,
 };
 
 /** Événements à venir (du plus proche au plus lointain) et passés (du plus récent au plus ancien). */
@@ -55,7 +61,7 @@ export async function listeEvenements() {
 
 export async function evenementDetail(id: number) {
   const [evenement] = await db
-    .select({ evenement: evenements, typeAction: typesActions })
+    .select({ evenement: evenements, typeAction: typesActions, imageMaj })
     .from(evenements)
     .leftJoin(typesActions, eq(typesActions.id, evenements.typeActionId))
     .where(eq(evenements.id, id))
@@ -77,7 +83,7 @@ export async function evenementDetail(id: number) {
     .where(eq(participations.evenementId, id))
     .orderBy(asc(membres.nom), asc(membres.prenom));
 
-  return { ...evenement.evenement, typeAction: evenement.typeAction, participants };
+  return { ...evenement.evenement, typeAction: evenement.typeAction, imageMaj: evenement.imageMaj, participants };
 }
 
 export async function creerEvenement(donnees: DonneesEvenement): Promise<number> {
@@ -113,6 +119,7 @@ export async function bonsPlans(membreId: string) {
       etoiles: sql<number>`case when ${typesActions.actif} then ${typesActions.etoiles} else 0 end`.mapWith(Number),
       inscrits: count(participations.id),
       inscrit: sql<boolean>`coalesce(bool_or(${participations.membreId} = ${membreId}), false)`.mapWith(Boolean),
+      imageMaj,
     })
     .from(evenements)
     .leftJoin(typesActions, eq(typesActions.id, evenements.typeActionId))

@@ -50,6 +50,13 @@
       "when": 1792314156869,
       "tag": "0006_envois_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792320667124,
+      "tag": "0007_images_evenements",
+      "breakpoints": true
     }
   ]
 }

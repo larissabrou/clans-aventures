@@ -6,7 +6,16 @@ import { CaseACocher, Champ, champClasses } from "../ui";
 const versChampDate = (date: Date) => date.toISOString().slice(0, 16);
 
 /** Champs communs à la création et à la modification d'un événement. */
-export function ChampsEvenement({ evenement, types }: { evenement?: Evenement; types: TypeAction[] }) {
+export function ChampsEvenement({
+  evenement,
+  types,
+  imageUrl,
+}: {
+  evenement?: Evenement;
+  types: TypeAction[];
+  // Image actuelle de l'événement (modification), ou null.
+  imageUrl?: string | null;
+}) {
   const prefixe = evenement ? `evenement-${evenement.id}` : "nouvel-evenement";
 
   return (
@@ -97,6 +106,30 @@ export function ChampsEvenement({ evenement, types }: { evenement?: Evenement; t
           className={champClasses}
         />
       </Champ>
+
+      <div className="flex flex-wrap items-start gap-5 sm:col-span-2 lg:col-span-4">
+        {imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- image servie par /api (stockée en base)
+          <img src={imageUrl} alt="Image actuelle de l’événement" className="h-28 w-44 rounded-xl border border-white/30 object-cover" />
+        )}
+        <div className="min-w-60 flex-1">
+          <Champ label={imageUrl ? "Remplacer l’image" : "Image (facultative)"} id={`${prefixe}-image`}>
+            <input
+              id={`${prefixe}-image`}
+              name="image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className={`${champClasses} file:mr-4 file:rounded-full file:border-0 file:bg-terre file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white`}
+            />
+          </Champ>
+          <p className="mt-1.5 text-xs text-ivoire/50">JPEG, PNG ou WebP, 4 Mo maximum. Format paysage conseillé.</p>
+          {imageUrl && (
+            <div className="mt-3">
+              <CaseACocher name="retirerImage" label="Retirer l’image" />
+            </div>
+          )}
+        </div>
+      </div>
 
       <Champ label="Conditions de participation" id={`${prefixe}-conditions`} className="sm:col-span-2 lg:col-span-4">
         <textarea

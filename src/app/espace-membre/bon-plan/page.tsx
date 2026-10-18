@@ -5,6 +5,7 @@ import { estAdmin } from "@/lib/admin";
 import { formatFcfa } from "@/lib/adhesion";
 import { exigerMembre } from "@/lib/auth";
 import { bonsPlans } from "@/lib/evenements";
+import { urlImageEvenement } from "@/lib/images";
 import { formaterDateHeure, tableauDeBord } from "@/lib/membres";
 import { Chargement, PiedEspaceMembre, identite } from "../elements";
 import { MemberShell } from "../member-shell";
@@ -49,13 +50,19 @@ async function BonPlan() {
             <ul className="grid gap-5">
               {plans.map((plan) => {
                 const placesRestantes = plan.places === null ? null : Math.max(plan.places - plan.inscrits, 0);
+                const image = urlImageEvenement(plan.id, plan.imageMaj);
                 return (
                   <li
                     key={plan.id}
-                    className={`rounded-2xl border border-white p-6 text-white sm:p-7 ${
+                    className={`overflow-hidden rounded-2xl border border-white text-white ${
                       plan.obligatoire ? "border-l-4 border-l-bordeaux" : ""
                     }`}
                   >
+                    {image && (
+                      // eslint-disable-next-line @next/next/no-img-element -- image servie par /api (stockée en base)
+                      <img src={image} alt={plan.titre} loading="lazy" className="aspect-[16/7] w-full object-cover" />
+                    )}
+                    <div className="p-6 sm:p-7">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         {plan.typeAction && (
@@ -124,6 +131,7 @@ async function BonPlan() {
                         )}
                       </div>
                     )}
+                    </div>
                   </li>
                 );
               })}

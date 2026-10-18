@@ -23,6 +23,12 @@ import {
   supprimerMouvement,
 } from "@/lib/gestion-membres";
 import { ErreurEnvoi, envoyerMessage, supprimerEnvoi } from "@/lib/envois";
+import {
+  ErreurImage,
+  enregistrerImageEvenement,
+  lireImageEnvoyee,
+  supprimerImageEvenement,
+} from "@/lib/images";
 import { definirPrixAdhesion } from "@/lib/parametres";
 
 // Server Functions de l'administration. Chacune revérifie les droits : elles sont appelables directement.
@@ -74,7 +80,12 @@ async function executer<T>(
     refresh();
     return { ok: true, message };
   } catch (erreur) {
-    if (erreur instanceof ErreurEvenement || erreur instanceof ErreurGestion || erreur instanceof ErreurEnvoi) {
+    if (
+      erreur instanceof ErreurEvenement ||
+      erreur instanceof ErreurGestion ||
+      erreur instanceof ErreurEnvoi ||
+      erreur instanceof ErreurImage
+    ) {
       return { ok: false, message: erreur.message };
     }
     if (estDoublon(erreur)) return { ok: false, message: "Ce nom existe déjà." };
@@ -184,14 +195,27 @@ export async function actionCreerEvenement(_: EtatAction, formulaire: FormData):
   await verifierAdmin();
   const analyse = schemaEvenement.safeParse(lire(formulaire));
   if (!analyse.success) return { ok: false, message: analyse.error.issues[0]?.message ?? "Formulaire invalide." };
+  // Image vérifiée avant de créer l'événement : une image refusée n'en crée pas un à moitié.
+  let image: Awaited<ReturnType<typeof lireImageEnvoyee>>;
+  try {
+    image = await lireImageEnvoyee(formulaire.get("image"));
+  } catch (erreur) {
+    if (erreur instanceof ErreurImage) return { ok: false, message: erreur.message };
+    throw erreur;
+  }
   const id = await creerEvenement(analyse.data);
+  if (image) await enregistrerImageEvenement(id, image);
   // Page de l'événement : on peut y ajouter les participants.
   redirect(`/admin/evenements/${id}`);
 }
 
 export async function actionModifierEvenement(_: EtatAction, formulaire: FormData) {
-  return executer(schemaEvenement.extend({ id: identifiant }), formulaire, async ({ id, ...evenement }) => {
+  const schema = schemaEvenement.extend({ id: identifiant, retirerImage: caseACocher });
+  return executer(schema, formulaire, async ({ id, retirerImage, ...evenement }) => {
+    const image = await lireImageEnvoyee(formulaire.get("image"));
     await modifierEvenement(id, evenement);
+    if (image) await enregistrerImageEvenement(id, image);
+    else if (retirerImage) await supprimerImageEvenement(id);
     return "Événement enregistré.";
   });
 }
