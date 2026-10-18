@@ -127,12 +127,10 @@ export function MemberShell({
   return (
     <div className="min-h-svh bg-charbon text-ivoire">
       {/* EN-TÊTE */}
-      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-terre/40 bg-charbon px-4 text-ivoire sm:px-6">
-        <Link href="/" className="flex items-center gap-3">
-          <Logo className="h-10 w-auto" />
-          <span className="font-titre text-2xl font-semibold">
-            clans <span className="italic">aventures</span>
-          </span>
+      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-sable/30 bg-foret px-4 text-ivoire sm:px-6">
+        {/* Logo du site de présentation (symbole + nom), en blanc. */}
+        <Link href="/" aria-label="CLANS aventures — accueil du site">
+          <Logo variant="complet-blanc" className="h-12 w-auto sm:h-14" preload />
         </Link>
 
         <div className="flex items-center gap-3">

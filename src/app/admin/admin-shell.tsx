@@ -38,10 +38,10 @@ export function AdminShell({ nomComplet, children }: { nomComplet: string; child
   return (
     <div className="min-h-svh bg-charbon text-ivoire">
       <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-terre/40 bg-charbon px-4 sm:px-6">
-        <Link href="/admin" className="flex items-center gap-3">
-          <Logo className="h-10 w-auto" />
-          <span className="font-titre text-2xl font-semibold">
-            clans <span className="italic">admin</span>
+        <Link href="/admin" className="flex items-center gap-3" aria-label="Administration CLANS">
+          <Logo variant="complet-blanc" className="h-12 w-auto sm:h-14" preload />
+          <span className="rounded-full border border-sable/60 px-2.5 py-0.5 text-[0.65rem] font-semibold tracking-[2px] text-sable uppercase">
+            Admin
           </span>
         </Link>
         <div className="flex items-center gap-3">

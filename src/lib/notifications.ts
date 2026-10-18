@@ -86,10 +86,7 @@ function gabarit(paragraphes: string[], bouton?: { libelle: string; lien: string
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden;font-family:Arial,Helvetica,sans-serif">
 <tr><td style="background:#ffffff;padding:24px 32px;border-bottom:4px solid #123B2A">
-<table role="presentation" cellpadding="0" cellspacing="0"><tr>
-<td style="padding-right:14px"><img src="${urlSite()}/images/logo-clans.png" width="33" height="56" alt="CLANS aventures" style="display:block;border:0"></td>
-<td style="font-family:Georgia,'Times New Roman',serif;font-size:26px;color:#123B2A;white-space:nowrap">clans <em>aventures</em></td>
-</tr></table>
+<img src="${urlSite()}/images/logo-clans-email.png" width="120" height="94" alt="CLANS aventures" style="display:block;border:0;height:auto">
 </td></tr>
 <tr><td style="padding:32px">${corps}${action}</td></tr>
 <tr><td style="padding:20px 32px;background:#20201D;color:#D9C29A;font-size:12px;line-height:1.6">Nos cultures nous distinguent. Nos aventures nous rapprochent.</td></tr>

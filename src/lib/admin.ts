@@ -18,10 +18,13 @@ export function estAdmin(membre: Pick<Membre, "email"> | null): boolean {
   return membre !== null && emailsAdmin().includes(membre.email.toLowerCase());
 }
 
-/** Pages de l'admin : renvoie vers la connexion, ou vers l'espace membre si ce n'est pas un admin. */
+/**
+ * Pages de l'admin : renvoie vers la connexion (qui ramène ensuite à /admin),
+ * ou vers l'espace membre si ce n'est pas un admin.
+ */
 export async function exigerAdmin(): Promise<Membre> {
   const membre = await membreConnecte();
-  if (!membre) redirect("/connexion");
+  if (!membre) redirect("/connexion?suite=/admin");
   if (!estAdmin(membre)) redirect("/espace-membre");
   return membre;
 }

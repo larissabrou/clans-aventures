@@ -14,6 +14,11 @@ import { erreurNouveauMotDePasse } from "@/lib/mot-de-passe";
 
 export type EtatConnexion = { ok: true; emailMasque: string } | { ok: false; message: string };
 
+// Session ouverte : le navigateur charge lui-même l'espace membre (voir connexion-form.tsx).
+// Un redirect() ici affichait la page dans la même réponse, parfois sans le nouveau cookie :
+// l'espace membre renvoyait alors vers /connexion à la première tentative.
+export type ResultatSession = { ok: true } | { ok: false; message: string };
+
 const emailValide = (saisie: unknown) => {
   const resultat = z.email().safeParse(String(saisie ?? "").trim().toLowerCase());
   return resultat.success ? resultat.data : null;
@@ -26,7 +31,7 @@ const masquer = (email: string) => {
 };
 
 /** Connexion habituelle : email + mot de passe reçu à l'adhésion. */
-export async function connexion(saisie: string, motDePasse: string): Promise<EtatConnexion> {
+export async function connexion(saisie: string, motDePasse: string): Promise<ResultatSession> {
   const email = emailValide(saisie);
   if (!email || !String(motDePasse ?? "").trim()) {
     return { ok: false, message: "Indique ton adresse email et ton mot de passe." };
@@ -39,7 +44,7 @@ export async function connexion(saisie: string, motDePasse: string): Promise<Eta
       message: "Email ou mot de passe incorrect. Si tu l’as oublié, clique sur « Mot de passe oublié ? ».",
     };
   }
-  redirect("/espace-membre");
+  return { ok: true };
 }
 
 /** Secours : un code à usage unique envoyé par email. */
@@ -59,7 +64,7 @@ export async function demanderCode(saisie: string): Promise<EtatConnexion> {
   return { ok: true, emailMasque: masquer(email) };
 }
 
-export async function verifierCode(saisie: string, code: string): Promise<EtatConnexion> {
+export async function verifierCode(saisie: string, code: string): Promise<ResultatSession> {
   const email = emailValide(saisie);
   const chiffres = String(code ?? "").replace(/\D/g, "");
   if (!email || chiffres.length !== 6) {
@@ -70,7 +75,7 @@ export async function verifierCode(saisie: string, code: string): Promise<EtatCo
   if (!valide) {
     return { ok: false, message: "Code incorrect ou expiré. Vérifie-le ou demande un nouveau code." };
   }
-  redirect("/espace-membre");
+  return { ok: true };
 }
 
 /** Mot de passe oublié : code reçu par email + nouveau mot de passe, puis connexion. */
@@ -79,7 +84,7 @@ export async function reinitialiser(
   code: string,
   nouveau: string,
   confirmation: string,
-): Promise<EtatConnexion> {
+): Promise<ResultatSession> {
   const email = emailValide(saisie);
   const chiffres = String(code ?? "").replace(/\D/g, "");
   if (!email || chiffres.length !== 6) {
@@ -92,7 +97,7 @@ export async function reinitialiser(
   if (!valide) {
     return { ok: false, message: "Code incorrect ou expiré. Vérifie-le ou demande un nouveau code." };
   }
-  redirect("/espace-membre");
+  return { ok: true };
 }
 
 export async function deconnexion() {

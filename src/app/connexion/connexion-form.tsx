@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ArrowRight, LoaderCircle, Mail } from "lucide-react";
 import { buttonClasses } from "@/components/button-styles";
-import { connexion, demanderCode, reinitialiser } from "./actions";
+import { connexion, demanderCode, reinitialiser, type ResultatSession } from "./actions";
 
 const inputClasses =
   "w-full rounded-xl border border-charbon/15 bg-white px-4 py-3 text-charbon placeholder:text-charbon/40 focus:border-terre focus:ring-2 focus:ring-terre/20 focus:outline-none";
@@ -24,13 +24,22 @@ export function ConnexionForm() {
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, demarrer] = useTransition();
 
+  // Session ouverte : chargement complet de l'espace membre, qui reçoit ainsi le nouveau cookie.
+  // Volontairement pas router.push() : la navigation douce pourrait réutiliser une version
+  // préchargée avant la connexion (qui renvoie vers /connexion).
+  // ?suite=/admin (arrivée depuis l'admin) : retour à cette page ; seuls les chemins du site sont acceptés.
+  function suite(resultat: ResultatSession) {
+    const demandee = new URLSearchParams(window.location.search).get("suite");
+    const destination = demandee?.startsWith("/") && !demandee.startsWith("//") ? demandee : "/espace-membre";
+    if (resultat.ok) window.location.assign(destination);
+    else setErreur(resultat.message);
+  }
+
   function seConnecter(event: React.FormEvent) {
     event.preventDefault();
     setErreur(null);
     demarrer(async () => {
-      // En cas de succès, le serveur redirige vers l'espace membre.
-      const resultat = await connexion(email, motDePasse);
-      if (!resultat.ok) setErreur(resultat.message);
+      suite(await connexion(email, motDePasse));
     });
   }
 
@@ -55,9 +64,7 @@ export function ConnexionForm() {
     event.preventDefault();
     setErreur(null);
     demarrer(async () => {
-      // En cas de succès, le serveur redirige vers l'espace membre.
-      const resultat = await reinitialiser(email, code, nouveau, confirmation);
-      if (!resultat.ok) setErreur(resultat.message);
+      suite(await reinitialiser(email, code, nouveau, confirmation));
     });
   }
 
