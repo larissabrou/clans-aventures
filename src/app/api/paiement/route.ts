@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   }
 
   const reference = `${PREFIXE_REFERENCE}${randomBytes(3).toString("hex").toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
-  const montant = Math.max(montantADebiter(), MONTANT_MINIMUM);
+  const montant = Math.max(await montantADebiter(), MONTANT_MINIMUM);
   const telephoneDebite = telephonePasserelle(pays, demande.telephonePaiement);
 
   let membreId: string;

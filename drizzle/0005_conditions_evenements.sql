@@ -1,0 +1,1 @@
+ALTER TABLE "evenements" ADD COLUMN "conditions" text;

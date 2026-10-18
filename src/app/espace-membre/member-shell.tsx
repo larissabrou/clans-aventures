@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   LogOut,
+  Shield,
   Menu,
   MessageCircle,
   Tent,
@@ -27,7 +28,7 @@ type Lien = {
 const MON_ESPACE: Lien[] = [
   { label: "Tableau CLANS", Icone: LayoutDashboard, href: "/espace-membre#tableau-de-bord" },
   { label: "Messages", Icone: MessageCircle, href: "/espace-membre#messages", badgeMessages: true },
-  { label: "Expériences", Icone: Tent },
+  { label: "Bon plan", Icone: Tent, href: "/espace-membre/bon-plan" },
   { label: "Parrainage", Icone: Users, href: "/espace-membre/parrainage" },
 ];
 
@@ -35,17 +36,20 @@ export function MemberShell({
   nomComplet,
   initiales,
   page = "tableau",
+  admin = false,
   children,
 }: {
   nomComplet: string;
   initiales: string;
   // Page affichée : "profil" met la pastille en avant, aucune rubrique du menu n'est active.
-  page?: "tableau" | "profil" | "parrainage";
+  page?: "tableau" | "profil" | "parrainage" | "bon-plan";
+  // Affiche le lien vers l'administration (emails listés dans ADMIN_EMAILS).
+  admin?: boolean;
   children: React.ReactNode;
 }) {
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [actif, setActif] = useState<string>(
-    page === "tableau" ? (MON_ESPACE[0].href ?? "") : page === "parrainage" ? "/espace-membre/parrainage" : "",
+    page === "tableau" ? (MON_ESPACE[0].href ?? "") : page === "profil" ? "" : `/espace-membre/${page}`,
   );
   const { nonLus } = useMessages();
 
@@ -184,7 +188,17 @@ export function MemberShell({
             <ul className="grid gap-1">{MON_ESPACE.map(lien)}</ul>
           </nav>
 
-          <form action={deconnexion} className="mt-8 border-t border-terre/30 pt-4">
+          {admin && (
+            <Link
+              href="/admin"
+              className="mt-8 flex items-center gap-3 rounded-xl border-t border-terre/30 px-4 pt-5 pb-1 text-sm text-sable transition hover:text-ivoire"
+            >
+              <Shield className="size-[18px] shrink-0" strokeWidth={1.75} />
+              Administration
+            </Link>
+          )}
+
+          <form action={deconnexion} className={`${admin ? "mt-4" : "mt-8"} border-t border-terre/30 pt-4`}>
             <button
               type="submit"
               className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-sable/80 transition hover:bg-terre/25 hover:text-ivoire"

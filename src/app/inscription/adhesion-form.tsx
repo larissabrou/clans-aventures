@@ -18,7 +18,6 @@ import { IconeUnivers } from "@/components/icone-univers";
 import {
   APPARTENANCES_CULTURELLES,
   AVANTAGES_ADHESION,
-  PRIX_ADHESION,
   TRANCHES_AGE,
   UNIVERS_A_DECOUVRIR,
   formatFcfa,
@@ -29,6 +28,7 @@ import {
   type ResultatPaiement,
 } from "@/lib/paiement/operateurs";
 import { UNIVERS, type Univers } from "@/lib/univers";
+import { verifierCodeParrainage } from "./actions";
 import { PaiementMobileMoney } from "./paiement-mobile-money";
 
 type Etape = 1 | 2 | 3 | 4 | 5 | "succes";
@@ -45,6 +45,9 @@ type Donnees = {
   appartenanceAutre: string;
   universADecouvrir: string;
   attente: string;
+  codeParrainage: string;
+  // Identifiant du clan choisi (chaîne vide = « à définir »).
+  clanId: string;
   charteAcceptee: boolean;
   moyenPaiement: "mobile-money" | "carte";
   pays: Pays;
@@ -72,6 +75,8 @@ const DONNEES_INITIALES: Donnees = {
   appartenanceAutre: "",
   universADecouvrir: "",
   attente: "",
+  codeParrainage: "",
+  clanId: "",
   charteAcceptee: false,
   moyenPaiement: "mobile-money",
   pays: "CI",
@@ -103,13 +108,32 @@ function libelle(options: { value: string; label: string }[], value: string) {
   return options.find((option) => option.value === value)?.label;
 }
 
-export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
+export type ClanPropose = { id: number; nom: string; description: string | null };
+
+export function AdhesionForm({
+  retourWave,
+  prix,
+  clans,
+  codeParrainage = "",
+}: {
+  retourWave?: RetourWave;
+  // Prix affiché, réglé dans l'admin.
+  prix: number;
+  clans: ClanPropose[];
+  // Code reçu par le lien d'invitation (/inscription?parrain=CLANS-000012).
+  codeParrainage?: string;
+}) {
   const reprise = retourWave && !retourWave.annule ? retourWave : undefined;
 
   const [etape, setEtape] = useState<Etape>(reprise ? 5 : 1);
   const [donnees, setDonnees] = useState<Donnees>(
-    reprise ? { ...DONNEES_INITIALES, operateur: "wave" } : DONNEES_INITIALES,
+    reprise
+      ? { ...DONNEES_INITIALES, operateur: "wave" }
+      : { ...DONNEES_INITIALES, codeParrainage },
   );
+  // Prénom du parrain, affiché au récapitulatif une fois le code vérifié.
+  const [parrain, setParrain] = useState<string | null>(null);
+  const [verification, setVerification] = useState(false);
   const [erreur, setErreur] = useState<string | null>(
     retourWave?.annule
       ? "Le paiement Wave a été annulé. Reprends ton adhésion : tes réponses n’ont pas été conservées."
@@ -122,6 +146,8 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
       : { etat: "inactif" },
   );
   const [tentative, setTentative] = useState(0);
+
+  const clanChoisi = clans.find((clan) => String(clan.id) === donnees.clanId);
 
   function maj<K extends keyof Donnees>(champ: K, valeur: Donnees[K]) {
     setDonnees((precedentes) => ({ ...precedentes, [champ]: valeur }));
@@ -165,11 +191,29 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
     return null;
   }
 
-  function suivant() {
+  async function suivant() {
     const message = verifierEtape();
     if (message) {
       setErreur(message);
       return;
+    }
+    if (etape === 1) {
+      setParrain(null);
+      if (donnees.codeParrainage.trim()) {
+        setVerification(true);
+        const resultat = await verifierCodeParrainage(donnees.codeParrainage).catch(() => null);
+        setVerification(false);
+        if (!resultat) {
+          setErreur("Impossible de vérifier le code de parrainage. Réessaie dans un instant.");
+          return;
+        }
+        if (!resultat.ok) {
+          setErreur(resultat.message);
+          return;
+        }
+        maj("codeParrainage", resultat.code);
+        setParrain(resultat.parrain);
+      }
     }
     if (etape === 4 && !donnees.telephonePaiement) {
       // Le numéro WhatsApp est souvent aussi le numéro Mobile Money.
@@ -216,6 +260,8 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
           appartenanceAutre: donnees.appartenanceAutre,
           universADecouvrir: donnees.universADecouvrir,
           attente: donnees.attente,
+          codeParrainage: donnees.codeParrainage,
+          clanId: donnees.clanId ? Number(donnees.clanId) : null,
           charteAcceptee: donnees.charteAcceptee,
           pays: donnees.pays,
           operateur: donnees.operateur,
@@ -397,6 +443,16 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                   ))}
                 </select>
               </Champ>
+              <Champ label="Code de parrainage" id="codeParrainage">
+                <input
+                  id="codeParrainage"
+                  className={`${inputClasses} uppercase placeholder:normal-case`}
+                  placeholder="Ex. CLANS-000012 (facultatif)"
+                  autoComplete="off"
+                  value={donnees.codeParrainage}
+                  onChange={(e) => maj("codeParrainage", e.target.value)}
+                />
+              </Champ>
             </div>
           </section>
         )}
@@ -492,8 +548,29 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                 clans, mais elle ne définit pas ta place dans CLANS.
               </p>
 
+              {clans.length > 0 && (
+                <Champ label="Ton clan" id="clanId">
+                  <select
+                    id="clanId"
+                    className={inputClasses}
+                    value={donnees.clanId}
+                    onChange={(e) => maj("clanId", e.target.value)}
+                  >
+                    <option value="">Je ne sais pas encore (l’équipe CLANS le définira)</option>
+                    {clans.map((clan) => (
+                      <option key={clan.id} value={clan.id}>
+                        {clan.nom}
+                      </option>
+                    ))}
+                  </select>
+                  {clanChoisi?.description && (
+                    <p className="mt-2 text-xs leading-5 text-charbon/60">{clanChoisi.description}</p>
+                  )}
+                </Champ>
+              )}
+
               <Champ
-                label="Clan / univers que tu souhaites découvrir"
+                label="Univers que tu souhaites découvrir"
                 id="universADecouvrir"
               >
                 <select
@@ -560,6 +637,12 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                 label="À découvrir"
                 valeur={libelle(UNIVERS_A_DECOUVRIR, donnees.universADecouvrir)}
               />
+              {clans.length > 0 && (
+                <LigneRecap label="Clan" valeur={clanChoisi?.nom ?? "À définir"} />
+              )}
+              {parrain && (
+                <LigneRecap label="Parrain" valeur={`${parrain} (${donnees.codeParrainage})`} />
+              )}
             </dl>
 
             <label className="mt-6 flex cursor-pointer gap-3 text-sm leading-6 text-charbon/80">
@@ -603,7 +686,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
               </p>
               <p className="mt-5 flex items-baseline gap-2">
                 <strong className="font-titre text-6xl font-semibold">
-                  {formatFcfa(PRIX_ADHESION)}
+                  {formatFcfa(prix)}
                 </strong>
                 <span className="text-sm font-semibold tracking-[2px] uppercase">
                   FCFA · à vie
@@ -754,8 +837,10 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                 <button
                   type="button"
                   onClick={suivant}
+                  disabled={verification}
                   className={buttonClasses("primary")}
                 >
+                  {verification && <LoaderCircle className="size-4 animate-spin" />}
                   {etape === 4 ? "Passer au paiement" : "Continuer"}
                   <ArrowRight className="size-4" />
                 </button>
@@ -781,7 +866,7 @@ export function AdhesionForm({ retourWave }: { retourWave?: RetourWave }) {
                     </>
                   ) : (
                     <>
-                      Je rejoins CLANS · {formatFcfa(PRIX_ADHESION)} FCFA
+                      Je rejoins CLANS · {formatFcfa(prix)} FCFA
                       <ArrowRight className="size-4" />
                     </>
                   )}

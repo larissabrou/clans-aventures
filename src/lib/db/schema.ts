@@ -22,6 +22,34 @@ const horodatage = (nom: string) =>
 /** Numéros membres CLANS-000001, CLANS-000002… attribués au paiement. */
 export const numeroMembreSeq = pgSequence("numero_membre_seq", { startWith: 1 });
 
+/** Clans CLANS, enregistrés depuis l'administration et proposés à l'inscription. */
+export const clans = pgTable("clans", {
+  id: serial("id").primaryKey(),
+  nom: text("nom").notNull().unique(),
+  description: text("description"),
+  // Un clan inactif n'est plus proposé à l'inscription mais reste sur les cartes existantes.
+  actif: boolean("actif").notNull().default(true),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
+/** Actions qui rapportent des étoiles (camping, excursion…), avec leur barème fixé dans l'admin. */
+export const typesActions = pgTable("types_actions", {
+  id: serial("id").primaryKey(),
+  nom: text("nom").notNull(),
+  etoiles: integer("etoiles").notNull().default(0),
+  // Action attribuée automatiquement par le site : "parrainage" (adhésion payée d'un filleul).
+  code: text("code").unique(),
+  actif: boolean("actif").notNull().default(true),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
+/** Réglages modifiables depuis l'admin (ex. « prix_adhesion »), stockés en texte. */
+export const parametres = pgTable("parametres", {
+  cle: text("cle").primaryKey(),
+  valeur: text("valeur").notNull(),
+  modifieLe: horodatage("modifie_le").notNull().defaultNow(),
+});
+
 export const statutMembre = pgEnum("statut_membre", [
   "en_attente", // formulaire rempli, paiement pas encore confirmé
   "membre", // adhésion payée
@@ -49,7 +77,8 @@ export const membres = pgTable(
     universADecouvrir: text("univers_a_decouvrir"),
     attente: text("attente"),
 
-    clan: text("clan"),
+    // Choisi à l'inscription ou attribué par l'admin ; vide = « À définir ».
+    clanId: integer("clan_id").references(() => clans.id, { onDelete: "set null" }),
     parrainId: uuid("parrain_id").references((): AnyPgColumn => membres.id, {
       onDelete: "set null",
     }),
@@ -121,26 +150,37 @@ export const mouvementsEtoiles = pgTable(
       .references(() => membres.id, { onDelete: "cascade" }),
     libelle: text("libelle").notNull(),
     variation: integer("variation").notNull(),
+    typeActionId: integer("type_action_id").references(() => typesActions.id, {
+      onDelete: "set null",
+    }),
+    // Présence validée à l'origine des étoiles : décocher la présence retire le mouvement.
+    participationId: integer("participation_id")
+      .unique()
+      .references((): AnyPgColumn => participations.id, { onDelete: "cascade" }),
+    // Filleul dont l'adhésion a rapporté ces étoiles : une seule fois par filleul.
+    filleulId: uuid("filleul_id")
+      .unique()
+      .references(() => membres.id, { onDelete: "cascade" }),
     creeLe: horodatage("cree_le").notNull().defaultNow(),
   },
   (t) => [index("mouvements_membre_idx").on(t.membreId)],
 );
 
-export const typeEvenement = pgEnum("type_evenement", [
-  "meet", // CLANS MEET : rencontre urbaine
-  "escape", // CLANS ESCAPE : petite sortie
-  "camp", // CLANS CAMP
-  "rassemblement",
-  "autre",
-]);
-
 export const evenements = pgTable("evenements", {
   id: serial("id").primaryKey(),
   titre: text("titre").notNull(),
   description: text("description"),
-  type: typeEvenement("type").notNull().default("autre"),
+  // Conditions de participation affichées dans « Bon plan » (âge, tenue, matériel, paiement…).
+  conditions: text("conditions"),
+  // Type d'action : fixe les étoiles gagnées par chaque participant présent.
+  typeActionId: integer("type_action_id").references(() => typesActions.id, {
+    onDelete: "set null",
+  }),
   date: horodatage("date").notNull(),
   lieu: text("lieu"),
+  // Prix en FCFA (vide = gratuit) et nombre de places (vide = sans limite).
+  prix: integer("prix"),
+  places: integer("places"),
   obligatoire: boolean("obligatoire").notNull().default(false),
   // Étoiles retirées en cas d'absence non justifiée à un événement obligatoire.
   penalite: integer("penalite").notNull().default(0),
@@ -204,4 +244,7 @@ export const codesConnexion = pgTable(
 );
 
 export type Membre = typeof membres.$inferSelect;
+export type Clan = typeof clans.$inferSelect;
+export type TypeAction = typeof typesActions.$inferSelect;
+export type Evenement = typeof evenements.$inferSelect;
 export type Message = typeof messages.$inferSelect;

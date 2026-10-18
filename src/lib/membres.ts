@@ -2,11 +2,13 @@ import "server-only";
 import { and, asc, count, desc, eq, gte, sql, sum } from "drizzle-orm";
 import { db } from "./db";
 import {
+  clans,
   evenements,
   membres,
   messages,
   mouvementsEtoiles,
   participations,
+  typesActions,
   type Membre,
 } from "./db/schema";
 
@@ -26,7 +28,7 @@ export function formaterDateHeure(date: Date) {
 }
 
 export async function tableauDeBord(membre: Membre) {
-  const [[etoiles], [experiences], [filleuls], listeMessages, historique, obligatoires] =
+  const [[etoiles], [experiences], [filleuls], listeMessages, historique, obligatoires, [clan]] =
     await Promise.all([
       db
         .select({ total: sum(mouvementsEtoiles.variation).mapWith(Number) })
@@ -55,6 +57,9 @@ export async function tableauDeBord(membre: Membre) {
         .where(and(eq(evenements.obligatoire, true), gte(evenements.date, sql`now()`)))
         .orderBy(asc(evenements.date))
         .limit(5),
+      membre.clanId
+        ? db.select({ nom: clans.nom }).from(clans).where(eq(clans.id, membre.clanId)).limit(1)
+        : Promise.resolve([]),
     ]);
 
   return {
@@ -62,7 +67,7 @@ export async function tableauDeBord(membre: Membre) {
       prenom: membre.prenom,
       nom: membre.nom,
       numero: membre.numero ?? "—",
-      clan: membre.clan ?? "À définir",
+      clan: clan?.nom ?? "À définir",
       dateAdhesion: membre.adhereLe ? formaterDate(membre.adhereLe) : "—",
       etoiles: etoiles?.total ?? 0,
       experiences: experiences?.total ?? 0,
@@ -109,6 +114,12 @@ export const REDUCTION_PAR_PARTICIPATION = 5;
  * comptent, et seules leurs présences validées génèrent de la réduction.
  */
 export async function parrainage(membre: Membre) {
+  const [action] = await db
+    .select({ etoiles: typesActions.etoiles })
+    .from(typesActions)
+    .where(eq(typesActions.code, "parrainage"))
+    .limit(1);
+
   const filleuls = await db
     .select({
       id: membres.id,
@@ -138,6 +149,8 @@ export async function parrainage(membre: Membre) {
 
   return {
     code: membre.numero,
+    // Étoiles gagnées par adhésion confirmée, selon le barème réglé dans l'admin.
+    etoilesParFilleul: action?.etoiles ?? 0,
     invites: liste.length,
     confirmes: liste.filter((f) => f.confirme).length,
     reduction: liste.reduce((total, f) => total + f.reduction, 0),

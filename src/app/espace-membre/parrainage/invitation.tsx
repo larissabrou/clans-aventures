@@ -28,8 +28,8 @@ export function Invitation({ code, lienInscription }: { code: string; lienInscri
 
   const message =
     "Salut ! Je t’invite à découvrir CLANS aventures, une communauté de nature, de culture, " +
-    `de rencontres et d’expériences. Inscris-toi sur ${lienInscription} avec mon code de parrainage ` +
-    `${code}. Au plaisir de vivre une aventure ensemble !`;
+    `de rencontres et d’expériences. Inscris-toi avec mon lien : ${lienInscription} ` +
+    `(code de parrainage ${code}). Au plaisir de vivre une aventure ensemble !`;
 
   return (
     <div className="relative mt-6 flex flex-wrap items-center gap-3">

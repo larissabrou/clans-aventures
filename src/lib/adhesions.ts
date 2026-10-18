@@ -2,9 +2,19 @@ import "server-only";
 import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
-import { groupesWhatsapp, membres, messages, numeroMembreSeq, paiements } from "./db/schema";
+import {
+  clans,
+  groupesWhatsapp,
+  membres,
+  messages,
+  mouvementsEtoiles,
+  numeroMembreSeq,
+  paiements,
+  typesActions,
+} from "./db/schema";
 import { programmerNotification } from "./jobs";
 import { genererMotDePasse, hacherMotDePasse } from "./mot-de-passe";
+import { prixAdhesion } from "./parametres";
 import { estOperateur, estPays, PAYS } from "./paiement/operateurs";
 import { normaliserTelephone, telephoneValide } from "./telephone";
 import { UNIVERS } from "./univers";
@@ -15,12 +25,21 @@ import { UNIVERS } from "./univers";
 export const COOKIE_ADHESION = "clans_adhesion";
 
 /**
- * Montant réellement débité, invisible pour le visiteur (qui voit 2 500 FCFA).
- * 500 FCFA par défaut pendant la phase de test ; au lancement, MONTANT_DEBITE=2500.
+ * Montant réellement débité : le prix réglé dans l'admin.
+ * Phase de test : MONTANT_DEBITE (ex. 500) le remplace, sans changer le prix affiché.
+ * Au lancement, supprimer MONTANT_DEBITE dans Coolify.
  */
-export function montantADebiter(): number {
+export async function montantADebiter(): Promise<number> {
   const configure = Number(process.env.MONTANT_DEBITE);
-  return Number.isFinite(configure) && configure > 0 ? configure : 500;
+  return Number.isFinite(configure) && configure > 0 ? configure : prixAdhesion();
+}
+
+/** « clans-000012 », « CLANS 12 » ou « 12 » → « CLANS-000012 » ; null si vide. */
+export function normaliserCodeParrainage(saisie: string | null | undefined): string | null {
+  const code = (saisie ?? "").toUpperCase().replace(/\s+/g, "");
+  if (!code) return null;
+  const chiffres = code.replace(/^CLANS-?/, "");
+  return /^\d{1,6}$/.test(chiffres) ? `CLANS-${chiffres.padStart(6, "0")}` : code;
 }
 
 const DELAI_MESSAGE_BIENVENUE_SECONDES = 3 * 3600; // « Quelques heures après l'adhésion »
@@ -61,6 +80,10 @@ export const demandeAdhesionSchema = z.object({
     .max(2000)
     .optional()
     .transform((v) => v || null),
+  // Numéro membre du parrain (facultatif).
+  codeParrainage: z.string().trim().max(30).optional().transform(normaliserCodeParrainage),
+  // Clan choisi parmi ceux de l'admin ; vide = « À définir ».
+  clanId: z.number().int().positive().nullable().optional().transform((v) => v ?? null),
   charteAcceptee: z.literal(true, { error: "Tu dois accepter la charte de CLANS aventures." }),
   pays: z.string({ error: "Choisis ton pays." }).refine(estPays, "Pays non pris en charge."),
   operateur: z
@@ -129,12 +152,39 @@ export async function enregistrerDemande(
       );
     }
 
+    let parrainId: string | null = null;
+    if (demande.codeParrainage) {
+      const [parrain] = await tx
+        .select({ id: membres.id })
+        .from(membres)
+        .where(and(eq(membres.numero, demande.codeParrainage), eq(membres.statut, "membre")))
+        .limit(1);
+      if (!parrain) {
+        throw new ErreurAdhesion(
+          "Ce code de parrainage n’existe pas. Vérifie-le auprès de ton parrain ou laisse le champ vide.",
+        );
+      }
+      parrainId = parrain.id;
+    }
+
+    let clanId: number | null = null;
+    if (demande.clanId) {
+      const [clan] = await tx
+        .select({ id: clans.id })
+        .from(clans)
+        .where(and(eq(clans.id, demande.clanId), eq(clans.actif, true)))
+        .limit(1);
+      if (!clan) throw new ErreurAdhesion("Ce clan n’est plus proposé. Choisis-en un autre.");
+      clanId = clan.id;
+    }
+
+    const fiche = { ...profil, parrainId, clanId };
     let membreId: string;
     if (existant) {
-      await tx.update(membres).set(profil).where(eq(membres.id, existant.id));
+      await tx.update(membres).set(fiche).where(eq(membres.id, existant.id));
       membreId = existant.id;
     } else {
-      const [cree] = await tx.insert(membres).values(profil).returning({ id: membres.id });
+      const [cree] = await tx.insert(membres).values(fiche).returning({ id: membres.id });
       membreId = cree.id;
     }
 
@@ -237,6 +287,8 @@ export async function confirmerPaiement(
         })),
       );
 
+    if (membre.parrainId) await recompenserParrain(tx, membre);
+
     return { resultat: "confirme", membreId: membre.id, membre } as const;
   });
 
@@ -262,6 +314,44 @@ export async function confirmerPaiement(
   }
 
   return { resultat: "confirme", membreId: membre.id };
+}
+
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Adhésion payée d'un filleul : étoiles du barème « Parrainage membre » pour le parrain (une seule fois). */
+async function recompenserParrain(
+  tx: Transaction,
+  filleul: { id: string; prenom: string; nom: string; parrainId: string | null },
+) {
+  if (!filleul.parrainId) return;
+  const [action] = await tx
+    .select()
+    .from(typesActions)
+    .where(and(eq(typesActions.code, "parrainage"), eq(typesActions.actif, true)))
+    .limit(1);
+  if (!action || action.etoiles === 0) return;
+
+  const nomFilleul = `${filleul.prenom} ${filleul.nom[0] ?? ""}.`.trim();
+  const ajoute = await tx
+    .insert(mouvementsEtoiles)
+    .values({
+      membreId: filleul.parrainId,
+      libelle: `Parrainage — ${nomFilleul}`,
+      variation: action.etoiles,
+      typeActionId: action.id,
+      filleulId: filleul.id,
+    })
+    .onConflictDoNothing()
+    .returning({ id: mouvementsEtoiles.id });
+
+  if (ajoute.length > 0) {
+    await tx.insert(messages).values({
+      membreId: filleul.parrainId,
+      titre: "Ton filleul a rejoint CLANS !",
+      contenu: `${nomFilleul} vient de confirmer son adhésion avec ton code de parrainage. Tu gagnes ${action.etoiles} étoile${Math.abs(action.etoiles) > 1 ? "s" : ""}. Merci de faire grandir l’aventure !`,
+      type: "star",
+    });
+  }
 }
 
 function messagesDeBienvenue(

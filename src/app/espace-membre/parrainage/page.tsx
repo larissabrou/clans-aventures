@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Percent, Star, Users } from "lucide-react";
+import { estAdmin } from "@/lib/admin";
 import { exigerMembre } from "@/lib/auth";
 import { urlSite } from "@/lib/env";
 import { REDUCTION_PAR_PARTICIPATION, parrainage, tableauDeBord } from "@/lib/membres";
@@ -28,7 +29,7 @@ async function Parrainage() {
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} page="parrainage">
+      <MemberShell nomComplet={nomComplet} initiales={initiales} page="parrainage" admin={estAdmin(connecte)}>
         <div className="mx-auto max-w-5xl">
           <div className="mb-8">
             <p className="text-[0.65rem] font-semibold tracking-[3px] text-sable uppercase">
@@ -61,11 +62,14 @@ async function Parrainage() {
             </h2>
             <p className="relative mt-2 max-w-xl text-sm leading-6 text-ivoire/80">
               Partage ton code de parrainage avec tes proches. Une adhésion payée et confirmée te
-              rapporte une étoile ; chaque participation de tes filleuls à un événement ajoute{" "}
+              rapporte {programme.etoilesParFilleul} étoile{programme.etoilesParFilleul > 1 ? "s" : ""} ; chaque participation de tes filleuls à un événement ajoute{" "}
               {REDUCTION_PAR_PARTICIPATION} % de réduction à ton cumul.
             </p>
             {programme.code ? (
-              <Invitation code={programme.code} lienInscription={`${urlSite()}/inscription`} />
+              <Invitation
+                code={programme.code}
+                lienInscription={`${urlSite()}/inscription?parrain=${programme.code}`}
+              />
             ) : (
               <p className="relative mt-6 text-sm text-sable">
                 Ton code apparaîtra dès que ton adhésion sera confirmée.
@@ -83,9 +87,12 @@ async function Parrainage() {
           {/* RÉCOMPENSES */}
           <Section titre="Comment gagner ?">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Regle Icone={Star} titre="1 étoile CLANS">
+              <Regle
+                Icone={Star}
+                titre={`${programme.etoilesParFilleul} étoile${programme.etoilesParFilleul > 1 ? "s" : ""} CLANS`}
+              >
                 Chaque fois qu’un filleul devient membre — après paiement et confirmation de son
-                adhésion — tu gagnes une étoile CLANS.
+                adhésion — tu gagnes {programme.etoilesParFilleul} étoile{programme.etoilesParFilleul > 1 ? "s" : ""} CLANS.
               </Regle>
               <Regle Icone={Percent} titre={`+${REDUCTION_PAR_PARTICIPATION} % à chaque participation`}>
                 Chaque participation effective d’un filleul à un événement ajoute{" "}
@@ -140,7 +147,7 @@ async function Parrainage() {
                           <td className="px-2 py-4">
                             {filleul.confirme ? (
                               <span className="inline-flex items-center gap-1 font-semibold text-terre">
-                                +1 <Star className="size-3.5 fill-terre" />
+                                +{programme.etoilesParFilleul} <Star className="size-3.5 fill-terre" />
                               </span>
                             ) : (
                               "—"
@@ -160,7 +167,7 @@ async function Parrainage() {
           <Section titre="Les règles à retenir">
             <ol className="list-decimal rounded-2xl bg-white py-5 pr-5 pl-10 text-sm leading-7 text-charbon/75 sm:py-7 sm:pr-7 sm:pl-12">
               <li>Le code de parrainage doit être indiqué par le nouveau membre lors de son inscription.</li>
-              <li>L’étoile est accordée uniquement après confirmation du paiement de l’adhésion du filleul.</li>
+              <li>Les étoiles sont accordées uniquement après confirmation du paiement de l’adhésion du filleul.</li>
               <li>
                 Les {REDUCTION_PAR_PARTICIPATION} % sont ajoutés uniquement après confirmation de la
                 participation effective du filleul à un événement.

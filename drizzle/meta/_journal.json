@@ -22,6 +22,27 @@
       "when": 1792006665584,
       "tag": "0002_mot_de_passe",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792312924159,
+      "tag": "0003_clans_actions_evenements",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792312957145,
+      "tag": "0004_retrait_anciens_champs",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792313585042,
+      "tag": "0005_conditions_evenements",
+      "breakpoints": true
     }
   ]
 }

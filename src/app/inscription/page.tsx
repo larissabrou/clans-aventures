@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { clansProposes } from "@/lib/clans";
+import { prixAdhesion } from "@/lib/parametres";
 import { AdhesionForm, type RetourWave } from "./adhesion-form";
 
 export const metadata: Metadata = {
@@ -55,18 +57,27 @@ export default function InscriptionPage({ searchParams }: PageProps<"/inscriptio
 }
 
 // Au retour de la page Wave (/inscription?paiement=retour&ref=…), le formulaire reprend
-// directement à la vérification du paiement.
+// directement à la vérification du paiement. ?parrain=CLANS-000012 pré-remplit le code de parrainage.
 async function FormulaireAvecRetour({
   searchParams,
 }: Pick<PageProps<"/inscription">, "searchParams">) {
-  const params = await searchParams;
+  const [params, prix, clans] = await Promise.all([searchParams, prixAdhesion(), clansProposes()]);
   const reference = typeof params.ref === "string" ? params.ref : undefined;
   const retourWave: RetourWave | undefined =
     params.paiement === "retour" && reference
       ? { reference, annule: params.annule === "1" }
       : undefined;
 
-  return <AdhesionForm retourWave={retourWave} />;
+  const codeParrainage = typeof params.parrain === "string" ? params.parrain.slice(0, 30) : "";
+
+  return (
+    <AdhesionForm
+      retourWave={retourWave}
+      prix={prix}
+      clans={clans}
+      codeParrainage={codeParrainage}
+    />
+  );
 }
 
 function FormulaireEnChargement() {
