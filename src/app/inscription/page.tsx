@@ -20,7 +20,7 @@ export default function InscriptionPage({ searchParams }: PageProps<"/inscriptio
 
       {/* Fond : photo du campement derrière le formulaire. */}
       <main
-        className="bg-charbon bg-cover bg-center"
+        className="flex-1 bg-charbon bg-cover bg-center"
         style={{ backgroundImage: "url(/images/fond-campement.jpg)" }}
       >
         {/* Bandeau : motifs CLANS sur fond ivoire, le centre vide accueille le titre. */}

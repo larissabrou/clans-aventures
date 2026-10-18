@@ -32,7 +32,7 @@ async function EspaceMembre() {
   return (
     <MessagesProvider initialMessages={donnees.messages}>
       <MemberShell nomComplet={nomComplet} initiales={initiales} admin={estAdmin(connecte)}>
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           {/* BIENVENUE */}
           <div id="tableau-de-bord" className="mb-8 scroll-mt-24">
             <h1 className="font-titre text-4xl font-semibold sm:text-5xl">

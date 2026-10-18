@@ -29,7 +29,7 @@ async function Profil() {
   return (
     <MessagesProvider initialMessages={donnees.messages}>
       <MemberShell nomComplet={nomComplet} initiales={initiales} page="profil" admin={estAdmin(connecte)}>
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           <div className="mb-8">
             <h1 className="font-titre text-4xl font-semibold sm:text-5xl">Mon profil</h1>
             <p className="mt-2 text-ivoire/70">
@@ -37,7 +37,7 @@ async function Profil() {
             </p>
           </div>
 
-          <dl className="grid gap-5 rounded-2xl bg-white p-6 text-charbon sm:grid-cols-2 sm:p-8 lg:grid-cols-3">
+          <dl className="grid gap-5 rounded-2xl border border-white p-6 text-white sm:grid-cols-2 sm:p-8 lg:grid-cols-3">
             <InfoProfil label="Nom complet" valeur={nomComplet} />
             <InfoProfil label="Numéro membre" valeur={membre.numero} />
             <InfoProfil label="Clan" valeur={membre.clan} />
@@ -57,7 +57,7 @@ async function Profil() {
 function InfoProfil({ label, valeur }: { label: string; valeur: string }) {
   return (
     <div>
-      <dt className="text-xs font-semibold tracking-[1px] text-charbon/60 uppercase">
+      <dt className="text-xs font-semibold tracking-[1px] text-white/60 uppercase">
         {label}
       </dt>
       <dd className="mt-1 font-medium">{valeur}</dd>

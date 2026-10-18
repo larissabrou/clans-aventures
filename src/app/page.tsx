@@ -7,7 +7,7 @@ import { UNIVERS } from "@/lib/univers";
 export default function HomePage() {
   return (
     <>
-      <main>
+      <main className="flex-1">
         <Hero />
 
         {/* EXPÉRIENCE */}

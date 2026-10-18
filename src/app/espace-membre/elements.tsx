@@ -28,11 +28,17 @@ export function Section({
   );
 }
 
+/**
+ * Pied de page : mt-auto le pousse en bas de l'écran quand la page est courte,
+ * pt-16 garde l'espace habituel sous le contenu quand elle est longue.
+ */
 export function PiedEspaceMembre() {
   return (
-    <footer className="mt-16 border-t border-ivoire/10 pt-6 text-center text-xs leading-6 text-ivoire/50">
-      <p>Nos cultures nous distinguent. Nos aventures nous rapprochent.</p>
-      <Copyright />
+    <footer className="mt-auto pt-16">
+      <div className="border-t border-ivoire/10 pt-6 text-center text-xs leading-6 text-ivoire/50">
+        <p>Nos cultures nous distinguent. Nos aventures nous rapprochent.</p>
+        <Copyright />
+      </div>
     </footer>
   );
 }

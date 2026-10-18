@@ -31,7 +31,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="fr"
       className={`${cormorant.variable} ${montserrat.variable} antialiased`}
     >
-      <body className="min-h-full font-sans">{children}</body>
+      {/* Colonne flexible : le <main> de chaque page s'étire, le pied de page reste en bas de l'écran. */}
+      <body className="flex min-h-svh flex-col font-sans">{children}</body>
     </html>
   );
 }

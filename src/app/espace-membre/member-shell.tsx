@@ -209,7 +209,7 @@ export function MemberShell({
           </form>
         </aside>
 
-        <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
+        <main className="flex min-h-[calc(100svh-4.5rem)] min-w-0 flex-1 flex-col px-4 py-8 sm:px-8 lg:px-12 lg:py-10">
           {children}
         </main>
       </div>

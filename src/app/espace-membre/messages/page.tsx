@@ -33,7 +33,7 @@ async function Messages({ searchParams }: Pick<PageProps<"/espace-membre/message
   return (
     <MessagesProvider initialMessages={donnees.messages}>
       <MemberShell nomComplet={nomComplet} initiales={initiales} page="messages" admin={estAdmin(connecte)}>
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col">
           <div className="mb-8">
             <p className="text-[0.65rem] font-semibold tracking-[3px] text-sable uppercase">
               Boîte de réception

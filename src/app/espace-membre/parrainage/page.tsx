@@ -30,7 +30,7 @@ async function Parrainage() {
   return (
     <MessagesProvider initialMessages={donnees.messages}>
       <MemberShell nomComplet={nomComplet} initiales={initiales} page="parrainage" admin={estAdmin(connecte)}>
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           <div className="mb-8">
             <p className="text-[0.65rem] font-semibold tracking-[3px] text-sable uppercase">
               Le programme « Invite ton clan »
@@ -110,11 +110,11 @@ async function Parrainage() {
 
           {/* FILLEULS */}
           <Section titre="Mon réseau de filleuls">
-            <div className="rounded-2xl bg-white p-5 text-charbon sm:p-7">
+            <div className="rounded-2xl border border-white p-5 text-white sm:p-7">
               {programme.filleuls.length === 0 ? (
-                <div className="py-6 text-center text-sm leading-7 text-charbon/60">
-                  <Users className="mx-auto mb-3 size-8 text-terre" strokeWidth={1.5} />
-                  <strong className="text-charbon">Ton aventure de parrainage commence ici.</strong>
+                <div className="py-6 text-center text-sm leading-7 text-white/60">
+                  <Users className="mx-auto mb-3 size-8 text-sable" strokeWidth={1.5} />
+                  <strong className="text-white">Ton aventure de parrainage commence ici.</strong>
                   <br />
                   Tes filleuls apparaîtront dans cette liste dès qu’ils s’inscriront avec ton code.
                 </div>
@@ -122,7 +122,7 @@ async function Parrainage() {
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-120 text-sm">
                     <thead>
-                      <tr className="border-b border-charbon/10 text-left text-[0.65rem] tracking-[1px] text-charbon/60 uppercase">
+                      <tr className="border-b border-white/20 text-left text-[0.65rem] tracking-[1px] text-white/60 uppercase">
                         <th className="px-2 py-3 font-semibold">Filleul</th>
                         <th className="px-2 py-3 font-semibold">Adhésion</th>
                         <th className="px-2 py-3 font-semibold">Participations validées</th>
@@ -130,14 +130,14 @@ async function Parrainage() {
                         <th className="px-2 py-3 font-semibold">Réduction générée</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-charbon/10">
+                    <tbody className="divide-y divide-white/15">
                       {programme.filleuls.map((filleul) => (
                         <tr key={filleul.id}>
                           <td className="px-2 py-4 font-semibold">{filleul.nom}</td>
                           <td className="px-2 py-4">
                             <span
                               className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                filleul.confirme ? "bg-foret/10 text-foret" : "bg-sable/40 text-terre"
+                                filleul.confirme ? "bg-sable/20 text-sable" : "bg-white/10 text-white/80"
                               }`}
                             >
                               {filleul.confirme ? "Confirmée" : "En attente"}
@@ -146,7 +146,7 @@ async function Parrainage() {
                           <td className="px-2 py-4">{filleul.presences}</td>
                           <td className="px-2 py-4">
                             {filleul.confirme ? (
-                              <span className="inline-flex items-center gap-1 font-semibold text-terre">
+                              <span className="inline-flex items-center gap-1 font-semibold text-sable">
                                 +{programme.etoilesParFilleul} <Star className="size-3.5 fill-terre" />
                               </span>
                             ) : (
@@ -165,7 +165,7 @@ async function Parrainage() {
 
           {/* RÈGLES */}
           <Section titre="Les règles à retenir">
-            <ol className="list-decimal rounded-2xl bg-white py-5 pr-5 pl-10 text-sm leading-7 text-charbon/75 sm:py-7 sm:pr-7 sm:pl-12">
+            <ol className="list-decimal rounded-2xl border border-white py-5 pr-5 pl-10 text-sm leading-7 text-white/80 sm:py-7 sm:pr-7 sm:pl-12">
               <li>Le code de parrainage doit être indiqué par le nouveau membre lors de son inscription.</li>
               <li>Les étoiles sont accordées uniquement après confirmation du paiement de l’adhésion du filleul.</li>
               <li>
@@ -192,22 +192,22 @@ async function Parrainage() {
 
 function Statistique({ valeur, label, detail }: { valeur: React.ReactNode; label: string; detail: string }) {
   return (
-    <div className="rounded-2xl bg-white p-5 text-charbon">
-      <p className="text-xs font-semibold text-charbon/60">{label}</p>
-      <p className="mt-2 font-titre text-4xl leading-none font-semibold text-terre">{valeur}</p>
-      <p className="mt-1 text-xs text-charbon/50">{detail}</p>
+    <div className="rounded-2xl border border-white p-5 text-white">
+      <p className="text-xs font-semibold text-white/60">{label}</p>
+      <p className="mt-2 font-titre text-4xl leading-none font-semibold text-sable">{valeur}</p>
+      <p className="mt-1 text-xs text-white/50">{detail}</p>
     </div>
   );
 }
 
 function Regle({ Icone, titre, children }: { Icone: typeof Star; titre: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white p-5 text-charbon sm:p-6">
-      <span className="flex size-10 items-center justify-center rounded-xl bg-sable/40">
-        <Icone className="size-5 text-terre" strokeWidth={1.75} />
+    <div className="rounded-2xl border border-white p-5 text-white sm:p-6">
+      <span className="flex size-10 items-center justify-center rounded-xl bg-white/10">
+        <Icone className="size-5 text-sable" strokeWidth={1.75} />
       </span>
       <h3 className="mt-3 font-titre text-2xl font-semibold">{titre}</h3>
-      <p className="mt-1 text-sm leading-6 text-charbon/70">{children}</p>
+      <p className="mt-1 text-sm leading-6 text-white/70">{children}</p>
     </div>
   );
 }
