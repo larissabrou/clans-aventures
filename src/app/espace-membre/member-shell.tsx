@@ -127,10 +127,10 @@ export function MemberShell({
   return (
     <div className="min-h-svh bg-charbon text-ivoire">
       {/* EN-TÊTE */}
-      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-sable/30 bg-foret px-4 text-ivoire sm:px-6">
-        {/* Logo du site de présentation (symbole + nom), en blanc. */}
+      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-charbon/10 bg-white px-4 text-charbon shadow-sm sm:px-6">
+        {/* Logo du site de présentation (symbole + nom), en couleur sur la barre blanche. */}
         <Link href="/" aria-label="CLANS aventures — accueil du site">
-          <Logo variant="complet-blanc" className="h-12 w-auto sm:h-14" preload />
+          <Logo variant="complet" className="h-12 w-auto sm:h-14" preload />
         </Link>
 
         <div className="flex items-center gap-3">
@@ -143,10 +143,10 @@ export function MemberShell({
             title="Mon profil"
             className="group flex items-center gap-3 rounded-full transition"
           >
-            <span className="hidden text-sm group-hover:text-sable sm:inline">{nomComplet}</span>
+            <span className="hidden text-sm font-medium group-hover:text-terre sm:inline">{nomComplet}</span>
             <span
-              className={`flex size-10 items-center justify-center rounded-full bg-terre text-sm font-bold text-white ring-2 transition group-hover:ring-sable ${
-                page === "profil" ? "ring-sable" : "ring-transparent"
+              className={`flex size-10 items-center justify-center rounded-full bg-terre text-sm font-bold text-white ring-2 ring-offset-2 transition group-hover:ring-terre/60 ${
+                page === "profil" ? "ring-terre/60" : "ring-transparent"
               }`}
             >
               {initiales}
@@ -155,7 +155,7 @@ export function MemberShell({
           <button
             type="button"
             onClick={() => setMenuOuvert(!menuOuvert)}
-            className="rounded-lg p-2 hover:bg-white/10 lg:hidden"
+            className="rounded-lg p-2 hover:bg-charbon/5 lg:hidden"
             aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={menuOuvert}
           >
