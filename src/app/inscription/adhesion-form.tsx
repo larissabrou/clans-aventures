@@ -917,8 +917,9 @@ function Champ({
     <div>
       <label htmlFor={id} className={labelClasses}>
         {label}
+        {/* Rouge vif (hors charte) : les champs obligatoires doivent sauter aux yeux. */}
         {requis && (
-          <span className="ml-1 text-bordeaux" title="Obligatoire" aria-label="obligatoire">
+          <span className="ml-1 font-bold text-[#E10600]" title="Obligatoire" aria-label="obligatoire">
             *
           </span>
         )}

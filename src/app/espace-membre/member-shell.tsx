@@ -27,7 +27,7 @@ type Lien = {
 
 const MON_ESPACE: Lien[] = [
   { label: "Tableau CLANS", Icone: LayoutDashboard, href: "/espace-membre#tableau-de-bord" },
-  { label: "Messages", Icone: MessageCircle, href: "/espace-membre#messages", badgeMessages: true },
+  { label: "Messages", Icone: MessageCircle, href: "/espace-membre/messages", badgeMessages: true },
   { label: "Bon plan", Icone: Tent, href: "/espace-membre/bon-plan" },
   { label: "Parrainage", Icone: Users, href: "/espace-membre/parrainage" },
 ];
@@ -42,7 +42,7 @@ export function MemberShell({
   nomComplet: string;
   initiales: string;
   // Page affichée : "profil" met la pastille en avant, aucune rubrique du menu n'est active.
-  page?: "tableau" | "profil" | "parrainage" | "bon-plan";
+  page?: "tableau" | "profil" | "parrainage" | "bon-plan" | "messages";
   // Affiche le lien vers l'administration (emails listés dans ADMIN_EMAILS).
   admin?: boolean;
   children: React.ReactNode;

@@ -27,7 +27,7 @@ export function formaterDateHeure(date: Date) {
   return `${jour} — ${heure}`;
 }
 
-export async function tableauDeBord(membre: Membre) {
+export async function tableauDeBord(membre: Membre, nombreMessages = 50) {
   const [[etoiles], [experiences], [filleuls], listeMessages, historique, obligatoires, [clan]] =
     await Promise.all([
       db
@@ -44,7 +44,7 @@ export async function tableauDeBord(membre: Membre) {
         .from(messages)
         .where(eq(messages.membreId, membre.id))
         .orderBy(desc(messages.creeLe), desc(messages.id))
-        .limit(50),
+        .limit(nombreMessages),
       db
         .select()
         .from(mouvementsEtoiles)
@@ -97,6 +97,14 @@ export async function tableauDeBord(membre: Membre) {
 }
 
 export type TableauDeBord = Awaited<ReturnType<typeof tableauDeBord>>;
+
+/** Marque tous les messages de ce membre comme lus. */
+export async function marquerTousLus(membreId: string) {
+  await db
+    .update(messages)
+    .set({ lu: true })
+    .where(and(eq(messages.membreId, membreId), eq(messages.lu, false)));
+}
 
 /** Marque un message comme lu, seulement s'il appartient bien à ce membre. */
 export async function marquerMessageLu(membreId: string, messageId: number) {

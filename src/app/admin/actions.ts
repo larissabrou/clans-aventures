@@ -22,6 +22,7 @@ import {
   changerClan,
   supprimerMouvement,
 } from "@/lib/gestion-membres";
+import { ErreurEnvoi, envoyerMessage, supprimerEnvoi } from "@/lib/envois";
 import { definirPrixAdhesion } from "@/lib/parametres";
 
 // Server Functions de l'administration. Chacune revérifie les droits : elles sont appelables directement.
@@ -73,7 +74,7 @@ async function executer<T>(
     refresh();
     return { ok: true, message };
   } catch (erreur) {
-    if (erreur instanceof ErreurEvenement || erreur instanceof ErreurGestion) {
+    if (erreur instanceof ErreurEvenement || erreur instanceof ErreurGestion || erreur instanceof ErreurEnvoi) {
       return { ok: false, message: erreur.message };
     }
     if (estDoublon(erreur)) return { ok: false, message: "Ce nom existe déjà." };
@@ -220,6 +221,40 @@ export async function actionMarquerPresence(_: EtatAction, formulaire: FormData)
   return executer(schema, formulaire, async ({ participationId, present }) => {
     await marquerPresence(participationId, present);
     return present ? "Présence validée." : "Présence annulée.";
+  });
+}
+
+// ---------- Messages ----------
+
+const schemaEnvoi = z
+  .object({
+    genre: z.enum(["tous", "clan", "membre"], { error: "Choisis les destinataires." }),
+    clanId: entierOptionnel(1, "Clan invalide."),
+    numero: z.string().trim().max(30).optional(),
+    titre: texte("Indique le titre du message.", 120),
+    contenu: texte("Écris le message.", 5000),
+    type: z.enum(["info", "event", "warning", "star"], { error: "Choisis le type de message." }),
+  })
+  .refine((v) => v.genre !== "clan" || v.clanId !== null, { message: "Choisis le clan." })
+  .refine((v) => v.genre !== "membre" || Boolean(v.numero), { message: "Indique le numéro du membre." });
+
+export async function actionEnvoyerMessage(_: EtatAction, formulaire: FormData) {
+  return executer(schemaEnvoi, formulaire, async ({ genre, clanId, numero, titre, contenu, type }) => {
+    const cible =
+      genre === "clan"
+        ? { genre, clanId: clanId! }
+        : genre === "membre"
+          ? { genre, numero: numero ?? "" }
+          : { genre };
+    const nombre = await envoyerMessage(cible, { titre, contenu, type });
+    return `Message envoyé à ${nombre} membre${nombre > 1 ? "s" : ""}.`;
+  });
+}
+
+export async function actionSupprimerEnvoi(_: EtatAction, formulaire: FormData) {
+  return executer(z.object({ id: identifiant }), formulaire, async ({ id }) => {
+    await supprimerEnvoi(id);
+    return "Message retiré des espaces membres.";
   });
 }
 

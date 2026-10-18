@@ -43,6 +43,13 @@
       "when": 1792313585042,
       "tag": "0005_conditions_evenements",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792314156869,
+      "tag": "0006_envois_messages",
+      "breakpoints": true
     }
   ]
 }

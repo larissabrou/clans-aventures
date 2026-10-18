@@ -8,7 +8,7 @@ import { tableauDeBord } from "@/lib/membres";
 import { NIVEAUX, libelleSeuil, progression } from "@/lib/niveaux";
 import { Chargement, PiedEspaceMembre, Section, identite } from "./elements";
 import { MemberShell } from "./member-shell";
-import { MessagesInbox } from "./messages-inbox";
+import { ApercuMessages } from "./apercu-messages";
 import { MessagesProvider } from "./messages-context";
 
 export const metadata: Metadata = { title: "Espace membre" };
@@ -47,32 +47,32 @@ async function EspaceMembre() {
           <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr]">
             <div
               id="carte"
-              // Dégradé or : tons dérivés du sable de la charte, reflet clair en haut à gauche.
-              className="relative scroll-mt-24 overflow-hidden rounded-2xl bg-linear-to-br from-[#F3E7C6] via-sable to-[#A88A4F] p-6 text-charbon shadow-[0_10px_40px_rgba(168,138,79,0.35)] ring-1 ring-sable sm:p-8"
+              // Carte sombre, dégradé or vers le coin bas droit (bronze puis or clair, sans teinte olive au milieu).
+              className="relative scroll-mt-24 overflow-hidden rounded-2xl bg-linear-to-br from-charbon from-45% via-[#8A6A2E] via-80% to-[#E6C877] p-6 text-ivoire ring-1 ring-sable/50 sm:p-8"
             >
               <MotifTextile />
 
               <div className="relative flex items-start justify-between">
                 <div>
-                  <p className="text-[0.65rem] font-semibold tracking-[3px] text-charbon/70 uppercase">
+                  <p className="text-[0.65rem] tracking-[3px] text-sable uppercase">
                     Carte membre
                   </p>
                   <p className="mt-1 text-sm font-semibold tracking-[2px]">
                     {membre.numero}
                   </p>
                 </div>
-                <Logo variant="couleur" className="h-14 w-auto" />
+                <Logo className="h-14 w-auto opacity-90" />
               </div>
 
               <div className="relative mt-12">
                 <p className="font-titre text-3xl font-semibold sm:text-4xl">
                   {nomComplet}
                 </p>
-                <p className="mt-1 text-sm text-charbon/75">
-                  Clan : <strong className="text-charbon">{membre.clan}</strong>
+                <p className="mt-1 text-sm text-ivoire/80">
+                  Clan : <strong className="text-ivoire">{membre.clan}</strong>
                 </p>
-                <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-charbon/10 px-3 py-1 text-xs font-semibold tracking-[1px] uppercase">
-                  <Star className="size-3.5 fill-terre text-terre" />
+                <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-[1px] uppercase">
+                  <Star className="size-3.5 fill-sable text-sable" />
                   {niveau.nom}
                 </p>
               </div>
@@ -115,9 +115,9 @@ async function EspaceMembre() {
             </div>
           </div>
 
-          {/* MESSAGES */}
-          <Section id="messages" titre="Mes messages">
-            <MessagesInbox />
+          {/* MESSAGES : les derniers seulement, la boîte complète a sa page */}
+          <Section titre="Mes derniers messages">
+            <ApercuMessages />
           </Section>
 
           {/* ÉVÉNEMENTS OBLIGATOIRES */}
@@ -241,7 +241,7 @@ function MotifTextile() {
   return (
     <svg
       aria-hidden
-      className="absolute inset-y-0 right-0 h-full w-3/5 text-charbon opacity-10"
+      className="absolute inset-y-0 right-0 h-full w-3/5 text-sable opacity-20"
       style={{ maskImage: "linear-gradient(to left, black, transparent)" }}
     >
       <defs>

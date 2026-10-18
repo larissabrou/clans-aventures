@@ -124,6 +124,18 @@ export const paiements = pgTable(
 
 export const typeMessage = pgEnum("type_message", ["info", "event", "warning", "star"]);
 
+/** Message envoyé depuis l'admin : une ligne ici, puis un message par destinataire. */
+export const envois = pgTable("envois", {
+  id: serial("id").primaryKey(),
+  titre: text("titre").notNull(),
+  contenu: text("contenu").notNull(),
+  type: typeMessage("type").notNull().default("info"),
+  // Destinataires, en clair pour l'historique : « Tous les membres », « Clan X », « CLANS-000012 ».
+  cible: text("cible").notNull(),
+  destinataires: integer("destinataires").notNull().default(0),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
 export const messages = pgTable(
   "messages",
   {
@@ -131,6 +143,8 @@ export const messages = pgTable(
     membreId: uuid("membre_id")
       .notNull()
       .references(() => membres.id, { onDelete: "cascade" }),
+    // Envoi de l'admin à l'origine du message (vide pour les messages automatiques du site).
+    envoiId: integer("envoi_id").references((): AnyPgColumn => envois.id, { onDelete: "cascade" }),
     titre: text("titre").notNull(),
     contenu: text("contenu").notNull(),
     type: typeMessage("type").notNull().default("info"),
@@ -247,4 +261,5 @@ export type Membre = typeof membres.$inferSelect;
 export type Clan = typeof clans.$inferSelect;
 export type TypeAction = typeof typesActions.$inferSelect;
 export type Evenement = typeof evenements.$inferSelect;
+export type Envoi = typeof envois.$inferSelect;
 export type Message = typeof messages.$inferSelect;

@@ -1,7 +1,7 @@
 "use server";
 
 import { changerMotDePasse, membreConnecte } from "@/lib/auth";
-import { marquerMessageLu } from "@/lib/membres";
+import { marquerMessageLu, marquerTousLus } from "@/lib/membres";
 import { erreurNouveauMotDePasse } from "@/lib/mot-de-passe";
 
 // Chaque action revérifie la session : elle ne fait jamais confiance au navigateur.
@@ -9,6 +9,12 @@ export async function marquerLu(messageId: number) {
   const membre = await membreConnecte();
   if (!membre || !Number.isInteger(messageId)) return;
   await marquerMessageLu(membre.id, messageId);
+}
+
+export async function marquerToutLu() {
+  const membre = await membreConnecte();
+  if (!membre) return;
+  await marquerTousLus(membre.id);
 }
 
 export type ResultatMotDePasse = { ok: boolean; message: string };

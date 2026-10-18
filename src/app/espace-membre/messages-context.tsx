@@ -4,7 +4,7 @@
 // et la statistique « Messages non lus » : lire un message met tout à jour.
 import { createContext, useContext, useState } from "react";
 import type { TableauDeBord } from "@/lib/membres";
-import { marquerLu } from "./actions";
+import { marquerLu, marquerToutLu } from "./actions";
 
 export type Message = TableauDeBord["messages"][number];
 
@@ -12,6 +12,7 @@ type MessagesContextValue = {
   messages: Message[];
   nonLus: number;
   marquerCommeLu: (id: number) => void;
+  toutMarquerCommeLu: () => void;
 };
 
 const MessagesContext = createContext<MessagesContextValue | null>(null);
@@ -37,10 +38,15 @@ export function MessagesProvider({
     );
   }
 
+  function toutMarquerCommeLu() {
+    void marquerToutLu();
+    setMessages((liste) => liste.map((message) => ({ ...message, lu: true })));
+  }
+
   const nonLus = messages.filter((message) => !message.lu).length;
 
   return (
-    <MessagesContext value={{ messages, nonLus, marquerCommeLu }}>
+    <MessagesContext value={{ messages, nonLus, marquerCommeLu, toutMarquerCommeLu }}>
       {children}
     </MessagesContext>
   );
