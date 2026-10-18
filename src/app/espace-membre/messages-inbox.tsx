@@ -8,10 +8,10 @@ import { useMessages, type Message } from "./messages-context";
 type TypeMessage = Message["type"];
 
 const TYPES: Record<TypeMessage, { label: string; classes: string }> = {
-  info: { label: "Information", classes: "bg-foret/10 text-foret" },
-  event: { label: "Événement", classes: "bg-terre/15 text-terre" },
-  warning: { label: "Important", classes: "bg-bordeaux/10 text-bordeaux" },
-  star: { label: "Étoiles", classes: "bg-sable/50 text-charbon" },
+  info: { label: "Information", classes: "bg-white/10 text-white" },
+  event: { label: "Événement", classes: "bg-terre/40 text-white" },
+  warning: { label: "Important", classes: "bg-bordeaux text-white" },
+  star: { label: "Étoiles", classes: "bg-sable/25 text-sable" },
 };
 
 export function MessagesInbox() {
@@ -30,7 +30,7 @@ export function MessagesInbox() {
   }
 
   return (
-    <div className="rounded-2xl bg-white p-5 text-charbon sm:p-7">
+    <div className="rounded-2xl border border-white p-5 text-white sm:p-7">
       <div className="mb-5 flex items-center justify-between">
         <h3 className="flex items-center gap-2 font-titre text-xl font-semibold">
           <Inbox className="size-5 text-terre" strokeWidth={1.75} />
@@ -42,7 +42,7 @@ export function MessagesInbox() {
       </div>
 
       {messages.length === 0 ? (
-        <p className="py-8 text-center text-sm text-charbon/60">
+        <p className="py-8 text-center text-sm text-white/60">
           Tu n’as aucun message pour le moment.
         </p>
       ) : (
@@ -52,17 +52,17 @@ export function MessagesInbox() {
               <button
                 type="button"
                 onClick={() => ouvrir(message)}
-                className={`w-full rounded-xl border-l-4 p-4 text-left transition hover:bg-ivoire ${
+                className={`w-full rounded-xl border-l-4 p-4 text-left transition hover:bg-white/10 ${
                   message.lu
-                    ? "border-transparent bg-white ring-1 ring-charbon/10"
-                    : "border-terre bg-ivoire/70"
+                    ? "border-transparent ring-1 ring-white/30"
+                    : "border-terre bg-white/5 ring-1 ring-white/30"
                 }`}
               >
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
                   <span className="font-semibold">{message.titre}</span>
-                  <span className="text-xs text-charbon/50">{message.date}</span>
+                  <span className="text-xs text-white/50">{message.date}</span>
                 </div>
-                <p className="mt-2 line-clamp-2 text-sm leading-6 text-charbon/70">
+                <p className="mt-2 line-clamp-2 text-sm leading-6 text-white/70">
                   {message.contenu}
                 </p>
                 <div className="mt-3 flex items-center gap-3">
@@ -72,7 +72,7 @@ export function MessagesInbox() {
                     {TYPES[message.type].label}
                   </span>
                   {!message.lu && (
-                    <span className="text-xs font-semibold text-terre">
+                    <span className="text-xs font-semibold text-sable">
                       ● Nouveau message
                     </span>
                   )}

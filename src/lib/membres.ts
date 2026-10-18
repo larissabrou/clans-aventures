@@ -100,3 +100,47 @@ export async function marquerMessageLu(membreId: string, messageId: number) {
     .set({ lu: true })
     .where(and(eq(messages.id, messageId), eq(messages.membreId, membreId)));
 }
+
+/** Réduction gagnée par participation validée d'un filleul (sans plafond). */
+export const REDUCTION_PAR_PARTICIPATION = 5;
+
+/**
+ * Programme de parrainage : le code est le numéro membre. Seules les adhésions payées
+ * comptent, et seules leurs présences validées génèrent de la réduction.
+ */
+export async function parrainage(membre: Membre) {
+  const filleuls = await db
+    .select({
+      id: membres.id,
+      prenom: membres.prenom,
+      nom: membres.nom,
+      statut: membres.statut,
+      presences: sql<number>`count(${participations.id}) filter (where ${participations.present})`.mapWith(Number),
+    })
+    .from(membres)
+    .leftJoin(participations, eq(participations.membreId, membres.id))
+    .where(eq(membres.parrainId, membre.id))
+    .groupBy(membres.id)
+    .orderBy(desc(membres.creeLe));
+
+  const liste = filleuls.map((f) => {
+    const confirme = f.statut === "membre";
+    const presences = confirme ? f.presences : 0;
+    return {
+      id: f.id,
+      // Prénom + initiale : la liste ne révèle pas le nom complet des filleuls.
+      nom: `${f.prenom} ${f.nom[0] ?? ""}.`.trim(),
+      confirme,
+      presences,
+      reduction: presences * REDUCTION_PAR_PARTICIPATION,
+    };
+  });
+
+  return {
+    code: membre.numero,
+    invites: liste.length,
+    confirmes: liste.filter((f) => f.confirme).length,
+    reduction: liste.reduce((total, f) => total + f.reduction, 0),
+    filleuls: liste,
+  };
+}

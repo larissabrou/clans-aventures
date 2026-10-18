@@ -19,49 +19,57 @@ import { useMessages } from "./messages-context";
 type Lien = {
   label: string;
   Icone: LucideIcon;
-  // Ancre vers une section de la page ; absent = rubrique pas encore disponible.
+  // Section du tableau de bord ou page de l'espace ; absent = rubrique pas encore disponible.
   href?: string;
   badgeMessages?: boolean;
 };
 
 const MON_ESPACE: Lien[] = [
-  { label: "Tableau CLANS", Icone: LayoutDashboard, href: "#tableau-de-bord" },
-  { label: "Messages", Icone: MessageCircle, href: "#messages", badgeMessages: true },
+  { label: "Tableau CLANS", Icone: LayoutDashboard, href: "/espace-membre#tableau-de-bord" },
+  { label: "Messages", Icone: MessageCircle, href: "/espace-membre#messages", badgeMessages: true },
   { label: "Expériences", Icone: Tent },
-  { label: "Parrainage", Icone: Users },
+  { label: "Parrainage", Icone: Users, href: "/espace-membre/parrainage" },
 ];
 
 export function MemberShell({
   nomComplet,
   initiales,
+  page = "tableau",
   children,
 }: {
   nomComplet: string;
   initiales: string;
+  // Page affichée : "profil" met la pastille en avant, aucune rubrique du menu n'est active.
+  page?: "tableau" | "profil" | "parrainage";
   children: React.ReactNode;
 }) {
   const [menuOuvert, setMenuOuvert] = useState(false);
-  const [actif, setActif] = useState<string>(MON_ESPACE[0].href ?? "");
+  const [actif, setActif] = useState<string>(
+    page === "tableau" ? (MON_ESPACE[0].href ?? "") : page === "parrainage" ? "/espace-membre/parrainage" : "",
+  );
   const { nonLus } = useMessages();
 
   // La rubrique active suit le défilement : celle dont la section occupe le haut de l'écran.
   useEffect(() => {
-    const sections = MON_ESPACE.flatMap(({ href }) =>
-      href ? [document.querySelector<HTMLElement>(href)].filter((s) => s !== null) : [],
-    );
+    if (page !== "tableau") return;
+    const sections = MON_ESPACE.flatMap(({ href }) => {
+      const id = href?.split("#")[1];
+      const section = id ? document.getElementById(id) : null;
+      return section ? [section] : [];
+    });
     if (sections.length === 0) return;
 
     const observateur = new IntersectionObserver(
       (entrees) => {
         const visible = entrees.find((e) => e.isIntersecting);
-        if (visible) setActif(`#${visible.target.id}`);
+        if (visible) setActif(`/espace-membre#${visible.target.id}`);
       },
       // Zone d'observation : bande sous l'en-tête collant, en haut de l'écran.
       { rootMargin: "-80px 0px -60% 0px" },
     );
     sections.forEach((s) => observateur.observe(s));
     return () => observateur.disconnect();
-  }, []);
+  }, [page]);
 
   function lien({ label, Icone, href, badgeMessages }: Lien) {
     const estActif = href !== undefined && href === actif;
@@ -90,7 +98,7 @@ export function MemberShell({
         {href ? (
           <a
             href={href}
-            aria-current={estActif ? "location" : undefined}
+            aria-current={estActif ? (href.includes("#") ? "location" : "page") : undefined}
             onClick={() => {
               setActif(href);
               setMenuOuvert(false);
@@ -124,19 +132,24 @@ export function MemberShell({
         </Link>
 
         <div className="flex items-center gap-3">
-          {/* Nom + pastille : ouvre la rubrique « Mon profil » (infos et mot de passe). */}
-          <a
-            href="#profil"
+          {/* Nom + pastille : ouvre la page « Mon profil » (infos et mot de passe). */}
+          <Link
+            href="/espace-membre/profil"
             onClick={() => setMenuOuvert(false)}
             aria-label="Mon profil"
+            aria-current={page === "profil" ? "page" : undefined}
             title="Mon profil"
             className="group flex items-center gap-3 rounded-full transition"
           >
             <span className="hidden text-sm group-hover:text-sable sm:inline">{nomComplet}</span>
-            <span className="flex size-10 items-center justify-center rounded-full bg-terre text-sm font-bold text-white ring-2 ring-transparent transition group-hover:ring-sable">
+            <span
+              className={`flex size-10 items-center justify-center rounded-full bg-terre text-sm font-bold text-white ring-2 transition group-hover:ring-sable ${
+                page === "profil" ? "ring-sable" : "ring-transparent"
+              }`}
+            >
               {initiales}
             </span>
-          </a>
+          </Link>
           <button
             type="button"
             onClick={() => setMenuOuvert(!menuOuvert)}

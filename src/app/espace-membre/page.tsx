@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { CalendarDays, LoaderCircle, Star, Tent, Users } from "lucide-react";
+import { CalendarDays, Star, Tent, Users } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { Copyright } from "@/components/site-footer";
 import { exigerMembre } from "@/lib/auth";
 import { tableauDeBord } from "@/lib/membres";
 import { NIVEAUX, libelleSeuil, progression } from "@/lib/niveaux";
-import { ChangerMotDePasse } from "./changer-mot-de-passe";
+import { Chargement, PiedEspaceMembre, Section, identite } from "./elements";
 import { MemberShell } from "./member-shell";
 import { MessagesInbox } from "./messages-inbox";
 import { MessagesProvider } from "./messages-context";
@@ -26,8 +25,7 @@ async function EspaceMembre() {
   const connecte = await exigerMembre(); // renvoie vers /connexion si besoin
   const donnees = await tableauDeBord(connecte);
   const { membre } = donnees;
-  const nomComplet = `${membre.prenom} ${membre.nom}`;
-  const initiales = `${membre.prenom[0]}${membre.nom[0]}`.toUpperCase();
+  const { nomComplet, initiales } = identite(membre.prenom, membre.nom);
   const { niveau, pourcentage, message } = progression(membre.etoiles);
 
   return (
@@ -48,31 +46,32 @@ async function EspaceMembre() {
           <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr]">
             <div
               id="carte"
-              className="relative scroll-mt-24 overflow-hidden rounded-2xl bg-linear-to-br from-charbon via-charbon to-terre p-6 text-ivoire ring-1 ring-terre/50 sm:p-8"
+              // Dégradé or : tons dérivés du sable de la charte, reflet clair en haut à gauche.
+              className="relative scroll-mt-24 overflow-hidden rounded-2xl bg-linear-to-br from-[#F3E7C6] via-sable to-[#A88A4F] p-6 text-charbon shadow-[0_10px_40px_rgba(168,138,79,0.35)] ring-1 ring-sable sm:p-8"
             >
               <MotifTextile />
 
               <div className="relative flex items-start justify-between">
                 <div>
-                  <p className="text-[0.65rem] tracking-[3px] text-sable uppercase">
+                  <p className="text-[0.65rem] font-semibold tracking-[3px] text-charbon/70 uppercase">
                     Carte membre
                   </p>
                   <p className="mt-1 text-sm font-semibold tracking-[2px]">
                     {membre.numero}
                   </p>
                 </div>
-                <Logo className="h-14 w-auto opacity-90" />
+                <Logo variant="couleur" className="h-14 w-auto" />
               </div>
 
               <div className="relative mt-12">
                 <p className="font-titre text-3xl font-semibold sm:text-4xl">
                   {nomComplet}
                 </p>
-                <p className="mt-1 text-sm text-ivoire/80">
-                  Clan : <strong className="text-ivoire">{membre.clan}</strong>
+                <p className="mt-1 text-sm text-charbon/75">
+                  Clan : <strong className="text-charbon">{membre.clan}</strong>
                 </p>
-                <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-[1px] uppercase">
-                  <Star className="size-3.5 fill-sable text-sable" />
+                <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-charbon/10 px-3 py-1 text-xs font-semibold tracking-[1px] uppercase">
+                  <Star className="size-3.5 fill-terre text-terre" />
                   {niveau.nom}
                 </p>
               </div>
@@ -80,21 +79,21 @@ async function EspaceMembre() {
 
             {/* Colonne de droite : progression (compacte) + 2 statistiques, à la hauteur de la carte membre. */}
             <div className="flex flex-col gap-4">
-              <div className="rounded-2xl bg-white p-5 text-charbon sm:px-6">
+              <div className="rounded-2xl border border-white p-5 text-white sm:px-6">
                 <div className="flex items-baseline justify-between gap-3">
                   <h2 className="font-titre text-xl font-semibold">Ma progression</h2>
                   <p className="flex items-baseline gap-1.5">
                     <strong className="font-titre text-4xl leading-none font-semibold text-terre">
                       {membre.etoiles}
                     </strong>
-                    <span className="text-xs text-charbon/70">étoiles</span>
+                    <span className="text-xs text-white/70">étoiles</span>
                   </p>
                 </div>
 
                 <div className="mt-3">
                   <div className="mb-1.5 flex justify-between text-xs font-semibold">
                     <span>{niveau.nom}</span>
-                    <span className="text-charbon/60">
+                    <span className="text-white/60">
                       {niveau.suivant === null ? "Maximum" : `${niveau.suivant} ★`}
                     </span>
                   </div>
@@ -104,7 +103,7 @@ async function EspaceMembre() {
                       style={{ width: `${pourcentage}%` }}
                     />
                   </div>
-                  <p className="mt-2 text-xs text-charbon/70">{message}</p>
+                  <p className="mt-2 text-xs text-white/70">{message}</p>
                 </div>
               </div>
 
@@ -129,19 +128,19 @@ async function EspaceMembre() {
               {donnees.evenementsObligatoires.map((evenement) => (
                 <li
                   key={evenement.id}
-                  className="flex items-center justify-between gap-4 rounded-2xl border-l-4 border-bordeaux bg-white p-5"
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-l-4 border-white border-l-bordeaux p-5 text-white"
                 >
                   <div>
                     <p className="font-semibold">{evenement.titre}</p>
-                    <p className="mt-1 flex items-center gap-2 text-sm text-charbon/70">
+                    <p className="mt-1 flex items-center gap-2 text-sm text-white/70">
                       <CalendarDays className="size-4" strokeWidth={1.75} />
                       {evenement.date}
                     </p>
-                    <p className="mt-1 text-xs text-bordeaux">
+                    <p className="mt-1 text-xs text-sable">
                       Absence non justifiée : −{evenement.penalite} étoiles
                     </p>
                   </div>
-                  <strong className="shrink-0 font-titre text-2xl text-bordeaux">
+                  <strong className="shrink-0 font-titre text-2xl text-terre">
                     −{evenement.penalite} ★
                   </strong>
                 </li>
@@ -154,7 +153,7 @@ async function EspaceMembre() {
             {donnees.historique.length === 0 ? (
               <Vide texte="Tes premières étoiles arriveront avec tes premières expériences CLANS." />
             ) : (
-            <ul className="divide-y divide-charbon/10 rounded-2xl bg-white text-charbon px-5 sm:px-7">
+            <ul className="divide-y divide-white/15 rounded-2xl border border-white px-5 text-white sm:px-7">
               {donnees.historique.map((ligne) => (
                 <li
                   key={ligne.id}
@@ -162,10 +161,10 @@ async function EspaceMembre() {
                 >
                   <div>
                     <p className="text-sm font-medium">{ligne.libelle}</p>
-                    <p className="text-xs text-charbon/50">{ligne.date}</p>
+                    <p className="text-xs text-white/50">{ligne.date}</p>
                   </div>
                   <span
-                    className={`font-semibold ${ligne.variation >= 0 ? "text-foret" : "text-bordeaux"}`}
+                    className={`font-semibold ${ligne.variation >= 0 ? "text-sable" : "text-terre"}`}
                   >
                     {ligne.variation >= 0 ? "+" : "−"}
                     {Math.abs(ligne.variation)} ★
@@ -189,15 +188,15 @@ async function EspaceMembre() {
                     className={`rounded-2xl border p-4 text-center ${
                       actuel
                         ? "border-terre bg-sable text-charbon"
-                        : "border-transparent bg-white text-charbon"
+                        : "border-white text-white"
                     }`}
                   >
                     <Star
-                      className={`mx-auto size-6 ${atteint ? "fill-terre text-terre" : "text-charbon/30"}`}
+                      className={`mx-auto size-6 ${atteint ? "fill-terre text-terre" : "text-white/30"}`}
                       strokeWidth={1.5}
                     />
                     <p className="mt-2 text-sm font-semibold">{n.nom}</p>
-                    <p className="mt-1 text-xs text-charbon/60">
+                    <p className={`mt-1 text-xs ${actuel ? "text-charbon/60" : "text-white/60"}`}>
                       {libelleSeuil(n)} ★
                     </p>
                   </li>
@@ -206,55 +205,15 @@ async function EspaceMembre() {
             </ol>
           </Section>
 
-          {/* PROFIL */}
-          <Section id="profil" titre="Mon profil">
-            <dl className="grid gap-5 rounded-2xl bg-white text-charbon p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-3">
-              <InfoProfil label="Nom complet" valeur={nomComplet} />
-              <InfoProfil label="Numéro membre" valeur={membre.numero} />
-              <InfoProfil label="Clan" valeur={membre.clan} />
-              <InfoProfil label="Date d’adhésion" valeur={membre.dateAdhesion} />
-              <InfoProfil label="Adhésion" valeur="À vie" />
-            </dl>
-            <ChangerMotDePasse aUnMotDePasse={Boolean(connecte.motDePasseHash)} />
-          </Section>
-
-          <footer className="mt-16 border-t border-ivoire/10 pt-6 text-center text-xs leading-6 text-ivoire/50">
-            <p>Nos cultures nous distinguent. Nos aventures nous rapprochent.</p>
-            <Copyright />
-          </footer>
+          <PiedEspaceMembre />
         </div>
       </MemberShell>
     </MessagesProvider>
   );
 }
 
-function Chargement() {
-  return (
-    <div className="flex min-h-svh items-center justify-center bg-charbon text-ivoire/60">
-      <LoaderCircle className="size-6 animate-spin" aria-label="Chargement de ton espace" />
-    </div>
-  );
-}
-
 function Vide({ texte }: { texte: string }) {
-  return <p className="rounded-2xl bg-white text-charbon p-5 text-sm text-charbon/60">{texte}</p>;
-}
-
-function Section({
-  id,
-  titre,
-  children,
-}: {
-  id?: string;
-  titre: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="mt-12 scroll-mt-24">
-      <h2 className="mb-4 font-titre text-3xl font-semibold">{titre}</h2>
-      {children}
-    </section>
-  );
+  return <p className="rounded-2xl border border-white p-5 text-sm text-white/70">{texte}</p>;
 }
 
 function Statistique({
@@ -267,21 +226,10 @@ function Statistique({
   label: string;
 }) {
   return (
-    <div className="flex flex-col justify-center rounded-2xl bg-white p-4 text-charbon">
+    <div className="flex flex-col justify-center rounded-2xl border border-white p-4 text-white">
       <Icone className="size-5 text-terre" strokeWidth={1.75} />
       <p className="mt-2 font-titre text-3xl leading-none font-semibold">{valeur}</p>
-      <p className="mt-1 text-xs text-charbon/60">{label}</p>
-    </div>
-  );
-}
-
-function InfoProfil({ label, valeur }: { label: string; valeur: string }) {
-  return (
-    <div>
-      <dt className="text-xs font-semibold tracking-[1px] text-charbon/60 uppercase">
-        {label}
-      </dt>
-      <dd className="mt-1 font-medium">{valeur}</dd>
+      <p className="mt-1 text-xs text-white/60">{label}</p>
     </div>
   );
 }
@@ -292,7 +240,7 @@ function MotifTextile() {
   return (
     <svg
       aria-hidden
-      className="absolute inset-y-0 right-0 h-full w-3/5 text-sable opacity-20"
+      className="absolute inset-y-0 right-0 h-full w-3/5 text-charbon opacity-10"
       style={{ maskImage: "linear-gradient(to left, black, transparent)" }}
     >
       <defs>
