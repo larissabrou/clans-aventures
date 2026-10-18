@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Evenement, TypeAction } from "@/lib/db/schema";
 import { CaseACocher, Champ, champClasses } from "../ui";
 
@@ -37,6 +38,9 @@ export function ChampsEvenement({ evenement, types }: { evenement?: Evenement; t
               </option>
             ))}
         </select>
+        <Link href="/admin/types-actions" className="mt-1.5 inline-block text-xs text-sable hover:text-ivoire">
+          Créer ou modifier les types d’actions
+        </Link>
       </Champ>
 
       <Champ label="Date et heure" id={`${prefixe}-date`}>

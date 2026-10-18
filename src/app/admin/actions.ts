@@ -117,7 +117,7 @@ export async function actionSupprimerClan(_: EtatAction, formulaire: FormData) {
   });
 }
 
-// ---------- Barème des étoiles ----------
+// ---------- Types d'actions (barème des étoiles) ----------
 
 const schemaTypeAction = z.object({
   nom: texte("Indique le nom de l’action.", 80),
@@ -125,25 +125,28 @@ const schemaTypeAction = z.object({
   actif: caseACocher,
 });
 
-export async function actionCreerTypeAction(_: EtatAction, formulaire: FormData) {
-  return executer(schemaTypeAction, formulaire, async (action) => {
-    await creerTypeAction(action);
-    return `Action « ${action.nom} » ajoutée.`;
-  });
+export async function actionCreerTypeAction(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = schemaTypeAction.safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: analyse.error.issues[0]?.message ?? "Formulaire invalide." };
+  await creerTypeAction(analyse.data);
+  // Retour à la liste, où le nouveau type apparaît.
+  redirect("/admin/types-actions");
 }
 
 export async function actionModifierTypeAction(_: EtatAction, formulaire: FormData) {
   return executer(schemaTypeAction.extend({ id: identifiant }), formulaire, async ({ id, ...action }) => {
     await modifierTypeAction(id, action);
-    return "Barème enregistré.";
+    return "Type d’action enregistré.";
   });
 }
 
-export async function actionSupprimerTypeAction(_: EtatAction, formulaire: FormData) {
-  return executer(z.object({ id: identifiant }), formulaire, async ({ id }) => {
-    await supprimerTypeAction(id);
-    return "Action supprimée.";
-  });
+export async function actionSupprimerTypeAction(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = z.object({ id: identifiant }).safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: "Type d’action invalide." };
+  await supprimerTypeAction(analyse.data.id);
+  redirect("/admin/types-actions");
 }
 
 // ---------- Réglages ----------

@@ -23,7 +23,7 @@ const RUBRIQUES: { label: string; Icone: LucideIcon; href: string }[] = [
   { label: "Membres", Icone: Users, href: "/admin/membres" },
   { label: "Événements", Icone: CalendarDays, href: "/admin/evenements" },
   { label: "Messages", Icone: MessageCircle, href: "/admin/messages" },
-  { label: "Barème des étoiles", Icone: Star, href: "/admin/bareme" },
+  { label: "Types d’actions", Icone: Star, href: "/admin/types-actions" },
   { label: "Clans", Icone: Shield, href: "/admin/clans" },
   { label: "Réglages", Icone: Settings, href: "/admin/reglages" },
 ];
