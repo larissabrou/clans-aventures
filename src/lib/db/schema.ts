@@ -297,7 +297,43 @@ export const codesConnexion = pgTable(
   (t) => [index("codes_telephone_idx").on(t.telephone), index("codes_email_idx").on(t.email)],
 );
 
+export const roleAdmin = pgEnum("role_admin", [
+  "super_admin", // tout, y compris les administrateurs et les réglages
+  "admin", // tout sauf les administrateurs et les réglages
+]);
+
+/**
+ * Comptes de l'administration, indépendants des membres (connexion sur /admin/connexion).
+ * Les emails listés dans ADMIN_EMAILS sont toujours super admins (voir lib/admin.ts).
+ */
+export const administrateurs = pgTable("administrateurs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull().unique(),
+  prenom: text("prenom").notNull(),
+  nom: text("nom").notNull().default(""),
+  role: roleAdmin("role").notNull().default("admin"),
+  motDePasseHash: text("mot_de_passe_hash"),
+  actif: boolean("actif").notNull().default(true),
+  derniereConnexion: horodatage("derniere_connexion"),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
+export const sessionsAdmin = pgTable(
+  "sessions_admin",
+  {
+    // Empreinte SHA-256 du jeton du cookie, comme pour les sessions des membres.
+    id: text("id").primaryKey(),
+    adminId: uuid("admin_id")
+      .notNull()
+      .references(() => administrateurs.id, { onDelete: "cascade" }),
+    expireLe: horodatage("expire_le").notNull(),
+    creeLe: horodatage("cree_le").notNull().defaultNow(),
+  },
+  (t) => [index("sessions_admin_admin_idx").on(t.adminId)],
+);
+
 export type Membre = typeof membres.$inferSelect;
+export type Administrateur = typeof administrateurs.$inferSelect;
 export type Clan = typeof clans.$inferSelect;
 export type TypeAction = typeof typesActions.$inferSelect;
 export type Evenement = typeof evenements.$inferSelect;

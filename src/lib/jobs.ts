@@ -7,8 +7,8 @@ import { envoyerNotification, type Notification } from "./notifications";
 
 export const FILE_NOTIFICATIONS = "notifications";
 
-/** Messages programmables (le code de connexion, lui, part immédiatement sans file). */
-export type TacheNotification = Exclude<Notification, { modele: "code" }>;
+/** Messages programmables (les codes de vérification, eux, partent immédiatement sans file). */
+export type TacheNotification = Exclude<Notification, { modele: "code" | "code-admin" }>;
 
 // En développement, des travailleurs pg-boss actifs dans le serveur `next dev` font recharger
 // les pages en boucle. Les tâches y sont donc exécutées tout de suite, sans file ni délai.

@@ -64,6 +64,13 @@
       "when": 1792347380496,
       "tag": "0008_types_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792434226605,
+      "tag": "0009_administrateurs",
+      "breakpoints": true
     }
   ]
 }

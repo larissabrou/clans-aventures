@@ -4,6 +4,13 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { verifierAdmin } from "@/lib/admin";
+import {
+  ErreurAdministrateur,
+  creerAdministrateur,
+  modifierAdministrateur,
+  renvoyerMotDePasse,
+  supprimerAdministrateur,
+} from "@/lib/administrateurs";
 import { creerTypeAction, modifierTypeAction, supprimerTypeAction } from "@/lib/bareme";
 import { creerClan, modifierClan, supprimerClan } from "@/lib/clans";
 import {
@@ -73,8 +80,9 @@ async function executer<T>(
   schema: z.ZodType<T>,
   formulaire: FormData,
   travail: (donnees: T) => Promise<string>,
+  role?: "super_admin",
 ): Promise<EtatAction> {
-  await verifierAdmin();
+  await verifierAdmin(role);
   const analyse = schema.safeParse(lire(formulaire));
   if (!analyse.success) return { ok: false, message: analyse.error.issues[0]?.message ?? "Formulaire invalide." };
   try {
@@ -86,7 +94,8 @@ async function executer<T>(
       erreur instanceof ErreurEvenement ||
       erreur instanceof ErreurGestion ||
       erreur instanceof ErreurEnvoi ||
-      erreur instanceof ErreurImage
+      erreur instanceof ErreurImage ||
+      erreur instanceof ErreurAdministrateur
     ) {
       return { ok: false, message: erreur.message };
     }
@@ -168,10 +177,15 @@ export async function actionPrixAdhesion(_: EtatAction, formulaire: FormData) {
   const schema = z.object({
     prix: entier("Indique un prix entier en FCFA.").min(100, "Le prix doit être d’au moins 100 FCFA.").max(1_000_000),
   });
-  return executer(schema, formulaire, async ({ prix }) => {
-    await definirPrixAdhesion(prix);
-    return "Prix de l’adhésion enregistré.";
-  });
+  return executer(
+    schema,
+    formulaire,
+    async ({ prix }) => {
+      await definirPrixAdhesion(prix);
+      return "Prix de l’adhésion enregistré.";
+    },
+    "super_admin",
+  );
 }
 
 // ---------- Événements ----------
@@ -318,6 +332,74 @@ export async function actionSupprimerTypeMessage(_: EtatAction, formulaire: Form
   if (!analyse.success) return { ok: false, message: "Type de message invalide." };
   await supprimerTypeMessage(analyse.data.cle);
   redirect("/admin/types-messages");
+}
+
+// ---------- Administrateurs (super admin uniquement) ----------
+
+const role = z.enum(["super_admin", "admin"], { error: "Choisis un rôle." });
+const adminId = z.uuid();
+
+export async function actionCreerAdministrateur(_: EtatAction, formulaire: FormData) {
+  const schema = z.object({
+    prenom: texte("Indique le prénom.", 60),
+    nom: z.string().trim().max(60).optional().transform((v) => v ?? ""),
+    email: z.email({ error: "Adresse email invalide." }).trim().max(200),
+    role,
+  });
+  return executer(
+    schema,
+    formulaire,
+    async (admin) => {
+      await creerAdministrateur(admin);
+      return `Compte créé : le mot de passe a été envoyé à ${admin.email.toLowerCase()}.`;
+    },
+    "super_admin",
+  );
+}
+
+export async function actionModifierAdministrateur(_: EtatAction, formulaire: FormData) {
+  const auteur = await verifierAdmin("super_admin");
+  const schema = z.object({
+    id: adminId,
+    prenom: texte("Indique le prénom.", 60),
+    nom: z.string().trim().max(60).optional().transform((v) => v ?? ""),
+    role,
+    actif: caseACocher,
+  });
+  return executer(
+    schema,
+    formulaire,
+    async ({ id, ...changements }) => {
+      await modifierAdministrateur(id, changements, auteur);
+      return "Administrateur enregistré.";
+    },
+    "super_admin",
+  );
+}
+
+export async function actionRenvoyerMotDePasse(_: EtatAction, formulaire: FormData) {
+  return executer(
+    z.object({ id: adminId }),
+    formulaire,
+    async ({ id }) => {
+      await renvoyerMotDePasse(id);
+      return "Nouveau mot de passe envoyé par email.";
+    },
+    "super_admin",
+  );
+}
+
+export async function actionSupprimerAdministrateur(_: EtatAction, formulaire: FormData) {
+  const auteur = await verifierAdmin("super_admin");
+  return executer(
+    z.object({ id: adminId }),
+    formulaire,
+    async ({ id }) => {
+      await supprimerAdministrateur(id, auteur);
+      return "Administrateur supprimé.";
+    },
+    "super_admin",
+  );
 }
 
 // ---------- Membres ----------

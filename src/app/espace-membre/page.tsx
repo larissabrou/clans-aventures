@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CalendarDays, Star, Tent, Users } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { estAdmin } from "@/lib/admin";
+import { aUnCompteAdmin } from "@/lib/admin";
 import { exigerMembre } from "@/lib/auth";
 import { tableauDeBord } from "@/lib/membres";
 import { NIVEAUX, libelleSeuil, progression } from "@/lib/niveaux";
@@ -31,7 +31,7 @@ async function EspaceMembre() {
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} admin={estAdmin(connecte)}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales} admin={await aUnCompteAdmin(connecte.email)}>
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           {/* BIENVENUE */}
           <div id="tableau-de-bord" className="mb-8 scroll-mt-24">

@@ -4,22 +4,28 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  ArrowLeft,
   CalendarDays,
+  ExternalLink,
   LayoutDashboard,
+  LogOut,
   Menu,
   MessageCircle,
   Settings,
   Shield,
   Star,
   Tags,
+  UserCog,
   Users,
   X,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { deconnexionAdmin } from "../connexion/actions";
 
-const RUBRIQUES: { label: string; Icone: LucideIcon; href: string }[] = [
+type Role = "super_admin" | "admin";
+
+// superAdmin : rubrique réservée au super admin (les pages le vérifient aussi côté serveur).
+const RUBRIQUES: { label: string; Icone: LucideIcon; href: string; superAdmin?: boolean }[] = [
   { label: "Tableau de bord", Icone: LayoutDashboard, href: "/admin" },
   { label: "Membres", Icone: Users, href: "/admin/membres" },
   { label: "Événements", Icone: CalendarDays, href: "/admin/evenements" },
@@ -27,10 +33,19 @@ const RUBRIQUES: { label: string; Icone: LucideIcon; href: string }[] = [
   { label: "Types de messages", Icone: Tags, href: "/admin/types-messages" },
   { label: "Types d’actions", Icone: Star, href: "/admin/types-actions" },
   { label: "Clans", Icone: Shield, href: "/admin/clans" },
-  { label: "Réglages", Icone: Settings, href: "/admin/reglages" },
+  { label: "Administrateurs", Icone: UserCog, href: "/admin/administrateurs", superAdmin: true },
+  { label: "Réglages", Icone: Settings, href: "/admin/reglages", superAdmin: true },
 ];
 
-export function AdminShell({ nomComplet, children }: { nomComplet: string; children: React.ReactNode }) {
+export function AdminShell({
+  nomComplet,
+  role,
+  children,
+}: {
+  nomComplet: string;
+  role: Role;
+  children: React.ReactNode;
+}) {
   const [menuOuvert, setMenuOuvert] = useState(false);
   const chemin = usePathname();
 
@@ -39,19 +54,25 @@ export function AdminShell({ nomComplet, children }: { nomComplet: string; child
 
   return (
     <div className="min-h-svh bg-charbon text-ivoire">
-      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-terre/40 bg-charbon px-4 sm:px-6">
+      {/* Même en-tête que l'espace membre : barre blanche, logo complet en couleur. */}
+      <header className="sticky top-0 z-30 flex h-18 items-center justify-between border-b border-charbon/10 bg-white px-4 text-charbon shadow-sm sm:px-6">
         <Link href="/admin" className="flex items-center gap-3" aria-label="Administration CLANS">
-          <Logo variant="complet-blanc" className="h-12 w-auto sm:h-14" preload />
-          <span className="rounded-full border border-sable/60 px-2.5 py-0.5 text-[0.65rem] font-semibold tracking-[2px] text-sable uppercase">
+          <Logo variant="complet" className="h-12 w-auto sm:h-14" preload />
+          <span className="rounded-full bg-terre px-2.5 py-0.5 text-[0.65rem] font-semibold tracking-[2px] text-white uppercase">
             Admin
           </span>
         </Link>
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm text-sable sm:inline">{nomComplet}</span>
+          <span className="hidden text-right text-sm leading-tight font-medium sm:block">
+            {nomComplet}
+            <span className="block text-xs font-normal text-charbon/55">
+              {role === "super_admin" ? "Super admin" : "Admin"}
+            </span>
+          </span>
           <button
             type="button"
             onClick={() => setMenuOuvert(!menuOuvert)}
-            className="rounded-lg p-2 hover:bg-white/10 lg:hidden"
+            className="rounded-lg p-2 hover:bg-charbon/5 lg:hidden"
             aria-label={menuOuvert ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={menuOuvert}
           >
@@ -73,7 +94,7 @@ export function AdminShell({ nomComplet, children }: { nomComplet: string; child
           <nav aria-label="Administration">
             <p className="mx-4 mb-3 text-[0.65rem] tracking-[2px] text-terre uppercase">Administration</p>
             <ul className="grid gap-1">
-              {RUBRIQUES.map(({ label, Icone, href }) => {
+              {RUBRIQUES.filter((r) => !r.superAdmin || role === "super_admin").map(({ label, Icone, href }) => {
                 const actif = estActif(href);
                 return (
                   <li key={href}>
@@ -96,13 +117,24 @@ export function AdminShell({ nomComplet, children }: { nomComplet: string; child
             </ul>
           </nav>
 
-          <Link
-            href="/espace-membre"
-            className="mt-8 flex items-center gap-3 border-t border-terre/30 px-4 pt-5 text-sm text-sable/80 transition hover:text-ivoire"
-          >
-            <ArrowLeft className="size-[18px]" strokeWidth={1.75} />
-            Mon espace membre
-          </Link>
+          <div className="mt-8 grid gap-1 border-t border-terre/30 pt-4">
+            <Link
+              href="/"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-sable/80 transition hover:bg-terre/20 hover:text-ivoire"
+            >
+              <ExternalLink className="size-[18px] shrink-0" strokeWidth={1.75} />
+              Voir le site
+            </Link>
+            <form action={deconnexionAdmin}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-sable/80 transition hover:bg-terre/20 hover:text-ivoire"
+              >
+                <LogOut className="size-[18px] shrink-0" strokeWidth={1.75} />
+                Se déconnecter
+              </button>
+            </form>
+          </div>
         </aside>
 
         <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-12 lg:py-10">

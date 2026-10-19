@@ -20,7 +20,7 @@ const ESSAIS_MAX_PAR_CODE = 5;
 const CODES_MAX_PAR_HEURE = 5;
 const DELAI_ENTRE_CODES_SECONDES = 60;
 
-const empreinteJeton = (jeton: string) => createHash("sha256").update(jeton).digest("hex");
+export const empreinteJeton = (jeton: string) => createHash("sha256").update(jeton).digest("hex");
 const empreinteCode = (identifiant: string, code: string) =>
   createHmac("sha256", secretAuth()).update(`${identifiant}:${code}`).digest("hex");
 
@@ -86,15 +86,18 @@ const membreParEmail = async (email: string) => {
   return membre;
 };
 
-export async function envoyerCodeConnexion(email: string): Promise<ResultatDemandeCode> {
-  // Même réponse que l'adresse soit membre ou non : on ne révèle pas qui est inscrit.
-  if (!(await membreParEmail(email))) return { ok: true };
-
+/**
+ * Crée un code à 6 chiffres pour cet identifiant (l'email du membre, ou « admin:<email> »
+ * pour l'administration), avec limites anti-abus. Le code n'est conservé que signé.
+ */
+export async function emettreCode(
+  identifiant: string,
+): Promise<{ ok: true; code: string } | { ok: false; message: string }> {
   const ilYaUneHeure = new Date(Date.now() - 3600 * 1000);
   const [{ total }] = await db
     .select({ total: count() })
     .from(codesConnexion)
-    .where(and(eq(codesConnexion.email, email), gt(codesConnexion.creeLe, ilYaUneHeure)));
+    .where(and(eq(codesConnexion.email, identifiant), gt(codesConnexion.creeLe, ilYaUneHeure)));
   if (total >= CODES_MAX_PAR_HEURE) {
     return { ok: false, message: "Trop de demandes. Réessaie dans une heure." };
   }
@@ -102,7 +105,7 @@ export async function envoyerCodeConnexion(email: string): Promise<ResultatDeman
   const [dernier] = await db
     .select({ creeLe: codesConnexion.creeLe })
     .from(codesConnexion)
-    .where(eq(codesConnexion.email, email))
+    .where(eq(codesConnexion.email, identifiant))
     .orderBy(desc(codesConnexion.creeLe))
     .limit(1);
   if (dernier && Date.now() - dernier.creeLe.getTime() < DELAI_ENTRE_CODES_SECONDES * 1000) {
@@ -111,13 +114,50 @@ export async function envoyerCodeConnexion(email: string): Promise<ResultatDeman
 
   const code = randomInt(0, 1_000_000).toString().padStart(6, "0");
   await db.insert(codesConnexion).values({
-    email,
-    empreinte: empreinteCode(email, code),
+    email: identifiant,
+    empreinte: empreinteCode(identifiant, code),
     expireLe: new Date(Date.now() + DUREE_CODE_MINUTES * 60 * 1000),
   });
+  return { ok: true, code };
+}
+
+/**
+ * Vérifie le dernier code émis pour cet identifiant et les détruit tous s'il est bon.
+ * Faux, expiré ou trop d'essais : false.
+ */
+export async function validerCode(identifiant: string, code: string): Promise<boolean> {
+  const [dernier] = await db
+    .select()
+    .from(codesConnexion)
+    .where(and(eq(codesConnexion.email, identifiant), gt(codesConnexion.expireLe, new Date())))
+    .orderBy(desc(codesConnexion.creeLe))
+    .limit(1);
+
+  if (!dernier || dernier.tentatives >= ESSAIS_MAX_PAR_CODE) return false;
+
+  const attendue = Buffer.from(dernier.empreinte);
+  const recue = Buffer.from(empreinteCode(identifiant, code));
+  if (!timingSafeEqual(attendue, recue)) {
+    await db
+      .update(codesConnexion)
+      .set({ tentatives: dernier.tentatives + 1 })
+      .where(eq(codesConnexion.id, dernier.id));
+    return false;
+  }
+
+  await db.delete(codesConnexion).where(eq(codesConnexion.email, identifiant));
+  return true;
+}
+
+export async function envoyerCodeConnexion(email: string): Promise<ResultatDemandeCode> {
+  // Même réponse que l'adresse soit membre ou non : on ne révèle pas qui est inscrit.
+  if (!(await membreParEmail(email))) return { ok: true };
+
+  const emission = await emettreCode(email);
+  if (!emission.ok) return emission;
 
   // Envoi immédiat (pas de file d'attente) : la personne attend le code devant l'écran.
-  await envoyerNotification({ modele: "code", email, code });
+  await envoyerNotification({ modele: "code", email, code: emission.code });
   return { ok: true };
 }
 
@@ -134,30 +174,9 @@ export async function verifierCodeConnexion(email: string, code: string): Promis
  * Renvoie l'identifiant du membre, ou null (code faux, expiré ou trop d'essais).
  */
 async function consommerCode(email: string, code: string): Promise<string | null> {
-  const [dernier] = await db
-    .select()
-    .from(codesConnexion)
-    .where(and(eq(codesConnexion.email, email), gt(codesConnexion.expireLe, new Date())))
-    .orderBy(desc(codesConnexion.creeLe))
-    .limit(1);
-
-  if (!dernier || dernier.tentatives >= ESSAIS_MAX_PAR_CODE) return null;
-
-  const attendue = Buffer.from(dernier.empreinte);
-  const recue = Buffer.from(empreinteCode(email, code));
-  if (!timingSafeEqual(attendue, recue)) {
-    await db
-      .update(codesConnexion)
-      .set({ tentatives: dernier.tentatives + 1 })
-      .where(eq(codesConnexion.id, dernier.id));
-    return null;
-  }
-
   const membre = await membreParEmail(email);
   if (!membre) return null;
-
-  await db.delete(codesConnexion).where(eq(codesConnexion.email, email));
-  return membre.id;
+  return (await validerCode(email, code)) ? membre.id : null;
 }
 
 // ---------- Mot de passe ----------

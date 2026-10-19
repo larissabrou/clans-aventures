@@ -7,7 +7,9 @@ import { urlSite } from "./env";
 export type Notification =
   | { modele: "code"; email: string; code: string }
   | { modele: "acces"; email: string; prenom: string; numero: string; motDePasse: string }
-  | { modele: "bienvenue"; email: string; prenom: string };
+  | { modele: "bienvenue"; email: string; prenom: string }
+  | { modele: "code-admin"; email: string; code: string }
+  | { modele: "acces-admin"; email: string; prenom: string; motDePasse: string; superAdmin: boolean };
 
 export async function envoyerNotification(notification: Notification) {
   const { sujet, paragraphes, bouton } = contenu(notification);
@@ -68,6 +70,26 @@ function contenu(notification: Notification): Contenu {
           "<strong>Ta prochaine étape : découvrir ton premier événement.</strong>",
         ],
         bouton: { libelle: "Voir mon espace membre", lien: connexion },
+      };
+    case "code-admin":
+      return {
+        sujet: "Code de vérification — administration CLANS",
+        paragraphes: [
+          "Voici ton code pour choisir le mot de passe de ton compte d’administration CLANS aventures :",
+          `<strong style="font-size:32px;letter-spacing:8px;color:#123B2A">${notification.code}</strong>`,
+          "Il est valable 10 minutes. Si tu n’as rien demandé, ignore cet email : rien n’est modifié.",
+        ],
+      };
+    case "acces-admin":
+      return {
+        sujet: "Ton accès à l’administration CLANS aventures",
+        paragraphes: [
+          `Bonjour ${echapper(notification.prenom)},`,
+          `Un compte ${notification.superAdmin ? "super administrateur" : "administrateur"} vient d’être créé pour toi sur CLANS aventures.`,
+          `Ton mot de passe : <strong style="font-size:20px;letter-spacing:3px;color:#123B2A">${echapper(notification.motDePasse)}</strong>`,
+          "Connecte-toi avec ton adresse email et ce mot de passe. Tu pourras en choisir un autre avec « Mot de passe oublié ? ».",
+        ],
+        bouton: { libelle: "Accéder à l’administration", lien: `${urlSite()}/admin/connexion` },
       };
   }
 }

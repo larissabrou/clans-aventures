@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { estAdmin } from "@/lib/admin";
+import { aUnCompteAdmin } from "@/lib/admin";
 import { exigerMembre } from "@/lib/auth";
 import { marquerMessageLu, tableauDeBord } from "@/lib/membres";
 import { Chargement, PiedEspaceMembre, identite } from "../elements";
@@ -32,7 +32,7 @@ async function Messages({ searchParams }: Pick<PageProps<"/espace-membre/message
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} page="messages" admin={estAdmin(connecte)}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales} page="messages" admin={await aUnCompteAdmin(connecte.email)}>
         <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col">
           <div className="mb-8">
             <p className="text-[0.65rem] font-semibold tracking-[3px] text-sable uppercase">

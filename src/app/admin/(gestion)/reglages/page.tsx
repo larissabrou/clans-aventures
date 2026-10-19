@@ -10,7 +10,7 @@ import { Carte, Champ, EnTete, champClasses } from "../ui";
 export const metadata: Metadata = { title: "Réglages" };
 
 export default async function ReglagesAdmin() {
-  await exigerAdmin();
+  await exigerAdmin("super_admin");
   const [prix, debite] = await Promise.all([prixAdhesion(), montantADebiter()]);
 
   return (

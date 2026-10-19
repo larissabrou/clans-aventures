@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { estAdmin } from "@/lib/admin";
+import { aUnCompteAdmin } from "@/lib/admin";
 import { exigerMembre } from "@/lib/auth";
 import { tableauDeBord } from "@/lib/membres";
 import { ChangerMotDePasse } from "../changer-mot-de-passe";
@@ -28,7 +28,7 @@ async function Profil() {
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} page="profil" admin={estAdmin(connecte)}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales} page="profil" admin={await aUnCompteAdmin(connecte.email)}>
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           <div className="mb-8">
             <h1 className="font-titre text-4xl font-semibold sm:text-5xl">Mon profil</h1>

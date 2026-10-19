@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Percent, Star, Users } from "lucide-react";
-import { estAdmin } from "@/lib/admin";
+import { aUnCompteAdmin } from "@/lib/admin";
 import { exigerMembre } from "@/lib/auth";
 import { urlSite } from "@/lib/env";
 import { REDUCTION_PAR_PARTICIPATION, parrainage, tableauDeBord } from "@/lib/membres";
@@ -29,7 +29,7 @@ async function Parrainage() {
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} page="parrainage" admin={estAdmin(connecte)}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales} page="parrainage" admin={await aUnCompteAdmin(connecte.email)}>
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           <div className="mb-8">
             <p className="text-[0.65rem] font-semibold tracking-[3px] text-sable uppercase">
