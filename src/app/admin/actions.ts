@@ -29,7 +29,9 @@ import {
   lireImageEnvoyee,
   supprimerImageEvenement,
 } from "@/lib/images";
+import { estCouleur, estIcone } from "@/lib/apparence-messages";
 import { definirPrixAdhesion } from "@/lib/parametres";
+import { creerTypeMessage, modifierTypeMessage, supprimerTypeMessage } from "@/lib/types-messages";
 
 // Server Functions de l'administration. Chacune revérifie les droits : elles sont appelables directement.
 
@@ -260,7 +262,7 @@ const schemaEnvoi = z
     numero: z.string().trim().max(30).optional(),
     titre: texte("Indique le titre du message.", 120),
     contenu: texte("Écris le message.", 5000),
-    type: z.enum(["info", "event", "warning", "star"], { error: "Choisis le type de message." }),
+    type: z.string({ error: "Choisis le type de message." }).trim().min(1, "Choisis le type de message.").max(60),
   })
   .refine((v) => v.genre !== "clan" || v.clanId !== null, { message: "Choisis le clan." })
   .refine((v) => v.genre !== "membre" || Boolean(v.numero), { message: "Indique le numéro du membre." });
@@ -283,6 +285,39 @@ export async function actionSupprimerEnvoi(_: EtatAction, formulaire: FormData) 
     await supprimerEnvoi(id);
     return "Message retiré des espaces membres.";
   });
+}
+
+// ---------- Types de messages ----------
+
+const schemaTypeMessage = z.object({
+  nom: texte("Indique le nom du type de message.", 40),
+  couleur: z.string().refine(estCouleur, "Choisis une couleur."),
+  icone: z.string().refine(estIcone, "Choisis une icône."),
+  actif: caseACocher,
+});
+
+export async function actionCreerTypeMessage(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = schemaTypeMessage.safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: analyse.error.issues[0]?.message ?? "Formulaire invalide." };
+  await creerTypeMessage(analyse.data);
+  redirect("/admin/types-messages");
+}
+
+export async function actionModifierTypeMessage(_: EtatAction, formulaire: FormData) {
+  const schema = schemaTypeMessage.extend({ cle: z.string().min(1).max(60) });
+  return executer(schema, formulaire, async ({ cle, ...type }) => {
+    await modifierTypeMessage(cle, type);
+    return "Type de message enregistré.";
+  });
+}
+
+export async function actionSupprimerTypeMessage(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = z.object({ cle: z.string().min(1).max(60) }).safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: "Type de message invalide." };
+  await supprimerTypeMessage(analyse.data.cle);
+  redirect("/admin/types-messages");
 }
 
 // ---------- Membres ----------

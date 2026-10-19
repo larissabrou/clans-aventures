@@ -1,5 +1,5 @@
 import "server-only";
-import { and, count, desc, eq, gte, ilike, isNull, or, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, isNull, lt, or, sql, sum } from "drizzle-orm";
 import { db } from "./db";
 import {
   clans,
@@ -17,8 +17,14 @@ export class ErreurGestion extends Error {}
 
 const soldeEtoiles = sql<number>`coalesce((select sum(${mouvementsEtoiles.variation}) from ${mouvementsEtoiles} where ${mouvementsEtoiles.membreId} = ${membres.id}), 0)`.mapWith(Number);
 
-/** Membres (adhésion payée ou en attente), filtrés par nom, email, téléphone ou numéro. */
-export async function listeMembres(recherche: string, statut: "membre" | "en_attente") {
+/** Période d'adhésion : dates « AAAA-MM-JJ » incluses (heure d'Abidjan, qui est l'heure UTC). */
+export type Periode = { du: string | null; au: string | null };
+
+const debutDuJour = (jour: string) => new Date(`${jour}T00:00:00Z`);
+const lendemain = (jour: string) => new Date(debutDuJour(jour).getTime() + 24 * 3600 * 1000);
+
+/** Membres dont l'adhésion est payée, filtrés par texte (nom, email, téléphone, numéro) et par période. */
+export async function listeMembres(recherche: string, periode: Periode) {
   const motif = `%${recherche.trim().replace(/[%_\\]/g, "\\$&")}%`;
   return db
     .select({
@@ -37,7 +43,9 @@ export async function listeMembres(recherche: string, statut: "membre" | "en_att
     .leftJoin(clans, eq(clans.id, membres.clanId))
     .where(
       and(
-        eq(membres.statut, statut),
+        eq(membres.statut, "membre"),
+        periode.du ? gte(membres.adhereLe, debutDuJour(periode.du)) : undefined,
+        periode.au ? lt(membres.adhereLe, lendemain(periode.au)) : undefined,
         recherche.trim()
           ? or(
               ilike(membres.prenom, motif),
@@ -148,24 +156,17 @@ export async function supprimerMouvement(id: number) {
 
 /** Chiffres du tableau de bord de l'admin. */
 export async function statistiquesAdmin() {
-  const [[actifs], [attente], [aVenir], [etoiles], [sansClan]] = await Promise.all([
+  const [[actifs], [aVenir], [etoiles]] = await Promise.all([
     db.select({ total: count() }).from(membres).where(eq(membres.statut, "membre")),
-    db.select({ total: count() }).from(membres).where(eq(membres.statut, "en_attente")),
     db.select({ total: count() }).from(evenements).where(gte(evenements.date, sql`now()`)),
     db
       .select({ total: sum(mouvementsEtoiles.variation).mapWith(Number) })
       .from(mouvementsEtoiles),
-    db
-      .select({ total: count() })
-      .from(membres)
-      .where(and(eq(membres.statut, "membre"), isNull(membres.clanId))),
   ]);
   return {
     membres: actifs?.total ?? 0,
-    enAttente: attente?.total ?? 0,
     evenementsAVenir: aVenir?.total ?? 0,
     etoilesDistribuees: etoiles?.total ?? 0,
-    sansClan: sansClan?.total ?? 0,
   };
 }
 

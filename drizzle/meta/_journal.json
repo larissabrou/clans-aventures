@@ -57,6 +57,13 @@
       "when": 1792320667124,
       "tag": "0007_images_evenements",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792347380496,
+      "tag": "0008_types_messages",
+      "breakpoints": true
     }
   ]
 }

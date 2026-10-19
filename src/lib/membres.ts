@@ -9,6 +9,7 @@ import {
   mouvementsEtoiles,
   participations,
   typesActions,
+  typesMessages,
   type Membre,
 } from "./db/schema";
 
@@ -40,8 +41,14 @@ export async function tableauDeBord(membre: Membre, nombreMessages = 50) {
         .where(and(eq(participations.membreId, membre.id), eq(participations.present, true))),
       db.select({ total: count() }).from(membres).where(eq(membres.parrainId, membre.id)),
       db
-        .select()
+        .select({
+          message: messages,
+          typeNom: typesMessages.nom,
+          couleur: typesMessages.couleur,
+          icone: typesMessages.icone,
+        })
         .from(messages)
+        .leftJoin(typesMessages, eq(typesMessages.cle, messages.type))
         .where(eq(messages.membreId, membre.id))
         .orderBy(desc(messages.creeLe), desc(messages.id))
         .limit(nombreMessages),
@@ -73,11 +80,15 @@ export async function tableauDeBord(membre: Membre, nombreMessages = 50) {
       experiences: experiences?.total ?? 0,
       filleuls: filleuls?.total ?? 0,
     },
-    messages: listeMessages.map((m) => ({
+    messages: listeMessages.map(({ message: m, typeNom, couleur, icone }) => ({
       id: m.id,
       titre: m.titre,
       contenu: m.contenu,
+      // Type et apparence choisis dans l'admin (voir lib/apparence-messages.ts).
       type: m.type,
+      typeNom: typeNom ?? "Information",
+      couleur: couleur ?? "neutre",
+      icone: icone ?? "info",
       lu: m.lu,
       date: formaterDateHeure(m.creeLe),
     })),

@@ -18,11 +18,9 @@ export default async function AdminAccueil() {
     <>
       <EnTete titre="Tableau de bord" texte="Vue d’ensemble de la communauté CLANS." />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4">
         <Chiffre valeur={stats.membres} label="Membres" lien="/admin/membres" />
-        <Chiffre valeur={stats.sansClan} label="Sans clan" lien="/admin/membres" />
         <Chiffre valeur={stats.evenementsAVenir} label="Événements à venir" lien="/admin/evenements" />
-        <Chiffre valeur={stats.enAttente} label="Adhésions non payées" lien="/admin/membres?statut=en_attente" />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">

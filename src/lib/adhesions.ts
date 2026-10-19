@@ -168,7 +168,11 @@ export async function enregistrerDemande(
     }
 
     let clanId: number | null = null;
-    if (demande.clanId) {
+    if (!demande.clanId) {
+      // Obligatoire dès qu'un clan est proposé (sinon l'inscription reste possible, clan « À définir »).
+      const [unClan] = await tx.select({ id: clans.id }).from(clans).where(eq(clans.actif, true)).limit(1);
+      if (unClan) throw new ErreurAdhesion("Choisis ton clan.");
+    } else {
       const [clan] = await tx
         .select({ id: clans.id })
         .from(clans)

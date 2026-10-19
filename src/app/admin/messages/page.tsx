@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Users } from "lucide-react";
 import { exigerAdmin } from "@/lib/admin";
+import { apparenceMessage } from "@/lib/apparence-messages";
 import { listeClans } from "@/lib/clans";
 import { historiqueEnvois } from "@/lib/envois";
 import { formaterDateHeure } from "@/lib/membres";
+import { typesMessagesActifs } from "@/lib/types-messages";
 import { actionEnvoyerMessage, actionSupprimerEnvoi } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
 import { Carte, Champ, EnTete, Vide, champClasses } from "../ui";
@@ -11,23 +14,9 @@ import { ChoixDestinataires } from "./destinataires";
 
 export const metadata: Metadata = { title: "Messages" };
 
-const TYPES = [
-  { valeur: "info", label: "Information" },
-  { valeur: "event", label: "Événement" },
-  { valeur: "warning", label: "Important" },
-  { valeur: "star", label: "Étoiles" },
-] as const;
-
-const PASTILLES: Record<(typeof TYPES)[number]["valeur"], string> = {
-  info: "bg-white/10 text-white",
-  event: "bg-terre/40 text-white",
-  warning: "bg-bordeaux text-white",
-  star: "bg-sable/25 text-sable",
-};
-
 export default async function MessagesAdmin() {
   await exigerAdmin();
-  const [clans, envois] = await Promise.all([listeClans(), historiqueEnvois()]);
+  const [clans, envois, types] = await Promise.all([listeClans(), historiqueEnvois(), typesMessagesActifs()]);
 
   return (
     <>
@@ -45,12 +34,15 @@ export default async function MessagesAdmin() {
             </Champ>
             <Champ label="Type" id="envoi-type">
               <select id="envoi-type" name="type" defaultValue="info" className={champClasses}>
-                {TYPES.map((t) => (
-                  <option key={t.valeur} value={t.valeur}>
-                    {t.label}
+                {types.map((t) => (
+                  <option key={t.cle} value={t.cle}>
+                    {t.nom}
                   </option>
                 ))}
               </select>
+              <Link href="/admin/types-messages" className="mt-1.5 inline-block text-xs text-sable hover:text-ivoire">
+                Créer ou modifier les types de messages
+              </Link>
             </Champ>
           </div>
           <Champ label="Message" id="envoi-contenu">
@@ -80,8 +72,10 @@ export default async function MessagesAdmin() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[0.7rem] font-semibold ${PASTILLES[envoi.type]}`}>
-                      {TYPES.find((t) => t.valeur === envoi.type)?.label}
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[0.7rem] font-semibold ${apparenceMessage(envoi.couleur, envoi.icone).pastille}`}
+                    >
+                      {envoi.typeNom ?? "Information"}
                     </span>
                     <p className="font-semibold">{envoi.titre}</p>
                   </div>

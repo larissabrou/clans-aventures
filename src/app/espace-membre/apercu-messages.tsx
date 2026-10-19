@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { apparenceMessage } from "@/lib/apparence-messages";
 import { useMessages } from "./messages-context";
-import { TYPES_MESSAGES } from "./types-messages";
 
 const NOMBRE_APERCU = 3;
 
@@ -19,14 +19,14 @@ export function ApercuMessages() {
       ) : (
         <ul className="divide-y divide-white/15">
           {derniers.map((message) => {
-            const { Icone, icone } = TYPES_MESSAGES[message.type];
+            const { Icone, fondIcone } = apparenceMessage(message.couleur, message.icone);
             return (
               <li key={message.id}>
                 <Link
                   href={`/espace-membre/messages?m=${message.id}`}
                   className="group flex items-center gap-4 py-3 first:pt-0"
                 >
-                  <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${icone}`}>
+                  <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${fondIcone}`}>
                     <Icone className="size-[18px]" strokeWidth={1.75} />
                   </span>
                   <span className="min-w-0 flex-1">

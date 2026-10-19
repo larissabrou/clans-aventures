@@ -2,20 +2,21 @@ import "server-only";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { normaliserCodeParrainage } from "./adhesions";
 import { db } from "./db";
-import { clans, envois, membres, messages, typeMessage } from "./db/schema";
+import { clans, envois, membres, messages, typesMessages } from "./db/schema";
+import { typeMessageActif } from "./types-messages";
 
 // Messages envoyés depuis l'admin vers l'espace membre : à tous, à un clan ou à un membre.
 
 export class ErreurEnvoi extends Error {}
 
-export type TypeMessage = (typeof typeMessage.enumValues)[number];
-
 export type Cible = { genre: "tous" } | { genre: "clan"; clanId: number } | { genre: "membre"; numero: string };
 
 export async function envoyerMessage(
   cible: Cible,
-  contenu: { titre: string; contenu: string; type: TypeMessage },
+  contenu: { titre: string; contenu: string; type: string },
 ): Promise<number> {
+  if (!(await typeMessageActif(contenu.type))) throw new ErreurEnvoi("Ce type de message n’existe plus : choisis-en un autre.");
+
   return db.transaction(async (tx) => {
     let libelle: string;
     let destinataires: { id: string }[];
@@ -63,14 +64,18 @@ export async function historiqueEnvois() {
   const lignes = await db
     .select({
       envoi: envois,
+      typeNom: typesMessages.nom,
+      couleur: typesMessages.couleur,
+      icone: typesMessages.icone,
       lus: sql<number>`count(${messages.id}) filter (where ${messages.lu})`.mapWith(Number),
     })
     .from(envois)
+    .leftJoin(typesMessages, eq(typesMessages.cle, envois.type))
     .leftJoin(messages, eq(messages.envoiId, envois.id))
-    .groupBy(envois.id)
+    .groupBy(envois.id, typesMessages.cle)
     .orderBy(desc(envois.creeLe))
     .limit(100);
-  return lignes.map(({ envoi, lus }) => ({ ...envoi, lus }));
+  return lignes.map(({ envoi, ...reste }) => ({ ...envoi, ...reste }));
 }
 
 /** Retire l'envoi et le message correspondant chez tous ses destinataires. */

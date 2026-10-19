@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { ArrowLeft, CheckCheck, Inbox, MailOpen } from "lucide-react";
+import { apparenceMessage } from "@/lib/apparence-messages";
 import { useMessages, type Message } from "../messages-context";
-import { TYPES_MESSAGES } from "../types-messages";
 
-type Filtre = "tous" | "non-lus" | Message["type"];
+// "tous", "non-lus" ou la clé d'un type de message.
+type Filtre = string;
 
 /** Boîte de réception complète : filtres, liste et lecture (côte à côte sur grand écran). */
 export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: number }) {
@@ -29,9 +30,10 @@ export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: numbe
   const filtres: { valeur: Filtre; label: string; nombre: number }[] = [
     { valeur: "tous", label: "Tous", nombre: messages.length },
     { valeur: "non-lus", label: "Non lus", nombre: nonLus },
-    ...(Object.keys(TYPES_MESSAGES) as Message["type"][]).map((type) => ({
+    // Un filtre par type présent dans la boîte, dans l'ordre d'apparition.
+    ...[...new Map(messages.map((m) => [m.type, m.typeNom])).entries()].map(([type, nom]) => ({
       valeur: type,
-      label: TYPES_MESSAGES[type].pluriel,
+      label: nom,
       nombre: messages.filter((m) => m.type === type).length,
     })),
   ];
@@ -86,7 +88,7 @@ export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: numbe
           ) : (
             <ul className="grid gap-3">
               {visibles.map((message) => {
-                const { Icone, icone } = TYPES_MESSAGES[message.type];
+                const { Icone, fondIcone } = apparenceMessage(message.couleur, message.icone);
                 const actif = message.id === ouvertId;
                 return (
                   <li key={message.id}>
@@ -102,7 +104,7 @@ export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: numbe
                             : "border-white bg-white/5 hover:bg-white/10"
                       }`}
                     >
-                      <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${icone}`}>
+                      <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${fondIcone}`}>
                         <Icone className="size-5" strokeWidth={1.75} />
                       </span>
                       <span className="min-w-0 flex-1">
@@ -142,9 +144,9 @@ export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: numbe
                     Tous les messages
                   </button>
                   <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${TYPES_MESSAGES[ouvert.type].pastille}`}
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${apparenceMessage(ouvert.couleur, ouvert.icone).pastille}`}
                   >
-                    {TYPES_MESSAGES[ouvert.type].label}
+                    {ouvert.typeNom}
                   </span>
                   <h2 className="mt-3 font-titre text-3xl leading-tight font-semibold">{ouvert.titre}</h2>
                   <p className="mt-2 text-xs text-white/50">{ouvert.date}</p>

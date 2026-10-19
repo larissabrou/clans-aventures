@@ -123,14 +123,35 @@ export const paiements = pgTable(
   (t) => [index("paiements_membre_idx").on(t.membreId)],
 );
 
-export const typeMessage = pgEnum("type_message", ["info", "event", "warning", "star"]);
+/**
+ * Types de messages (Information, Événement, Rappel…), créés depuis l'admin.
+ * `cle` est stockée dans chaque message ; les 4 types « systeme » sont utilisés par le site
+ * (bienvenue, étoiles, parrainage) et ne peuvent pas être supprimés.
+ */
+export const typesMessages = pgTable("types_messages", {
+  cle: text("cle").primaryKey(),
+  nom: text("nom").notNull(),
+  // Clés de la palette et des icônes définies dans src/lib/apparence-messages.ts.
+  couleur: text("couleur").notNull().default("neutre"),
+  icone: text("icone").notNull().default("info"),
+  systeme: boolean("systeme").notNull().default(false),
+  actif: boolean("actif").notNull().default(true),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
+// Type d'un message : supprimer un type fait repasser ses messages en « Information ».
+const typeDeMessage = () =>
+  text("type")
+    .notNull()
+    .default("info")
+    .references(() => typesMessages.cle, { onDelete: "set default", onUpdate: "cascade" });
 
 /** Message envoyé depuis l'admin : une ligne ici, puis un message par destinataire. */
 export const envois = pgTable("envois", {
   id: serial("id").primaryKey(),
   titre: text("titre").notNull(),
   contenu: text("contenu").notNull(),
-  type: typeMessage("type").notNull().default("info"),
+  type: typeDeMessage(),
   // Destinataires, en clair pour l'historique : « Tous les membres », « Clan X », « CLANS-000012 ».
   cible: text("cible").notNull(),
   destinataires: integer("destinataires").notNull().default(0),
@@ -148,7 +169,7 @@ export const messages = pgTable(
     envoiId: integer("envoi_id").references((): AnyPgColumn => envois.id, { onDelete: "cascade" }),
     titre: text("titre").notNull(),
     contenu: text("contenu").notNull(),
-    type: typeMessage("type").notNull().default("info"),
+    type: typeDeMessage(),
     lu: boolean("lu").notNull().default(false),
     creeLe: horodatage("cree_le").notNull().defaultNow(),
   },
@@ -281,4 +302,5 @@ export type Clan = typeof clans.$inferSelect;
 export type TypeAction = typeof typesActions.$inferSelect;
 export type Evenement = typeof evenements.$inferSelect;
 export type Envoi = typeof envois.$inferSelect;
+export type TypeMessage = typeof typesMessages.$inferSelect;
 export type Message = typeof messages.$inferSelect;

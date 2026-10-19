@@ -185,6 +185,10 @@ export function AdhesionForm({
     if (etape === 3 && !donnees.appartenance) {
       return "Merci d’indiquer ton univers culturel.";
     }
+    // Clan obligatoire dès que l'admin en a enregistré au moins un.
+    if (etape === 3 && clans.length > 0 && !donnees.clanId) {
+      return "Choisis ton clan.";
+    }
     if (etape === 4 && !donnees.charteAcceptee) {
       return "Tu dois accepter la charte de CLANS aventures pour continuer.";
     }
@@ -549,14 +553,16 @@ export function AdhesionForm({
               </p>
 
               {clans.length > 0 && (
-                <Champ label="Ton clan" id="clanId">
+                <Champ label="Ton clan" id="clanId" requis>
                   <select
                     id="clanId"
                     className={inputClasses}
                     value={donnees.clanId}
                     onChange={(e) => maj("clanId", e.target.value)}
                   >
-                    <option value="">Je ne sais pas encore (l’équipe CLANS le définira)</option>
+                    <option value="" disabled>
+                      Choisis ton clan
+                    </option>
                     {clans.map((clan) => (
                       <option key={clan.id} value={clan.id}>
                         {clan.nom}
