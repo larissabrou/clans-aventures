@@ -9,20 +9,14 @@ import {
   BadgeCheck,
   Check,
   CreditCard,
-  Info,
   LoaderCircle,
   Smartphone,
 } from "lucide-react";
 import { buttonClasses } from "@/components/button-styles";
 import { IconeUnivers } from "@/components/icone-univers";
+import { AVANTAGES_ADHESION, TRANCHES_AGE, formatFcfa } from "@/lib/adhesion";
 import {
-  APPARTENANCES_CULTURELLES,
-  AVANTAGES_ADHESION,
-  TRANCHES_AGE,
-  UNIVERS_A_DECOUVRIR,
-  formatFcfa,
-} from "@/lib/adhesion";
-import {
+  numeroLocal,
   type Operateur,
   type Pays,
   type ResultatPaiement,
@@ -41,9 +35,8 @@ type Donnees = {
   ville: string;
   age: string;
   interets: Univers["id"][];
-  appartenance: string;
-  appartenanceAutre: string;
-  universADecouvrir: string;
+  // Identifiant de l'univers culturel choisi (chaîne vide = aucun).
+  universId: string;
   attente: string;
   codeParrainage: string;
   // Identifiant du clan choisi (chaîne vide = « à définir »).
@@ -71,9 +64,7 @@ const DONNEES_INITIALES: Donnees = {
   ville: "",
   age: "",
   interets: [],
-  appartenance: "",
-  appartenanceAutre: "",
-  universADecouvrir: "",
+  universId: "",
   attente: "",
   codeParrainage: "",
   clanId: "",
@@ -114,12 +105,15 @@ export function AdhesionForm({
   retourWave,
   prix,
   clans,
+  univers,
   codeParrainage = "",
 }: {
   retourWave?: RetourWave;
   // Prix affiché, réglé dans l'admin.
   prix: number;
   clans: ClanPropose[];
+  // Univers culturels réglés dans l'admin (question facultative « Univers que tu souhaites découvrir »).
+  univers: { id: number; nom: string }[];
   // Code reçu par le lien d'invitation (/inscription?parrain=CLANS-000012).
   codeParrainage?: string;
 }) {
@@ -182,9 +176,6 @@ export function AdhesionForm({
     if (etape === 2 && donnees.interets.length === 0) {
       return "Sélectionne au moins un univers qui t’intéresse.";
     }
-    if (etape === 3 && !donnees.appartenance) {
-      return "Merci d’indiquer ton univers culturel.";
-    }
     // Clan obligatoire dès que l'admin en a enregistré au moins un.
     if (etape === 3 && clans.length > 0 && !donnees.clanId) {
       return "Choisis ton clan.";
@@ -220,8 +211,8 @@ export function AdhesionForm({
       }
     }
     if (etape === 4 && !donnees.telephonePaiement) {
-      // Le numéro WhatsApp est souvent aussi le numéro Mobile Money.
-      maj("telephonePaiement", donnees.telephone);
+      // Le numéro WhatsApp est souvent aussi le numéro Mobile Money (sans l'indicatif, affiché à côté).
+      maj("telephonePaiement", numeroLocal(donnees.pays, donnees.telephone));
     }
     if (typeof etape === "number" && etape < TOTAL_ETAPES) {
       allerA((etape + 1) as Etape);
@@ -260,9 +251,7 @@ export function AdhesionForm({
           ville: donnees.ville,
           age: donnees.age,
           interets: donnees.interets,
-          appartenance: donnees.appartenance,
-          appartenanceAutre: donnees.appartenanceAutre,
-          universADecouvrir: donnees.universADecouvrir,
+          universId: donnees.universId ? Number(donnees.universId) : null,
           attente: donnees.attente,
           codeParrainage: donnees.codeParrainage,
           clanId: donnees.clanId ? Number(donnees.clanId) : null,
@@ -515,43 +504,6 @@ export function AdhesionForm({
               texte="CLANS valorise les cultures qui composent notre richesse. Les questions marquées d’un astérisque sont obligatoires."
             />
             <div className="grid gap-5">
-              <Champ
-                label="À quel univers culturel te sens-tu rattaché·e ?"
-                id="appartenance"
-                requis
-              >
-                <select
-                  id="appartenance"
-                  className={inputClasses}
-                  value={donnees.appartenance}
-                  onChange={(e) => maj("appartenance", e.target.value)}
-                >
-                  <option value="">Sélectionner</option>
-                  {APPARTENANCES_CULTURELLES.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </Champ>
-
-              {donnees.appartenance === "autre" && (
-                <Champ label="Précise ton horizon culturel" id="appartenanceAutre">
-                  <input
-                    id="appartenanceAutre"
-                    className={inputClasses}
-                    value={donnees.appartenanceAutre}
-                    onChange={(e) => maj("appartenanceAutre", e.target.value)}
-                  />
-                </Champ>
-              )}
-
-              <p className="flex gap-3 rounded-xl bg-ivoire px-4 py-3 text-sm leading-6 text-charbon/80">
-                <Info className="mt-0.5 size-4 shrink-0 text-foret" />
-                Ton identité culturelle peut nous aider à mieux organiser les
-                clans, mais elle ne définit pas ta place dans CLANS.
-              </p>
-
               {clans.length > 0 && (
                 <Champ label="Ton clan" id="clanId" requis>
                   <select
@@ -575,24 +527,23 @@ export function AdhesionForm({
                 </Champ>
               )}
 
-              <Champ
-                label="Univers que tu souhaites découvrir"
-                id="universADecouvrir"
-              >
-                <select
-                  id="universADecouvrir"
-                  className={inputClasses}
-                  value={donnees.universADecouvrir}
-                  onChange={(e) => maj("universADecouvrir", e.target.value)}
-                >
-                  <option value="">Je souhaite découvrir</option>
-                  {UNIVERS_A_DECOUVRIR.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </Champ>
+              {univers.length > 0 && (
+                <Champ label="Univers que tu souhaites découvrir" id="universId">
+                  <select
+                    id="universId"
+                    className={inputClasses}
+                    value={donnees.universId}
+                    onChange={(e) => maj("universId", e.target.value)}
+                  >
+                    <option value="">Je souhaite découvrir</option>
+                    {univers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.nom}
+                      </option>
+                    ))}
+                  </select>
+                </Champ>
+              )}
 
               <Champ label="Qu’aimerais-tu vivre avec CLANS ?" id="attente">
                 <textarea
@@ -632,16 +583,8 @@ export function AdhesionForm({
                   .join(", ")}
               />
               <LigneRecap
-                label="Univers culturel"
-                valeur={
-                  donnees.appartenance === "autre"
-                    ? donnees.appartenanceAutre || "Autres horizons"
-                    : libelle(APPARTENANCES_CULTURELLES, donnees.appartenance)
-                }
-              />
-              <LigneRecap
                 label="À découvrir"
-                valeur={libelle(UNIVERS_A_DECOUVRIR, donnees.universADecouvrir)}
+                valeur={univers.find((u) => String(u.id) === donnees.universId)?.nom}
               />
               {clans.length > 0 && (
                 <LigneRecap label="Clan" valeur={clanChoisi?.nom ?? "À définir"} />

@@ -52,6 +52,21 @@ export function estPays(valeur: unknown): valeur is Pays {
 }
 
 /** Numéro au format de la passerelle : indicatif + numéro local, sans « + » (ex. 2250700000000). */
+/**
+ * Numéro sans indicatif, pour le champ affiché à côté de « +225 » :
+ * « +225 01 40 71 54 20 » ou « 002250140715420 » → « 0140715420 ».
+ */
+export function numeroLocal(pays: Pays, telephone: string): string {
+  const { indicatif } = PAYS[pays];
+  const brut = telephone.trim();
+  const chiffres = brut.replace(/\D/g, "");
+  if (chiffres.startsWith("00" + indicatif)) return chiffres.slice(indicatif.length + 2);
+  if (chiffres.startsWith(indicatif) && (brut.startsWith("+") || chiffres.length > 10)) {
+    return chiffres.slice(indicatif.length);
+  }
+  return chiffres;
+}
+
 export function telephonePasserelle(pays: Pays, telephone: string): string {
   const { indicatif } = PAYS[pays];
   let chiffres = telephone.replace(/\D/g, "");

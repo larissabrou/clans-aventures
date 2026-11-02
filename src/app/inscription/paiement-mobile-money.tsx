@@ -3,7 +3,7 @@
 // Choix de l'opérateur Mobile Money (logos), du pays et du numéro à débiter.
 import Image from "next/image";
 import { Check } from "lucide-react";
-import { OPERATEURS, PAYS, type Operateur, type Pays } from "@/lib/paiement/operateurs";
+import { OPERATEURS, PAYS, numeroLocal, type Operateur, type Pays } from "@/lib/paiement/operateurs";
 
 const labelClasses =
   "mb-2 block text-xs font-semibold tracking-[1px] text-charbon/70 uppercase";
@@ -109,6 +109,8 @@ export function PaiementMobileMoney({
               className="w-full bg-transparent px-4 py-3 text-sm text-charbon placeholder:text-charbon/40 focus:outline-none"
               value={telephone}
               onChange={(e) => onTelephone(e.target.value)}
+              // Numéro collé avec l'indicatif (+225…) : on ne garde que le numéro local.
+              onBlur={(e) => onTelephone(numeroLocal(pays, e.target.value))}
             />
           </div>
         </div>

@@ -18,6 +18,7 @@ import { prixAdhesion } from "./parametres";
 import { estOperateur, estPays, PAYS } from "./paiement/operateurs";
 import { normaliserTelephone, telephoneValide } from "./telephone";
 import { UNIVERS } from "./univers";
+import { nomUniversPropose } from "./univers-culturels";
 
 // Règles métier de l'adhésion : enregistrement du formulaire, puis confirmation du paiement.
 
@@ -71,9 +72,8 @@ export const demandeAdhesionSchema = z.object({
       error: "Sélectionne au moins un univers.",
     })
     .min(1, "Sélectionne au moins un univers."),
-  appartenance: texteRequis("Indique ton univers culturel.", 80),
-  appartenanceAutre: texteOptionnel,
-  universADecouvrir: texteOptionnel,
+  // Univers culturel choisi parmi ceux de l'admin (facultatif).
+  universId: z.number().int().positive().nullable().optional().transform((v) => v ?? null),
   attente: z
     .string()
     .trim()
@@ -118,9 +118,11 @@ export async function enregistrerDemande(
     ville: demande.ville,
     trancheAge: demande.age,
     interets: demande.interets,
-    appartenance: demande.appartenance,
-    appartenanceAutre: demande.appartenance === "autre" ? demande.appartenanceAutre : null,
-    universADecouvrir: demande.universADecouvrir,
+    // Question « univers culturel de rattachement » retirée : colonnes conservées pour les anciennes fiches.
+    appartenance: null,
+    appartenanceAutre: null,
+    // Le nom est enregistré (et non l'identifiant) : il reste lisible même si l'univers est supprimé.
+    universADecouvrir: demande.universId ? await nomUniversPropose(demande.universId) : null,
     attente: demande.attente,
     charteAccepteeLe: new Date(),
     modifieLe: new Date(),

@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { clansProposes } from "@/lib/clans";
 import { prixAdhesion } from "@/lib/parametres";
+import { universProposes } from "@/lib/univers-culturels";
 import { AdhesionForm, type RetourWave } from "./adhesion-form";
 
 export const metadata: Metadata = {
@@ -61,7 +62,12 @@ export default function InscriptionPage({ searchParams }: PageProps<"/inscriptio
 async function FormulaireAvecRetour({
   searchParams,
 }: Pick<PageProps<"/inscription">, "searchParams">) {
-  const [params, prix, clans] = await Promise.all([searchParams, prixAdhesion(), clansProposes()]);
+  const [params, prix, clans, univers] = await Promise.all([
+    searchParams,
+    prixAdhesion(),
+    clansProposes(),
+    universProposes(),
+  ]);
   const reference = typeof params.ref === "string" ? params.ref : undefined;
   const retourWave: RetourWave | undefined =
     params.paiement === "retour" && reference
@@ -75,6 +81,7 @@ async function FormulaireAvecRetour({
       retourWave={retourWave}
       prix={prix}
       clans={clans}
+      univers={univers}
       codeParrainage={codeParrainage}
     />
   );

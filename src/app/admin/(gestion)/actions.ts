@@ -12,7 +12,7 @@ import {
   supprimerAdministrateur,
 } from "@/lib/administrateurs";
 import { creerTypeAction, modifierTypeAction, supprimerTypeAction } from "@/lib/bareme";
-import { creerClan, modifierClan, supprimerClan } from "@/lib/clans";
+import { creerClan, modifierClan, ordonnerClans, supprimerClan } from "@/lib/clans";
 import {
   ErreurEvenement,
   ajouterParticipant,
@@ -38,6 +38,7 @@ import {
 } from "@/lib/images";
 import { estCouleur, estIcone } from "@/lib/apparence-messages";
 import { definirPrixAdhesion } from "@/lib/parametres";
+import { creerUnivers, modifierUnivers, ordonnerUnivers, supprimerUnivers } from "@/lib/univers-culturels";
 import { creerTypeMessage, modifierTypeMessage, supprimerTypeMessage } from "@/lib/types-messages";
 
 // Server Functions de l'administration. Chacune revérifie les droits : elles sont appelables directement.
@@ -132,11 +133,65 @@ export async function actionModifierClan(_: EtatAction, formulaire: FormData) {
   });
 }
 
+/** Appelée par le glisser-déposer de la liste des clans (pas un formulaire) : ids du premier au dernier. */
+export async function actionOrdonnerClans(ids: number[]): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = z.array(identifiant).min(1).max(500).safeParse(ids);
+  if (!analyse.success) return { ok: false, message: "Ordre invalide." };
+  try {
+    await ordonnerClans(analyse.data);
+  } catch {
+    // Liste périmée (clan ajouté ou supprimé entre-temps) : recharger la page suffit.
+    return { ok: false, message: "La liste a changé entre-temps : recharge la page puis recommence." };
+  }
+  refresh();
+  return { ok: true, message: "Ordre enregistré." };
+}
+
 export async function actionSupprimerClan(_: EtatAction, formulaire: FormData) {
   return executer(z.object({ id: identifiant }), formulaire, async ({ id }) => {
     await supprimerClan(id);
     return "Clan supprimé.";
   });
+}
+
+// ---------- Univers culturels (inscription) ----------
+
+const schemaUnivers = z.object({ nom: texte("Indique le nom de l’univers.", 60), actif: caseACocher });
+
+export async function actionCreerUnivers(_: EtatAction, formulaire: FormData) {
+  return executer(schemaUnivers, formulaire, async (univers) => {
+    await creerUnivers(univers);
+    return `Univers « ${univers.nom} » ajouté.`;
+  });
+}
+
+export async function actionModifierUnivers(_: EtatAction, formulaire: FormData) {
+  return executer(schemaUnivers.extend({ id: identifiant }), formulaire, async ({ id, ...univers }) => {
+    await modifierUnivers(id, univers);
+    return "Univers enregistré.";
+  });
+}
+
+export async function actionSupprimerUnivers(_: EtatAction, formulaire: FormData) {
+  return executer(z.object({ id: identifiant }), formulaire, async ({ id }) => {
+    await supprimerUnivers(id);
+    return "Univers supprimé.";
+  });
+}
+
+/** Glisser-déposer de la liste des univers : ids du premier au dernier. */
+export async function actionOrdonnerUnivers(ids: number[]): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = z.array(identifiant).min(1).max(500).safeParse(ids);
+  if (!analyse.success) return { ok: false, message: "Ordre invalide." };
+  try {
+    await ordonnerUnivers(analyse.data);
+  } catch {
+    return { ok: false, message: "La liste a changé entre-temps : recharge la page puis recommence." };
+  }
+  refresh();
+  return { ok: true, message: "Ordre enregistré." };
 }
 
 // ---------- Types d'actions (barème des étoiles) ----------

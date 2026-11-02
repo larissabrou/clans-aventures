@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   MessageCircle,
+  Globe,
   Settings,
   Shield,
   Star,
@@ -33,6 +34,7 @@ const RUBRIQUES: { label: string; Icone: LucideIcon; href: string; superAdmin?: 
   { label: "Types de messages", Icone: Tags, href: "/admin/types-messages" },
   { label: "Types d’actions", Icone: Star, href: "/admin/types-actions" },
   { label: "Clans", Icone: Shield, href: "/admin/clans" },
+  { label: "Univers", Icone: Globe, href: "/admin/univers" },
   { label: "Administrateurs", Icone: UserCog, href: "/admin/administrateurs", superAdmin: true },
   { label: "Réglages", Icone: Settings, href: "/admin/reglages", superAdmin: true },
 ];

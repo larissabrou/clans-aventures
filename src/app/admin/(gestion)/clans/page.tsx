@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { exigerAdmin } from "@/lib/admin";
 import { listeClans } from "@/lib/clans";
-import { actionCreerClan, actionModifierClan, actionSupprimerClan } from "../actions";
+import { actionCreerClan, actionModifierClan, actionOrdonnerClans, actionSupprimerClan } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
 import { CaseACocher, Carte, Champ, EnTete, Pastille, Vide, champClasses } from "../ui";
+import { OrdreListe } from "../ordre-liste";
 
 export const metadata: Metadata = { title: "Clans" };
 
@@ -30,6 +31,23 @@ export default async function ClansAdmin() {
           <BoutonEnvoi>Ajouter</BoutonEnvoi>
         </FormulaireAdmin>
       </Carte>
+
+      {clans.length > 1 && (
+        <Carte titre="Ordre d’affichage" className="mt-8">
+          <p className="mb-4 text-sm text-ivoire/70">
+            Fais glisser les clans (ou utilise les flèches) : la liste « Ton clan » de l’inscription suit cet ordre.
+          </p>
+          <OrdreListe
+            // Remonté seulement si les clans eux-mêmes changent (ajout, nom, statut), pas leur ordre.
+            key={[...clans]
+              .sort((a, b) => a.id - b.id)
+              .map((c) => `${c.id}:${c.nom}:${c.actif}`)
+              .join("|")}
+            elements={clans.map(({ id, nom, actif }) => ({ id, nom, actif }))}
+            action={actionOrdonnerClans}
+          />
+        </Carte>
+      )}
 
       <h2 className="mt-10 mb-4 font-titre text-3xl font-semibold">Liste des clans</h2>
       {clans.length === 0 ? (

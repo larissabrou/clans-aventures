@@ -13,23 +13,6 @@ export const AVANTAGES_ADHESION = [
   "Ton pin officiel CLANS, remis lors de ta première participation physique",
 ];
 
-export const APPARTENANCES_CULTURELLES = [
-  { value: "akan", label: "Akan" },
-  { value: "krou", label: "Krou" },
-  { value: "mande", label: "Mandé" },
-  { value: "gur", label: "Gur / Voltaïque" },
-  { value: "autre", label: "Autres horizons" },
-  { value: "non-precise", label: "Je préfère ne pas préciser" },
-];
-
-export const UNIVERS_A_DECOUVRIR = [
-  { value: "akan", label: "Univers Akan" },
-  { value: "krou", label: "Univers Krou" },
-  { value: "mande", label: "Univers Mandé" },
-  { value: "gur", label: "Univers Gur" },
-  { value: "tous", label: "Tous les univers" },
-];
-
 export const TRANCHES_AGE = [
   { value: "18-24", label: "18 – 24 ans" },
   { value: "25-34", label: "25 – 34 ans" },

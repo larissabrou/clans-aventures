@@ -30,6 +30,17 @@ export const clans = pgTable("clans", {
   description: text("description"),
   // Un clan inactif n'est plus proposé à l'inscription mais reste sur les cartes existantes.
   actif: boolean("actif").notNull().default(true),
+  // Position dans les listes (inscription, admin), réglée par glisser-déposer dans l'admin.
+  ordre: integer("ordre").notNull().default(0),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
+/** Univers culturels proposés à l'inscription (« Univers que tu souhaites découvrir »), gérés dans l'admin. */
+export const universCulturels = pgTable("univers_culturels", {
+  id: serial("id").primaryKey(),
+  nom: text("nom").notNull().unique(),
+  actif: boolean("actif").notNull().default(true),
+  ordre: integer("ordre").notNull().default(0),
   creeLe: horodatage("cree_le").notNull().defaultNow(),
 });
 
@@ -75,6 +86,7 @@ export const membres = pgTable(
     interets: text("interets").array().notNull().default([]),
     appartenance: text("appartenance"),
     appartenanceAutre: text("appartenance_autre"),
+    // Nom de l'univers culturel choisi (conservé tel quel même si l'univers est supprimé ensuite).
     universADecouvrir: text("univers_a_decouvrir"),
     attente: text("attente"),
 
