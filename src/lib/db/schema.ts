@@ -191,6 +191,22 @@ export const messagesBienvenue = pgTable("messages_bienvenue", {
   creeLe: horodatage("cree_le").notNull().defaultNow(),
 });
 
+/**
+ * Modèles de messages choisis par l'admin quand il attribue des étoiles à un membre.
+ * Mêmes variables que les messages de bienvenue, plus {action}, {etoiles}, {precision} et {solde}.
+ */
+export const modelesMessages = pgTable("modeles_messages", {
+  id: serial("id").primaryKey(),
+  titre: text("titre").notNull(),
+  contenu: text("contenu").notNull(),
+  type: text("type")
+    .notNull()
+    .default("star")
+    .references(() => typesMessages.cle, { onDelete: "set default", onUpdate: "cascade" }),
+  actif: boolean("actif").notNull().default(true),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
 export const messages = pgTable(
   "messages",
   {
@@ -385,4 +401,5 @@ export type Evenement = typeof evenements.$inferSelect;
 export type Envoi = typeof envois.$inferSelect;
 export type TypeMessage = typeof typesMessages.$inferSelect;
 export type MessageBienvenue = typeof messagesBienvenue.$inferSelect;
+export type ModeleMessage = typeof modelesMessages.$inferSelect;
 export type Message = typeof messages.$inferSelect;

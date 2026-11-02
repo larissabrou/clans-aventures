@@ -170,12 +170,18 @@ export async function parrainage(membre: Membre) {
     };
   });
 
+  const confirmes = liste.filter((f) => f.confirme).length;
+  // Barème « Parrainage membre » : étoiles gagnées toutes les deux adhésions confirmées.
+  const etoilesParPaire = action?.etoiles ?? 0;
+
   return {
     code: membre.numero,
-    // Étoiles gagnées par adhésion confirmée, selon le barème réglé dans l'admin.
-    etoilesParFilleul: action?.etoiles ?? 0,
+    etoilesParPaire,
+    etoilesGagnees: Math.floor(confirmes / 2) * etoilesParPaire,
+    // Une adhésion confirmée sur deux : l'étoile en cours est chargée à moitié.
+    etoileEnCours: confirmes % 2 === 1 ? 0.5 : 0,
     invites: liste.length,
-    confirmes: liste.filter((f) => f.confirme).length,
+    confirmes,
     reduction: liste.reduce((total, f) => total + f.reduction, 0),
     filleuls: liste,
   };

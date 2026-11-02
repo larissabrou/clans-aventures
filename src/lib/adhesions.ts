@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
 import {
@@ -311,12 +311,16 @@ export async function confirmerPaiement(
 
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-/** Adhésion payée d'un filleul : étoiles du barème « Parrainage membre » pour le parrain (une seule fois). */
+/**
+ * Parrainage : une étoile (barème « Parrainage membre ») toutes les deux adhésions confirmées.
+ * Après la première, l'étoile est « chargée à moitié » ; à la deuxième, elle est gagnée.
+ */
 async function recompenserParrain(
   tx: Transaction,
   filleul: { id: string; prenom: string; nom: string; parrainId: string | null },
 ) {
   if (!filleul.parrainId) return;
+  const parrainId = filleul.parrainId;
   const [action] = await tx
     .select()
     .from(typesActions)
@@ -324,12 +328,32 @@ async function recompenserParrain(
     .limit(1);
   if (!action || action.etoiles === 0) return;
 
+  // Verrou sur le parrain : deux adhésions confirmées en même temps ne forment pas deux fois la même paire.
+  await tx.select({ id: membres.id }).from(membres).where(eq(membres.id, parrainId)).for("update");
+  const [{ total }] = await tx
+    .select({ total: count() })
+    .from(membres)
+    .where(and(eq(membres.parrainId, parrainId), eq(membres.statut, "membre")));
+
   const nomFilleul = `${filleul.prenom} ${filleul.nom[0] ?? ""}.`.trim();
+  const pluriel = Math.abs(action.etoiles) > 1 ? "s" : "";
+
+  if (total % 2 === 1) {
+    await tx.insert(messages).values({
+      membreId: parrainId,
+      titre: "Ton filleul a rejoint CLANS !",
+      contenu: `${nomFilleul} vient de confirmer son adhésion avec ton code de parrainage. Ton étoile est chargée à moitié : encore une adhésion et elle est à toi. Merci de faire grandir l’aventure !`,
+      type: "star",
+    });
+    return;
+  }
+
+  // Deuxième adhésion de la paire : l'étoile est gagnée (une seule fois par filleul, même si l'appel est rejoué).
   const ajoute = await tx
     .insert(mouvementsEtoiles)
     .values({
-      membreId: filleul.parrainId,
-      libelle: `Parrainage — ${nomFilleul}`,
+      membreId: parrainId,
+      libelle: `Parrainage — 2 adhésions confirmées (dont ${nomFilleul})`,
       variation: action.etoiles,
       typeActionId: action.id,
       filleulId: filleul.id,
@@ -339,9 +363,9 @@ async function recompenserParrain(
 
   if (ajoute.length > 0) {
     await tx.insert(messages).values({
-      membreId: filleul.parrainId,
-      titre: "Ton filleul a rejoint CLANS !",
-      contenu: `${nomFilleul} vient de confirmer son adhésion avec ton code de parrainage. Tu gagnes ${action.etoiles} étoile${Math.abs(action.etoiles) > 1 ? "s" : ""}. Merci de faire grandir l’aventure !`,
+      membreId: parrainId,
+      titre: `+${action.etoiles} étoile${pluriel} grâce au parrainage !`,
+      contenu: `${nomFilleul} vient de confirmer son adhésion avec ton code de parrainage : c’est ta deuxième adhésion, ton étoile est complète. Tu gagnes ${action.etoiles} étoile${pluriel}. Merci de faire grandir l’aventure !`,
       type: "star",
     });
   }

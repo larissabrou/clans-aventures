@@ -28,7 +28,7 @@ export default async function TypeActionAdmin({ params }: PageProps<"/admin/type
         titre={type.nom}
         texte={
           type.code === "parrainage"
-            ? "Crédité automatiquement au parrain quand l’adhésion d’un filleul est payée."
+            ? "Crédité automatiquement au parrain toutes les deux adhésions confirmées de ses filleuls (étoile à moitié après la première)."
             : "Le nouveau barème s’applique aux prochaines présences et attributions ; les étoiles déjà gagnées ne changent pas."
         }
       />

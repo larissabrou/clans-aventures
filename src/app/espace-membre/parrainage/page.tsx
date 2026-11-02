@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Percent, Star, Users } from "lucide-react";
 import { aUnCompteAdmin } from "@/lib/admin";
 import { exigerMembre } from "@/lib/auth";
+import { EtoileProgression } from "@/components/etoile-progression";
 import { urlSite } from "@/lib/env";
 import { REDUCTION_PAR_PARTICIPATION, parrainage, tableauDeBord } from "@/lib/membres";
 import { Chargement, PiedEspaceMembre, Section, identite } from "../elements";
@@ -62,8 +63,8 @@ async function Parrainage() {
               Un ami invité, une aventure de plus.
             </h2>
             <p className="relative mt-2 max-w-xl text-sm leading-6 text-ivoire/80">
-              Partage ton code de parrainage avec tes proches. Une adhésion payée et confirmée te
-              rapporte {programme.etoilesParFilleul} étoile{programme.etoilesParFilleul > 1 ? "s" : ""} ; chaque participation de tes filleuls à un événement ajoute{" "}
+              Partage ton code de parrainage avec tes proches. Toutes les deux adhésions payées et
+              confirmées, tu gagnes {programme.etoilesParPaire} étoile{programme.etoilesParPaire > 1 ? "s" : ""} ; chaque participation de tes filleuls à un événement ajoute{" "}
               {REDUCTION_PAR_PARTICIPATION} % de réduction à ton cumul.
             </p>
             {programme.code ? (
@@ -85,15 +86,45 @@ async function Parrainage() {
             <Statistique valeur={`${programme.reduction} %`} label="Réduction cumulée" detail="Sans plafond" />
           </div>
 
+          {/* PROGRESSION : l'étoile se remplit à moitié à la 1re adhésion, entièrement à la 2e */}
+          <section className="mt-5 flex flex-wrap items-center gap-6 rounded-2xl border border-white p-6 text-white sm:p-8">
+            <EtoileProgression
+              id="etoile-parrainage-en-cours"
+              remplissage={programme.etoileEnCours}
+              className="size-24 shrink-0"
+              libelle={programme.etoileEnCours > 0 ? "Étoile chargée à moitié" : "Étoile à remplir"}
+            />
+            <div className="min-w-60 flex-1">
+              <p className="text-[0.65rem] font-semibold tracking-[3px] text-sable uppercase">Ma progression</p>
+              <p className="mt-2 font-titre text-2xl font-semibold">
+                {programme.etoileEnCours > 0
+                  ? "Ton étoile est chargée à moitié !"
+                  : programme.confirmes > 0
+                    ? "Une nouvelle étoile t’attend."
+                    : "Ta première étoile t’attend."}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-white/75">
+                {programme.etoileEnCours > 0
+                  ? "Encore 1 adhésion confirmée et elle se remplit d’or."
+                  : "2 adhésions confirmées de tes filleuls la remplissent d’or."}
+              </p>
+              <p className="mt-3 flex flex-wrap items-center gap-1.5 text-sm text-white/75">
+                Étoiles gagnées grâce au parrainage :
+                <strong className="text-sable">{programme.etoilesGagnees} ★</strong>
+              </p>
+            </div>
+          </section>
+
           {/* RÉCOMPENSES */}
           <Section titre="Comment gagner ?">
             <div className="grid gap-4 sm:grid-cols-2">
               <Regle
                 Icone={Star}
-                titre={`${programme.etoilesParFilleul} étoile${programme.etoilesParFilleul > 1 ? "s" : ""} CLANS`}
+                titre={`${programme.etoilesParPaire} étoile${programme.etoilesParPaire > 1 ? "s" : ""} pour 2 adhésions`}
               >
-                Chaque fois qu’un filleul devient membre — après paiement et confirmation de son
-                adhésion — tu gagnes {programme.etoilesParFilleul} étoile{programme.etoilesParFilleul > 1 ? "s" : ""} CLANS.
+                Toutes les deux adhésions confirmées de tes filleuls (paiement validé), tu gagnes{" "}
+                {programme.etoilesParPaire} étoile{programme.etoilesParPaire > 1 ? "s" : ""} CLANS. À la première, ton
+                étoile se charge à moitié ; à la deuxième, elle se remplit d’or.
               </Regle>
               <Regle Icone={Percent} titre={`+${REDUCTION_PAR_PARTICIPATION} % à chaque participation`}>
                 Chaque participation effective d’un filleul à un événement ajoute{" "}
@@ -127,7 +158,7 @@ async function Parrainage() {
                         <th className="px-2 py-3 font-semibold">Filleul</th>
                         <th className="px-2 py-3 font-semibold">Adhésion</th>
                         <th className="px-2 py-3 font-semibold">Participations validées</th>
-                        <th className="px-2 py-3 font-semibold">Étoile gagnée</th>
+                        <th className="px-2 py-3 font-semibold">Étoile</th>
                         <th className="px-2 py-3 font-semibold">Réduction générée</th>
                       </tr>
                     </thead>
@@ -146,9 +177,11 @@ async function Parrainage() {
                           </td>
                           <td className="px-2 py-4">{filleul.presences}</td>
                           <td className="px-2 py-4">
+                            {/* Chaque adhésion confirmée remplit une demi-étoile. */}
                             {filleul.confirme ? (
-                              <span className="inline-flex items-center gap-1 font-semibold text-sable">
-                                +{programme.etoilesParFilleul} <Star className="size-3.5 fill-terre" />
+                              <span className="inline-flex items-center gap-1.5 font-semibold text-sable">
+                                <EtoileProgression id={`etoile-filleul-${filleul.id}`} remplissage={0.5} className="size-4" />
+                                ½
                               </span>
                             ) : (
                               "—"
@@ -168,7 +201,10 @@ async function Parrainage() {
           <Section titre="Les règles à retenir">
             <ol className="list-decimal rounded-2xl border border-white py-5 pr-5 pl-10 text-sm leading-7 text-white/80 sm:py-7 sm:pr-7 sm:pl-12">
               <li>Le code de parrainage doit être indiqué par le nouveau membre lors de son inscription.</li>
-              <li>Les étoiles sont accordées uniquement après confirmation du paiement de l’adhésion du filleul.</li>
+              <li>
+                Seules les adhésions dont le paiement est confirmé comptent : une étoile toutes les deux adhésions
+                confirmées.
+              </li>
               <li>
                 Les {REDUCTION_PAR_PARTICIPATION} % sont ajoutés uniquement après confirmation de la
                 participation effective du filleul à un événement.

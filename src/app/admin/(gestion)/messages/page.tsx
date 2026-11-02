@@ -10,6 +10,7 @@ import { typesMessagesActifs } from "@/lib/types-messages";
 import { actionEnvoyerMessage, actionSupprimerEnvoi } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
 import { Carte, Champ, EnTete, Vide, champClasses } from "../ui";
+import { PaletteEmojis } from "../palette-emojis";
 import { ChoixDestinataires } from "./destinataires";
 
 export const metadata: Metadata = { title: "Messages" };
@@ -55,6 +56,9 @@ export default async function MessagesAdmin() {
               placeholder="Les retours à la ligne sont conservés."
               className={champClasses}
             />
+            <div className="mt-2">
+              <PaletteEmojis cible="envoi-contenu" />
+            </div>
           </Champ>
           <div>
             <BoutonEnvoi>Envoyer le message</BoutonEnvoi>

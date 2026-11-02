@@ -1,6 +1,9 @@
 import "server-only";
 import { and, count, desc, eq, gte, ilike, isNull, lt, or, sql, sum } from "drizzle-orm";
 import { db } from "./db";
+import { valeursPourMembre } from "./messages-bienvenue";
+import { modeleMessage } from "./modeles-messages";
+import { remplirVariables } from "./variables-messages";
 import {
   clans,
   evenements,
@@ -106,14 +109,54 @@ export async function changerClan(membreId: string, clanId: number | null) {
 }
 
 /** Attribue une action du barème : le membre gagne les étoiles prévues et reçoit un message. */
-export async function attribuerAction(membreId: string, typeActionId: number, precision: string | null) {
-  const [action] = await db.select().from(typesActions).where(eq(typesActions.id, typeActionId)).limit(1);
-  if (!action) throw new ErreurGestion("Type d’action introuvable.");
+/**
+ * Attribution d'étoiles selon un type d'action, avec le message choisi par l'admin parmi ses modèles
+ * (variables remplacées, dont le nouveau solde). Tout est enregistré dans une même transaction.
+ */
+export async function attribuerAction(
+  membreId: string,
+  typeActionId: number,
+  precision: string | null,
+  modeleId: number,
+) {
+  const [[action], modele, [membre]] = await Promise.all([
+    db.select().from(typesActions).where(eq(typesActions.id, typeActionId)).limit(1),
+    modeleMessage(modeleId, true),
+    db.select().from(membres).where(eq(membres.id, membreId)).limit(1),
+  ]);
+  if (!membre) throw new ErreurGestion("Membre introuvable.");
+  if (!action || !action.actif) throw new ErreurGestion("Ce type d’action n’existe plus ou est désactivé.");
   if (action.etoiles === 0) {
     throw new ErreurGestion(`« ${action.nom} » vaut 0 étoile : règle d’abord son barème.`);
   }
-  const libelle = precision ? `${action.nom} — ${precision}` : action.nom;
-  await crediter(membreId, libelle, action.etoiles, action.id);
+  if (!modele) throw new ErreurGestion("Ce modèle de message n’existe plus ou est désactivé.");
+
+  await db.transaction(async (tx) => {
+    await tx.insert(mouvementsEtoiles).values({
+      membreId,
+      libelle: precision ? `${action.nom} — ${precision}` : action.nom,
+      variation: action.etoiles,
+      typeActionId: action.id,
+    });
+    const [{ solde }] = await tx
+      .select({ solde: sql<number>`coalesce(sum(${mouvementsEtoiles.variation}), 0)`.mapWith(Number) })
+      .from(mouvementsEtoiles)
+      .where(eq(mouvementsEtoiles.membreId, membreId));
+
+    const valeurs = {
+      ...(await valeursPourMembre(tx, membre)),
+      action: action.nom,
+      etoiles: String(action.etoiles),
+      precision: precision ?? "",
+      solde: String(solde),
+    };
+    await tx.insert(messages).values({
+      membreId,
+      titre: remplirVariables(modele.titre, valeurs),
+      contenu: remplirVariables(modele.contenu, valeurs),
+      type: modele.type,
+    });
+  });
 }
 
 /** Ajout ou retrait manuel d'étoiles (correction, pénalité…). */

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowLeft, CheckCheck, Inbox, MailOpen } from "lucide-react";
+import { TexteAvecLiens } from "@/components/texte-avec-liens";
 import { apparenceMessage } from "@/lib/apparence-messages";
 import { useMessages, type Message } from "../messages-context";
 
@@ -154,7 +155,7 @@ export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: numbe
                   <p className="mt-2 text-xs text-charbon/60">{ouvert.date}</p>
                 </header>
                 <p className="p-6 text-[0.95rem] leading-8 whitespace-pre-line text-white/85 sm:p-8">
-                  {ouvert.contenu}
+                  <TexteAvecLiens texte={ouvert.contenu} />
                 </p>
                 <footer className="bg-sable px-6 py-4 text-xs font-medium text-charbon/70 sm:px-8">
                   L’équipe CLANS aventures

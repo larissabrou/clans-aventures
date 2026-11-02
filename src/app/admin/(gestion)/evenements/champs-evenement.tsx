@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { Evenement, TypeAction } from "@/lib/db/schema";
+import { ChampDateHeureFr } from "../champ-date";
 import { CaseACocher, Champ, champClasses } from "../ui";
 
-/** Valeur d'un <input type="datetime-local"> : heure d'Abidjan, qui est l'heure UTC. */
+/** « AAAA-MM-JJTHH:MM » à l'heure d'Abidjan, qui est l'heure UTC. */
 const versChampDate = (date: Date) => date.toISOString().slice(0, 16);
 
 /** Champs communs à la création et à la modification d'un événement. */
@@ -53,13 +54,10 @@ export function ChampsEvenement({
       </Champ>
 
       <Champ label="Date et heure" id={`${prefixe}-date`}>
-        <input
+        <ChampDateHeureFr
           id={`${prefixe}-date`}
           name="date"
-          type="datetime-local"
-          required
-          defaultValue={evenement ? versChampDate(evenement.date) : undefined}
-          className={`${champClasses} [color-scheme:dark]`}
+          valeur={evenement ? versChampDate(evenement.date) : null}
         />
       </Champ>
       <Champ label="Lieu" id={`${prefixe}-lieu`}>

@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   CalendarDays,
   ExternalLink,
+  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -33,6 +34,7 @@ const RUBRIQUES: { label: string; Icone: LucideIcon; href: string; superAdmin?: 
   { label: "Événements", Icone: CalendarDays, href: "/admin/evenements" },
   { label: "Messages", Icone: MessageCircle, href: "/admin/messages" },
   { label: "Messages de bienvenue", Icone: MessagesSquare, href: "/admin/messages-bienvenue" },
+  { label: "Modèles de messages", Icone: FileText, href: "/admin/modeles-messages" },
   { label: "Types de messages", Icone: Tags, href: "/admin/types-messages" },
   { label: "Types d’actions", Icone: Star, href: "/admin/types-actions" },
   { label: "Clans", Icone: Shield, href: "/admin/clans" },

@@ -5,16 +5,19 @@ import { ArrowLeft, X } from "lucide-react";
 import { exigerAdmin } from "@/lib/admin";
 import { listeTypesActions } from "@/lib/bareme";
 import { listeClans } from "@/lib/clans";
+import { db } from "@/lib/db";
 import { membreAdmin } from "@/lib/gestion-membres";
+import { valeursPourMembre } from "@/lib/messages-bienvenue";
+import { modelesMessagesActifs } from "@/lib/modeles-messages";
 import { formaterDate } from "@/lib/membres";
 import { datePhoto, urlPhotoAdmin } from "@/lib/photos-membres";
 import {
   actionAjusterEtoiles,
-  actionAttribuerAction,
   actionChangerClan,
   actionSupprimerMouvement,
 } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
+import { AttribuerEtoiles } from "./attribuer-etoiles";
 import { Carte, Champ, EnTete, Vide, champClasses } from "../../ui";
 
 export const metadata: Metadata = { title: "Fiche membre" };
@@ -24,16 +27,20 @@ export default async function MembreAdmin({ params }: PageProps<"/admin/membres/
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
-  const [fiche, clans, types, photoMaj] = await Promise.all([
+  const [fiche, clans, types, photoMaj, modeles] = await Promise.all([
     membreAdmin(id),
     listeClans(),
     listeTypesActions(),
     datePhoto(id),
+    modelesMessagesActifs(),
   ]);
   const photo = urlPhotoAdmin(id, photoMaj);
   if (!fiche) notFound();
   const { membre } = fiche;
-  const actions = types.filter((t) => t.actif && t.code === null);
+  // Types proposés à l'attribution : actifs, avec un barème (le parrainage reste automatique).
+  const actions = types.filter((t) => t.actif && t.code === null && t.etoiles !== 0);
+  // Variables du membre ({prenom}, {clan}…) pour l'aperçu du message dans la confirmation.
+  const valeursMembre = await valeursPourMembre(db, fiche.membre);
 
   return (
     <>
@@ -90,27 +97,14 @@ export default async function MembreAdmin({ params }: PageProps<"/admin/membres/
           </Carte>
 
           <Carte titre="Attribuer une action">
-            <FormulaireAdmin action={actionAttribuerAction} className="grid gap-3 sm:grid-cols-2">
-              <input type="hidden" name="membreId" value={membre.id} />
-              <Champ label="Action" id="typeActionId">
-                <select id="typeActionId" name="typeActionId" required defaultValue="" className={champClasses}>
-                  <option value="" disabled>
-                    Choisir
-                  </option>
-                  {actions.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.nom} — {t.etoiles} ★
-                    </option>
-                  ))}
-                </select>
-              </Champ>
-              <Champ label="Précision (facultative)" id="precision">
-                <input id="precision" name="precision" maxLength={120} placeholder="Ex. Excursion à Assinie" className={champClasses} />
-              </Champ>
-              <div>
-                <BoutonEnvoi>Attribuer</BoutonEnvoi>
-              </div>
-            </FormulaireAdmin>
+            <AttribuerEtoiles
+              membreId={membre.id}
+              nomMembre={`${membre.prenom} ${membre.nom}`}
+              solde={fiche.etoiles}
+              actions={actions.map(({ id, nom, etoiles }) => ({ id, nom, etoiles }))}
+              modeles={modeles.map(({ id, titre, contenu }) => ({ id, titre, contenu }))}
+              valeursMembre={valeursMembre}
+            />
           </Carte>
 
           <Carte titre="Ajustement manuel">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, TriangleAlert } from "lucide-react";
+import { TexteAvecLiens } from "@/components/texte-avec-liens";
 import { exigerAdmin } from "@/lib/admin";
 import { messageBienvenue } from "@/lib/messages-bienvenue";
 import { typesMessagesActifs } from "@/lib/types-messages";
@@ -56,7 +57,7 @@ export default async function MessageBienvenueAdmin({ params }: PageProps<"/admi
             {remplirVariables(message.titre, VALEURS_EXEMPLE)}
           </p>
           <p className="px-5 py-4 text-sm leading-7 whitespace-pre-line text-ivoire/85">
-            {remplirVariables(message.contenu, VALEURS_EXEMPLE)}
+            <TexteAvecLiens texte={remplirVariables(message.contenu, VALEURS_EXEMPLE)} />
           </p>
         </div>
       </Carte>

@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { exigerAdmin } from "@/lib/admin";
 import { listeMembres } from "@/lib/gestion-membres";
 import { formaterDate } from "@/lib/membres";
+import { ChampDateFr } from "../champ-date";
 import { Champ, EnTete, Vide, champClasses } from "../ui";
 
 /** « AAAA-MM-JJ » valide, sinon null. */
@@ -40,10 +41,10 @@ export default async function MembresAdmin({ searchParams }: PageProps<"/admin/m
           </div>
         </Champ>
         <Champ label="Adhésion du" id="du">
-          <input id="du" name="du" type="date" defaultValue={periode.du ?? ""} className={`${champClasses} [color-scheme:dark]`} />
+          <ChampDateFr id="du" name="du" valeur={periode.du} />
         </Champ>
         <Champ label="au" id="au">
-          <input id="au" name="au" type="date" defaultValue={periode.au ?? ""} className={`${champClasses} [color-scheme:dark]`} />
+          <ChampDateFr id="au" name="au" valeur={periode.au} />
         </Champ>
         <button
           type="submit"

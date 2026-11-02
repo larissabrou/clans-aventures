@@ -43,6 +43,11 @@ import {
   ordonnerMessagesBienvenue,
   supprimerMessageBienvenue,
 } from "@/lib/messages-bienvenue";
+import {
+  creerModeleMessage,
+  modifierModeleMessage,
+  supprimerModeleMessage,
+} from "@/lib/modeles-messages";
 import { definirPrixAdhesion } from "@/lib/parametres";
 import { creerUnivers, modifierUnivers, ordonnerUnivers, supprimerUnivers } from "@/lib/univers-culturels";
 import { creerTypeMessage, modifierTypeMessage, supprimerTypeMessage } from "@/lib/types-messages";
@@ -413,6 +418,38 @@ export async function actionOrdonnerMessagesBienvenue(ids: number[]): Promise<Et
   return { ok: true, message: "Ordre enregistré." };
 }
 
+// ---------- Modèles de messages (attribution d'étoiles) ----------
+
+const schemaModeleMessage = z.object({
+  titre: texte("Indique le titre du message.", 120),
+  contenu: texte("Écris le message.", 5000),
+  type: z.string({ error: "Choisis le type de message." }).trim().min(1, "Choisis le type de message.").max(60),
+  actif: caseACocher,
+});
+
+export async function actionCreerModeleMessage(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = schemaModeleMessage.safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: analyse.error.issues[0]?.message ?? "Formulaire invalide." };
+  await creerModeleMessage(analyse.data);
+  redirect("/admin/modeles-messages");
+}
+
+export async function actionModifierModeleMessage(_: EtatAction, formulaire: FormData) {
+  return executer(schemaModeleMessage.extend({ id: identifiant }), formulaire, async ({ id, ...modele }) => {
+    await modifierModeleMessage(id, modele);
+    return "Modèle enregistré.";
+  });
+}
+
+export async function actionSupprimerModeleMessage(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = z.object({ id: identifiant }).safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: "Modèle invalide." };
+  await supprimerModeleMessage(analyse.data.id);
+  redirect("/admin/modeles-messages");
+}
+
 // ---------- Types de messages ----------
 
 const schemaTypeMessage = z.object({
@@ -530,11 +567,12 @@ export async function actionAttribuerAction(_: EtatAction, formulaire: FormData)
   const schema = z.object({
     membreId,
     typeActionId: z.coerce.number({ error: "Choisis une action." }).int().positive("Choisis une action."),
+    modeleId: z.coerce.number({ error: "Choisis le message à envoyer." }).int().positive("Choisis le message à envoyer."),
     precision: texteOptionnel(120),
   });
-  return executer(schema, formulaire, async ({ membreId, typeActionId, precision }) => {
-    await attribuerAction(membreId, typeActionId, precision);
-    return "Étoiles attribuées.";
+  return executer(schema, formulaire, async ({ membreId, typeActionId, precision, modeleId }) => {
+    await attribuerAction(membreId, typeActionId, precision, modeleId);
+    return "Étoiles attribuées : le membre a reçu le message.";
   });
 }
 
