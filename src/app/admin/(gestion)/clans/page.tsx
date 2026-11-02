@@ -20,12 +20,25 @@ export default async function ClansAdmin() {
       />
 
       <Carte titre="Ajouter un clan">
-        <FormulaireAdmin action={actionCreerClan} className="grid gap-4 sm:grid-cols-[1fr_2fr_auto] sm:items-end">
+        <FormulaireAdmin action={actionCreerClan} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1.5fr_1fr_1.5fr_auto] lg:items-end">
           <Champ label="Nom" id="nouveau-clan-nom">
             <input id="nouveau-clan-nom" name="nom" required maxLength={60} className={champClasses} />
           </Champ>
           <Champ label="Description (facultative)" id="nouveau-clan-description">
             <input id="nouveau-clan-description" name="description" maxLength={300} className={champClasses} />
+          </Champ>
+          <Champ label="Salutation (facultative)" id="nouveau-clan-salutation">
+            <input id="nouveau-clan-salutation" name="salutation" maxLength={40} placeholder="Ex. AKWABA" className={champClasses} />
+          </Champ>
+          <Champ label="Lien du groupe WhatsApp (facultatif)" id="nouveau-clan-whatsapp">
+            <input
+              id="nouveau-clan-whatsapp"
+              name="lienWhatsapp"
+              type="url"
+              maxLength={300}
+              placeholder="https://chat.whatsapp.com/…"
+              className={champClasses}
+            />
           </Champ>
           <input type="hidden" name="actif" value="1" />
           <BoutonEnvoi>Ajouter</BoutonEnvoi>
@@ -65,7 +78,7 @@ export default async function ClansAdmin() {
               </div>
               <FormulaireAdmin
                 action={actionModifierClan}
-                className="grid gap-4 sm:grid-cols-[1fr_2fr] lg:grid-cols-[1fr_2fr_auto_auto] lg:items-end"
+                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_2fr] lg:items-end"
               >
                 <input type="hidden" name="id" value={clan.id} />
                 <Champ label="Nom" id={`clan-${clan.id}-nom`}>
@@ -77,6 +90,27 @@ export default async function ClansAdmin() {
                     name="description"
                     maxLength={300}
                     defaultValue={clan.description ?? ""}
+                    className={champClasses}
+                  />
+                </Champ>
+                <Champ label="Salutation (variable {salutation})" id={`clan-${clan.id}-salutation`}>
+                  <input
+                    id={`clan-${clan.id}-salutation`}
+                    name="salutation"
+                    maxLength={40}
+                    placeholder="Ex. AKWABA"
+                    defaultValue={clan.salutation ?? ""}
+                    className={champClasses}
+                  />
+                </Champ>
+                <Champ label="Lien du groupe WhatsApp (variable {lien_whatsapp_clan})" id={`clan-${clan.id}-whatsapp`}>
+                  <input
+                    id={`clan-${clan.id}-whatsapp`}
+                    name="lienWhatsapp"
+                    type="url"
+                    maxLength={300}
+                    placeholder="https://chat.whatsapp.com/…"
+                    defaultValue={clan.lienWhatsapp ?? ""}
                     className={champClasses}
                   />
                 </Champ>

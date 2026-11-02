@@ -1,10 +1,9 @@
 import "server-only";
-import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
 import {
   clans,
-  groupesWhatsapp,
   membres,
   messages,
   mouvementsEtoiles,
@@ -13,6 +12,7 @@ import {
   typesActions,
 } from "./db/schema";
 import { programmerNotification } from "./jobs";
+import { messagesBienvenuePour } from "./messages-bienvenue";
 import { genererMotDePasse, hacherMotDePasse } from "./mot-de-passe";
 import { prixAdhesion } from "./parametres";
 import { estOperateur, estPays, PAYS } from "./paiement/operateurs";
@@ -274,24 +274,11 @@ export async function confirmerPaiement(
       .where(eq(membres.id, paiement.membreId))
       .returning();
 
-    const groupes = await tx
-      .select({ nom: groupesWhatsapp.nom, lien: groupesWhatsapp.lien })
-      .from(groupesWhatsapp)
-      .where(
-        and(
-          eq(groupesWhatsapp.actif, true),
-          or(isNull(groupesWhatsapp.univers), inArray(groupesWhatsapp.univers, membre.interets)),
-        ),
-      );
-
-    await tx
-      .insert(messages)
-      .values(
-        messagesDeBienvenue(membre.prenom, membre.numero ?? "", groupes).map((message) => ({
-          ...message,
-          membreId: membre.id,
-        })),
-      );
+    // Messages de bienvenue réglés dans l'admin, dans l'ordre, variables remplacées pour ce membre.
+    const bienvenue = await messagesBienvenuePour(tx, membre);
+    if (bienvenue.length > 0) {
+      await tx.insert(messages).values(bienvenue.map((message) => ({ ...message, membreId: membre.id })));
+    }
 
     if (membre.parrainId) await recompenserParrain(tx, membre);
 
@@ -358,41 +345,4 @@ async function recompenserParrain(
       type: "star",
     });
   }
-}
-
-function messagesDeBienvenue(
-  prenom: string,
-  numero: string,
-  groupes: { nom: string; lien: string }[],
-) {
-  const liste = groupes.length
-    ? groupes.map((g) => `• ${g.nom} : ${g.lien}`).join("\n")
-    : "Les liens de tes groupes te seront envoyés très bientôt par l’équipe CLANS.";
-
-  return [
-    {
-      titre: `Bienvenue dans CLANS aventures, ${prenom} !`,
-      contenu: `Tu viens officiellement de rejoindre une communauté où les cultures se rencontrent, où les aventures se vivent ensemble et où chaque rencontre peut devenir une histoire.
-
-Ton numéro membre : ${numero}.
-Ton pin officiel CLANS te sera remis lors de ta première participation physique.
-
-Ton aventure vient de commencer.`,
-      type: "info" as const,
-    },
-    {
-      titre: "Rejoins tes groupes WhatsApp",
-      contenu: `Voici les groupes qui correspondent à ton profil :\n\n${liste}`,
-      type: "info" as const,
-    },
-    {
-      titre: "Ta première mission CLANS",
-      contenu: `Mission 01 — Présente-toi dans CAFÉ CLANS.
-
-« Je m’appelle…, je viens de…, ce que j’aimerais découvrir avec CLANS est… »
-
-C’est le premier pas pour passer de spectateur à participant.`,
-      type: "star" as const,
-    },
-  ];
 }

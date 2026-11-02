@@ -37,6 +37,12 @@ import {
   supprimerImageEvenement,
 } from "@/lib/images";
 import { estCouleur, estIcone } from "@/lib/apparence-messages";
+import {
+  creerMessageBienvenue,
+  modifierMessageBienvenue,
+  ordonnerMessagesBienvenue,
+  supprimerMessageBienvenue,
+} from "@/lib/messages-bienvenue";
 import { definirPrixAdhesion } from "@/lib/parametres";
 import { creerUnivers, modifierUnivers, ordonnerUnivers, supprimerUnivers } from "@/lib/univers-culturels";
 import { creerTypeMessage, modifierTypeMessage, supprimerTypeMessage } from "@/lib/types-messages";
@@ -117,6 +123,11 @@ const schemaClan = z.object({
   nom: texte("Indique le nom du clan.", 60),
   description: texteOptionnel(300),
   actif: caseACocher,
+  salutation: texteOptionnel(40),
+  lienWhatsapp: texteOptionnel(300).refine(
+    (lien) => lien === null || /^https:\/\/\S+$/.test(lien),
+    "Le lien WhatsApp doit commencer par https:// (ex. https://chat.whatsapp.com/…).",
+  ),
 });
 
 export async function actionCreerClan(_: EtatAction, formulaire: FormData) {
@@ -354,6 +365,52 @@ export async function actionSupprimerEnvoi(_: EtatAction, formulaire: FormData) 
     await supprimerEnvoi(id);
     return "Message retiré des espaces membres.";
   });
+}
+
+// ---------- Messages de bienvenue ----------
+
+const schemaMessageBienvenue = z.object({
+  titre: texte("Indique le titre du message.", 120),
+  contenu: texte("Écris le message.", 5000),
+  type: z.string({ error: "Choisis le type de message." }).trim().min(1, "Choisis le type de message.").max(60),
+  actif: caseACocher,
+});
+
+export async function actionCreerMessageBienvenue(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = schemaMessageBienvenue.safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: analyse.error.issues[0]?.message ?? "Formulaire invalide." };
+  await creerMessageBienvenue(analyse.data);
+  redirect("/admin/messages-bienvenue");
+}
+
+export async function actionModifierMessageBienvenue(_: EtatAction, formulaire: FormData) {
+  return executer(schemaMessageBienvenue.extend({ id: identifiant }), formulaire, async ({ id, ...message }) => {
+    await modifierMessageBienvenue(id, message);
+    return "Message enregistré : il s’appliquera aux prochaines adhésions.";
+  });
+}
+
+export async function actionSupprimerMessageBienvenue(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = z.object({ id: identifiant }).safeParse(lire(formulaire));
+  if (!analyse.success) return { ok: false, message: "Message invalide." };
+  await supprimerMessageBienvenue(analyse.data.id);
+  redirect("/admin/messages-bienvenue");
+}
+
+/** Glisser-déposer de la liste : ids du premier au dernier message envoyé. */
+export async function actionOrdonnerMessagesBienvenue(ids: number[]): Promise<EtatAction> {
+  await verifierAdmin();
+  const analyse = z.array(identifiant).min(1).max(500).safeParse(ids);
+  if (!analyse.success) return { ok: false, message: "Ordre invalide." };
+  try {
+    await ordonnerMessagesBienvenue(analyse.data);
+  } catch {
+    return { ok: false, message: "La liste a changé entre-temps : recharge la page puis recommence." };
+  }
+  refresh();
+  return { ok: true, message: "Ordre enregistré." };
 }
 
 // ---------- Types de messages ----------

@@ -32,6 +32,10 @@ export const clans = pgTable("clans", {
   actif: boolean("actif").notNull().default(true),
   // Position dans les listes (inscription, admin), réglée par glisser-déposer dans l'admin.
   ordre: integer("ordre").notNull().default(0),
+  // Mot d'accueil du clan (« AKWABA »), variable {salutation} des messages de bienvenue.
+  salutation: text("salutation"),
+  // Lien d'invitation du groupe WhatsApp du clan, variable {lien_whatsapp_clan} des messages de bienvenue.
+  lienWhatsapp: text("lien_whatsapp"),
   creeLe: horodatage("cree_le").notNull().defaultNow(),
 });
 
@@ -167,6 +171,23 @@ export const envois = pgTable("envois", {
   // Destinataires, en clair pour l'historique : « Tous les membres », « Clan X », « CLANS-000012 ».
   cible: text("cible").notNull(),
   destinataires: integer("destinataires").notNull().default(0),
+  creeLe: horodatage("cree_le").notNull().defaultNow(),
+});
+
+/**
+ * Messages reçus par chaque nouveau membre à la confirmation de son adhésion, dans l'ordre choisi.
+ * Titre et contenu acceptent des variables ({prenom}, {clan}, {salutation}… : voir lib/messages-bienvenue.ts).
+ */
+export const messagesBienvenue = pgTable("messages_bienvenue", {
+  id: serial("id").primaryKey(),
+  titre: text("titre").notNull(),
+  contenu: text("contenu").notNull(),
+  type: text("type")
+    .notNull()
+    .default("info")
+    .references(() => typesMessages.cle, { onDelete: "set default", onUpdate: "cascade" }),
+  ordre: integer("ordre").notNull().default(0),
+  actif: boolean("actif").notNull().default(true),
   creeLe: horodatage("cree_le").notNull().defaultNow(),
 });
 
@@ -363,4 +384,5 @@ export type TypeAction = typeof typesActions.$inferSelect;
 export type Evenement = typeof evenements.$inferSelect;
 export type Envoi = typeof envois.$inferSelect;
 export type TypeMessage = typeof typesMessages.$inferSelect;
+export type MessageBienvenue = typeof messagesBienvenue.$inferSelect;
 export type Message = typeof messages.$inferSelect;

@@ -49,7 +49,7 @@ export default function HomePage() {
         </section>
 
         {/* APPEL FINAL : photo à gauche, texte à droite (empilés sur téléphone) */}
-        <section className="bg-foret px-6 py-20 lg:py-28">
+        <section className="bg-foret px-6 py-12 lg:py-16">
           <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <Image
               src="/images/aventure-ensemble.jpg"

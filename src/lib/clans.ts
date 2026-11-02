@@ -20,6 +20,8 @@ export async function listeClans() {
       nom: clans.nom,
       description: clans.description,
       actif: clans.actif,
+      salutation: clans.salutation,
+      lienWhatsapp: clans.lienWhatsapp,
       membres: count(membres.id),
     })
     .from(clans)
@@ -28,7 +30,14 @@ export async function listeClans() {
     .orderBy(asc(clans.ordre), asc(clans.nom));
 }
 
-export type DonneesClan = { nom: string; description: string | null; actif: boolean };
+export type DonneesClan = {
+  nom: string;
+  description: string | null;
+  actif: boolean;
+  // Variables {salutation} et {lien_whatsapp_clan} des messages de bienvenue.
+  salutation: string | null;
+  lienWhatsapp: string | null;
+};
 
 /** Un nouveau clan se place en fin de liste. */
 export async function creerClan(donnees: DonneesClan) {

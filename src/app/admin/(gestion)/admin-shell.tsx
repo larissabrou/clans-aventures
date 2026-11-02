@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   MessageCircle,
+  MessagesSquare,
   Globe,
   Settings,
   Shield,
@@ -31,6 +32,7 @@ const RUBRIQUES: { label: string; Icone: LucideIcon; href: string; superAdmin?: 
   { label: "Membres", Icone: Users, href: "/admin/membres" },
   { label: "Événements", Icone: CalendarDays, href: "/admin/evenements" },
   { label: "Messages", Icone: MessageCircle, href: "/admin/messages" },
+  { label: "Messages de bienvenue", Icone: MessagesSquare, href: "/admin/messages-bienvenue" },
   { label: "Types de messages", Icone: Tags, href: "/admin/types-messages" },
   { label: "Types d’actions", Icone: Star, href: "/admin/types-actions" },
   { label: "Clans", Icone: Shield, href: "/admin/clans" },
@@ -51,8 +53,10 @@ export function AdminShell({
   const [menuOuvert, setMenuOuvert] = useState(false);
   const chemin = usePathname();
 
-  // Rubrique active : correspondance exacte pour le tableau de bord, par préfixe pour les autres.
-  const estActif = (href: string) => (href === "/admin" ? chemin === href : chemin.startsWith(href));
+  // Rubrique active : la page elle-même ou l'une de ses sous-pages (« /admin/messages » ne doit pas
+  // s'allumer sur « /admin/messages-bienvenue »).
+  const estActif = (href: string) =>
+    chemin === href || (href !== "/admin" && chemin.startsWith(`${href}/`));
 
   return (
     <div className="min-h-svh bg-charbon text-ivoire">
