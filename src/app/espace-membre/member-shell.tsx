@@ -37,6 +37,7 @@ export function MemberShell({
   initiales,
   page = "tableau",
   admin = false,
+  photo = null,
   children,
 }: {
   nomComplet: string;
@@ -45,6 +46,8 @@ export function MemberShell({
   page?: "tableau" | "profil" | "parrainage" | "bon-plan" | "messages";
   // Affiche le lien vers l'administration (emails listés dans ADMIN_EMAILS).
   admin?: boolean;
+  // URL de la photo de profil ; sans photo, la pastille affiche les initiales.
+  photo?: string | null;
   children: React.ReactNode;
 }) {
   const [menuOuvert, setMenuOuvert] = useState(false);
@@ -149,7 +152,12 @@ export function MemberShell({
                 page === "profil" ? "ring-terre/60" : "ring-transparent"
               }`}
             >
-              {initiales}
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element -- photo privée servie par une route du site
+                <img src={photo} alt="" className="size-full rounded-full object-cover" />
+              ) : (
+                initiales
+              )}
             </span>
           </Link>
           <button

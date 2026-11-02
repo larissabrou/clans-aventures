@@ -1,6 +1,9 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { changerMotDePasse, membreConnecte } from "@/lib/auth";
+import { ErreurImage, lireImageEnvoyee } from "@/lib/images";
+import { enregistrerPhoto, supprimerPhoto } from "@/lib/photos-membres";
 import { marquerMessageLu, marquerTousLus } from "@/lib/membres";
 import { erreurNouveauMotDePasse } from "@/lib/mot-de-passe";
 
@@ -38,4 +41,30 @@ export async function modifierMotDePasse(
     ok: true,
     message: "Ton mot de passe a été modifié. Tes autres appareils ont été déconnectés.",
   };
+}
+
+export type ResultatPhoto = { ok: boolean; message: string } | null;
+
+/** Photo de profil : JPEG, PNG ou WebP de 4 Mo maximum (type vérifié d'après le contenu). */
+export async function changerPhoto(_: ResultatPhoto, formulaire: FormData): Promise<ResultatPhoto> {
+  const membre = await membreConnecte();
+  if (!membre) return { ok: false, message: "Ta session a expiré. Reconnecte-toi." };
+  try {
+    const image = await lireImageEnvoyee(formulaire.get("photo"));
+    if (!image) return { ok: false, message: "Choisis une photo." };
+    await enregistrerPhoto(membre.id, image);
+  } catch (erreur) {
+    if (erreur instanceof ErreurImage) return { ok: false, message: erreur.message };
+    throw erreur;
+  }
+  refresh();
+  return { ok: true, message: "Photo enregistrée." };
+}
+
+export async function retirerPhoto(): Promise<ResultatPhoto> {
+  const membre = await membreConnecte();
+  if (!membre) return { ok: false, message: "Ta session a expiré. Reconnecte-toi." };
+  await supprimerPhoto(membre.id);
+  refresh();
+  return { ok: true, message: "Photo retirée." };
 }

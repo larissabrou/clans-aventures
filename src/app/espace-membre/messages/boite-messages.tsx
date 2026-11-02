@@ -18,6 +18,7 @@ export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: numbe
   );
 
   const ouvert = messages.find((m) => m.id === ouvertId) ?? null;
+  const IconeType = apparenceMessage(ouvert?.couleur, ouvert?.icone).Icone;
   const visibles = messages.filter((m) =>
     filtre === "tous" ? true : filtre === "non-lus" ? !m.lu : m.type === filtre,
   );
@@ -131,30 +132,31 @@ export function BoiteMessages({ selectionInitiale }: { selectionInitiale?: numbe
 
         {/* LECTURE */}
         <div className={ouvert ? "" : "hidden lg:block"}>
-          <div className="rounded-2xl border border-white lg:sticky lg:top-24">
+          {/* Contour or ; en-tête et pied sur fond or (texte foncé). */}
+          <div className="overflow-hidden rounded-2xl border border-sable lg:sticky lg:top-24">
             {ouvert ? (
               <article>
-                <header className="border-b border-white/20 p-6 sm:p-8">
+                <header className="bg-sable p-6 text-charbon sm:p-8">
                   <button
                     type="button"
                     onClick={() => setOuvertId(null)}
-                    className="mb-4 inline-flex items-center gap-2 text-sm text-sable hover:text-ivoire lg:hidden"
+                    className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-charbon/80 hover:text-charbon lg:hidden"
                   >
                     <ArrowLeft className="size-4" />
                     Tous les messages
                   </button>
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${apparenceMessage(ouvert.couleur, ouvert.icone).pastille}`}
-                  >
+                  {/* Sur le fond or, pastille foncée commune à tous les types (lisible quelle que soit leur couleur). */}
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-charbon px-3 py-1 text-xs font-semibold text-sable">
+                    <IconeType className="size-3.5" strokeWidth={2} />
                     {ouvert.typeNom}
                   </span>
                   <h2 className="mt-3 font-titre text-3xl leading-tight font-semibold">{ouvert.titre}</h2>
-                  <p className="mt-2 text-xs text-white/50">{ouvert.date}</p>
+                  <p className="mt-2 text-xs text-charbon/60">{ouvert.date}</p>
                 </header>
                 <p className="p-6 text-[0.95rem] leading-8 whitespace-pre-line text-white/85 sm:p-8">
                   {ouvert.contenu}
                 </p>
-                <footer className="border-t border-white/20 px-6 py-4 text-xs text-white/45 sm:px-8">
+                <footer className="bg-sable px-6 py-4 text-xs font-medium text-charbon/70 sm:px-8">
                   L’équipe CLANS aventures
                 </footer>
               </article>

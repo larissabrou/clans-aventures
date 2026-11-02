@@ -7,6 +7,7 @@ import { ChangerMotDePasse } from "../changer-mot-de-passe";
 import { Chargement, PiedEspaceMembre, identite } from "../elements";
 import { MemberShell } from "../member-shell";
 import { MessagesProvider } from "../messages-context";
+import { PhotoProfil } from "./photo-profil";
 
 export const metadata: Metadata = { title: "Mon profil" };
 
@@ -28,7 +29,8 @@ async function Profil() {
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} page="profil" admin={await aUnCompteAdmin(connecte.email)}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales} page="profil" admin={await aUnCompteAdmin(connecte.email)}
+        photo={donnees.membre.photo}>
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           <div className="mb-8">
             <h1 className="font-titre text-4xl font-semibold sm:text-5xl">Mon profil</h1>
@@ -44,6 +46,8 @@ async function Profil() {
             <InfoProfil label="Date d’adhésion" valeur={membre.dateAdhesion} />
             <InfoProfil label="Adhésion" valeur="À vie" />
           </dl>
+
+          <PhotoProfil photo={membre.photo} initiales={initiales} />
 
           <ChangerMotDePasse aUnMotDePasse={Boolean(connecte.motDePasseHash)} />
 

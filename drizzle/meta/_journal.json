@@ -85,6 +85,13 @@
       "when": 1793643150240,
       "tag": "0011_univers_culturels",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793644620857,
+      "tag": "0012_photos_membres",
+      "breakpoints": true
     }
   ]
 }

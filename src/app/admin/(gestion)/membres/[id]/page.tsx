@@ -7,6 +7,7 @@ import { listeTypesActions } from "@/lib/bareme";
 import { listeClans } from "@/lib/clans";
 import { membreAdmin } from "@/lib/gestion-membres";
 import { formaterDate } from "@/lib/membres";
+import { datePhoto, urlPhotoAdmin } from "@/lib/photos-membres";
 import {
   actionAjusterEtoiles,
   actionAttribuerAction,
@@ -23,7 +24,13 @@ export default async function MembreAdmin({ params }: PageProps<"/admin/membres/
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
-  const [fiche, clans, types] = await Promise.all([membreAdmin(id), listeClans(), listeTypesActions()]);
+  const [fiche, clans, types, photoMaj] = await Promise.all([
+    membreAdmin(id),
+    listeClans(),
+    listeTypesActions(),
+    datePhoto(id),
+  ]);
+  const photo = urlPhotoAdmin(id, photoMaj);
   if (!fiche) notFound();
   const { membre } = fiche;
   const actions = types.filter((t) => t.actif && t.code === null);
@@ -38,6 +45,10 @@ export default async function MembreAdmin({ params }: PageProps<"/admin/membres/
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
         <Carte titre="Informations">
+          {photo && (
+            // eslint-disable-next-line @next/next/no-img-element -- photo privée servie par une route de l'admin
+            <img src={photo} alt={`Photo de ${membre.prenom} ${membre.nom}`} className="mb-5 size-24 rounded-full object-cover ring-2 ring-sable" />
+          )}
           <dl className="grid gap-4 text-sm sm:grid-cols-2">
             <Info label="Email" valeur={membre.email} />
             <Info label="WhatsApp" valeur={`+${membre.telephone}`} />

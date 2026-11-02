@@ -253,6 +253,18 @@ export const imagesEvenements = pgTable("images_evenements", {
   modifieLe: horodatage("modifie_le").notNull().defaultNow(),
 });
 
+/** Photo de profil d'un membre (stockée en base, servie uniquement au membre et à l'administration). */
+export const photosMembres = pgTable("photos_membres", {
+  membreId: uuid("membre_id")
+    .primaryKey()
+    .references(() => membres.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  donnees: octets("donnees").notNull(),
+  taille: integer("taille").notNull(),
+  // Sert aussi de version dans l'URL de la photo (cache du navigateur).
+  modifieLe: horodatage("modifie_le").notNull().defaultNow(),
+});
+
 export const participations = pgTable(
   "participations",
   {

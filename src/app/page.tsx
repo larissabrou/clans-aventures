@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { CtaLink } from "@/components/cta-link";
 import { SiteFooter } from "@/components/site-footer";
 import { Hero } from "@/components/hero";
@@ -47,18 +48,31 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* APPEL FINAL */}
-        <section className="bg-foret px-6 py-28 text-center">
-          <h2 className="mb-5 font-titre text-[clamp(2.5rem,6vw,5rem)] leading-tight font-medium">
-            Ton aventure commence ici.
-          </h2>
+        {/* APPEL FINAL : photo à gauche, texte à droite (empilés sur téléphone) */}
+        <section className="bg-foret px-6 py-20 lg:py-28">
+          <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-16">
+            <Image
+              src="/images/aventure-ensemble.jpg"
+              alt="Des membres de CLANS se saluent en riant lors d’un camping en forêt"
+              width={1448}
+              height={1086}
+              sizes="(min-width: 1024px) 560px, 100vw"
+              className="h-auto w-full rounded-3xl object-cover shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
+            />
 
-          <p className="mx-auto mb-9 max-w-150 leading-8 opacity-80">
-            Rejoins une communauté qui transforme chaque sortie en expérience,
-            chaque rencontre en souvenir, et chaque aventure en histoire.
-          </p>
+            <div className="text-center lg:text-left">
+              <h2 className="mb-5 font-titre text-[clamp(2.5rem,5vw,4.25rem)] leading-tight font-medium">
+                Ton aventure commence ici.
+              </h2>
 
-          <CtaLink href="/inscription">Commencer l’aventure</CtaLink>
+              <p className="mx-auto mb-9 max-w-150 leading-8 opacity-80 lg:mx-0">
+                Rejoins une communauté qui transforme chaque sortie en expérience,
+                chaque rencontre en souvenir, et chaque aventure en histoire.
+              </p>
+
+              <CtaLink href="/inscription">Commencer l’aventure</CtaLink>
+            </div>
+          </div>
         </section>
       </main>
 

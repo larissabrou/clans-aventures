@@ -29,7 +29,8 @@ async function Parrainage() {
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} page="parrainage" admin={await aUnCompteAdmin(connecte.email)}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales} page="parrainage" admin={await aUnCompteAdmin(connecte.email)}
+        photo={donnees.membre.photo}>
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           <div className="mb-8">
             <p className="text-[0.65rem] font-semibold tracking-[3px] text-sable uppercase">

@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, gte, sql, sum } from "drizzle-orm";
 import { db } from "./db";
+import { datePhoto, urlMaPhoto } from "./photos-membres";
 import {
   clans,
   evenements,
@@ -29,7 +30,7 @@ export function formaterDateHeure(date: Date) {
 }
 
 export async function tableauDeBord(membre: Membre, nombreMessages = 50) {
-  const [[etoiles], [experiences], [filleuls], listeMessages, historique, obligatoires, [clan]] =
+  const [[etoiles], [experiences], [filleuls], listeMessages, historique, obligatoires, [clan], photoMaj] =
     await Promise.all([
       db
         .select({ total: sum(mouvementsEtoiles.variation).mapWith(Number) })
@@ -67,6 +68,7 @@ export async function tableauDeBord(membre: Membre, nombreMessages = 50) {
       membre.clanId
         ? db.select({ nom: clans.nom }).from(clans).where(eq(clans.id, membre.clanId)).limit(1)
         : Promise.resolve([]),
+      datePhoto(membre.id),
     ]);
 
   return {
@@ -75,6 +77,8 @@ export async function tableauDeBord(membre: Membre, nombreMessages = 50) {
       nom: membre.nom,
       numero: membre.numero ?? "—",
       clan: clan?.nom ?? "À définir",
+      // Photo de profil (null sans photo) : affichée dans l'en-tête et sur la page Profil.
+      photo: urlMaPhoto(photoMaj),
       dateAdhesion: membre.adhereLe ? formaterDate(membre.adhereLe) : "—",
       etoiles: etoiles?.total ?? 0,
       experiences: experiences?.total ?? 0,

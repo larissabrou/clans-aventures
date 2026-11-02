@@ -31,7 +31,8 @@ async function EspaceMembre() {
 
   return (
     <MessagesProvider initialMessages={donnees.messages}>
-      <MemberShell nomComplet={nomComplet} initiales={initiales} admin={await aUnCompteAdmin(connecte.email)}>
+      <MemberShell nomComplet={nomComplet} initiales={initiales} admin={await aUnCompteAdmin(connecte.email)}
+        photo={donnees.membre.photo}>
         <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
           {/* BIENVENUE */}
           <div id="tableau-de-bord" className="mb-8 scroll-mt-24">
