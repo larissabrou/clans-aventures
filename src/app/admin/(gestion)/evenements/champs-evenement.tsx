@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Evenement, TypeAction } from "@/lib/db/schema";
+import { ChampFichier } from "@/components/champ-fichier";
 import { ChampDateHeureFr } from "../champ-date";
 import { CaseACocher, Champ, champClasses } from "../ui";
 
@@ -112,13 +113,7 @@ export function ChampsEvenement({
         )}
         <div className="min-w-60 flex-1">
           <Champ label={imageUrl ? "Remplacer l’image" : "Image (facultative)"} id={`${prefixe}-image`}>
-            <input
-              id={`${prefixe}-image`}
-              name="image"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className={`${champClasses} file:mr-4 file:rounded-full file:border-0 file:bg-terre file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white`}
-            />
+            <ChampFichier id={`${prefixe}-image`} name="image" accept="image/jpeg,image/png,image/webp" />
           </Champ>
           <p className="mt-1.5 text-xs text-ivoire/50">JPEG, PNG ou WebP, 4 Mo maximum. Format paysage conseillé.</p>
           {imageUrl && (

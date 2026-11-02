@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { Camera, LoaderCircle, Trash2 } from "lucide-react";
+import { ChampFichier } from "@/components/champ-fichier";
 import { changerPhoto, retirerPhoto, type ResultatPhoto } from "../actions";
 
 const bouton =
@@ -13,7 +14,8 @@ export function PhotoProfil({ photo, initiales }: { photo: string | null; initia
   const [retrait, setRetrait] = useState<ResultatPhoto>(null);
   const [retraitEnCours, demarrer] = useTransition();
   const [apercu, setApercu] = useState<string | null>(null);
-  const champ = useRef<HTMLInputElement>(null);
+  // Change après chaque envoi : le champ fichier repart de zéro (nom affiché compris).
+  const [envoi, setEnvoi] = useState(0);
 
   // L'aperçu local est libéré quand il est remplacé ou quand le composant disparaît.
   useEffect(() => () => {
@@ -41,24 +43,20 @@ export function PhotoProfil({ photo, initiales }: { photo: string | null; initia
             setRetrait(null);
             envoyer(formulaire);
             setApercu(null);
-            if (champ.current) champ.current.value = "";
+            setEnvoi((n) => n + 1);
           }}
           className="grid min-w-60 flex-1 gap-3"
         >
           <label className="text-sm text-white/70" htmlFor="photo">
             JPEG, PNG ou WebP, 4 Mo maximum. Elle apparaît en haut de ton espace membre.
           </label>
-          <input
-            ref={champ}
+          <ChampFichier
+            key={envoi}
             id="photo"
             name="photo"
-            type="file"
             accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => {
-              const fichier = e.target.files?.[0];
-              setApercu(fichier ? URL.createObjectURL(fichier) : null);
-            }}
-            className="w-full rounded-xl border border-white/30 bg-white/5 px-3 py-2 text-sm text-white file:mr-4 file:rounded-full file:border-0 file:bg-terre file:px-4 file:py-1.5 file:text-xs file:font-semibold file:text-white"
+            libelle="Choisir une photo"
+            onFichier={(fichier) => setApercu(fichier ? URL.createObjectURL(fichier) : null)}
           />
           <div className="flex flex-wrap gap-3">
             <button type="submit" disabled={!apercu || envoiEnCours} className={`${bouton} bg-terre text-white hover:bg-sable hover:text-charbon`}>

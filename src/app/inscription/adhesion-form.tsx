@@ -359,6 +359,20 @@ export function AdhesionForm({
         </div>
       </div>
 
+      {/* Feu de camp en boucle entre la progression et l'étape : vidéo légère (650 Ko), muette,
+          avec une image fixe affichée pendant le chargement. Décorative : ignorée des lecteurs d'écran. */}
+      <video
+        src="/videos/inscription-feu-de-camp.mp4"
+        poster="/images/inscription-feu-de-camp.jpg"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        className="block aspect-[8/3] w-full bg-charbon object-cover"
+      />
+
       <div className="px-6 py-8 sm:px-10 sm:py-10">
         {/* ÉTAPE 1 */}
         {etape === 1 && (
