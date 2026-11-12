@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Ticket } from "lucide-react";
 import { Logo } from "@/components/logo";
 
 // variant "retour" : remplace le lien Espace membre par un retour à l'accueil (parcours d'adhésion).
@@ -41,11 +40,6 @@ export function SiteHeader({
       </Link>
 
       <nav aria-label="Navigation principale" className="flex items-center gap-1.5 sm:gap-3">
-        <Link href="/sorties" className={`${bouton} ${contour}`}>
-          <Ticket className="size-4" strokeWidth={1.7} aria-hidden />
-          <span className="max-[379px]:sr-only">Sorties</span>
-        </Link>
-
         <Link href="/grenier" className={`${bouton} ${contour}`}>
           <IconeGrenier />
           {/* Sur très petit écran (< 380 px), icône seule : le libellé reste lu par les lecteurs d'écran. */}

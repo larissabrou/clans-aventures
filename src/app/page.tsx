@@ -1,8 +1,10 @@
 import Image from "next/image";
+import { Suspense } from "react";
 import { CtaLink } from "@/components/cta-link";
 import { SiteFooter } from "@/components/site-footer";
 import { Hero } from "@/components/hero";
 import { IconeUnivers } from "@/components/icone-univers";
+import { SortiesAccueil } from "@/components/sorties/sorties-accueil";
 import { UNIVERS } from "@/lib/univers";
 
 export default function HomePage() {
@@ -74,6 +76,11 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* SORTIES : lues en base à chaque requête ; le reste de l'accueil s'affiche sans attendre. */}
+        <Suspense fallback={null}>
+          <SortiesAccueil />
+        </Suspense>
       </main>
 
       <SiteFooter />
