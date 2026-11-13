@@ -2,18 +2,21 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, X } from "lucide-react";
+import { TexteAvecLiens } from "@/components/texte-avec-liens";
+import { apparenceMessage } from "@/lib/apparence-messages";
 import { listeTypesActions } from "@/lib/bareme";
 import { listeClans } from "@/lib/clans";
 import { db } from "@/lib/db";
-import { membreAdmin } from "@/lib/gestion-membres";
+import { membreAdmin, messagesDuMembre } from "@/lib/gestion-membres";
 import { valeursPourMembre } from "@/lib/messages-bienvenue";
 import { modelesMessagesActifs } from "@/lib/modeles-messages";
-import { formaterDate } from "@/lib/membres";
+import { formaterDate, formaterDateHeure } from "@/lib/membres";
 import { datePhoto, urlPhotoAdmin } from "@/lib/photos-membres";
 import {
   actionAjusterEtoiles,
   actionChangerClan,
+  actionSupprimerMessageMembre,
   actionSupprimerMouvement,
 } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
@@ -36,13 +39,15 @@ async function Contenu({ params }: Pick<PageProps<"/admin/membres/[id]">, "param
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
-  const [fiche, clans, types, photoMaj, modeles] = await Promise.all([
+  const [fiche, clans, types, photoMaj, modeles, recus] = await Promise.all([
     membreAdmin(id),
     listeClans(),
     listeTypesActions(),
     datePhoto(id),
     modelesMessagesActifs(),
+    messagesDuMembre(id),
   ]);
+  const nonLus = recus.filter((m) => !m.lu).length;
   const photo = urlPhotoAdmin(id, photoMaj);
   if (!fiche) notFound();
   const { membre } = fiche;
@@ -190,6 +195,64 @@ async function Contenu({ params }: Pick<PageProps<"/admin/membres/[id]">, "param
               </span>
             </li>
           ))}
+        </ul>
+      )}
+
+      {/* MESSAGES REÇUS : tels qu'affichés dans l'espace du membre (bienvenue, envois, étoiles, parrainage). */}
+      <h2 className="mt-10 mb-1 font-titre text-3xl font-semibold">Messages reçus</h2>
+      <p className="mb-4 text-sm text-ivoire/60">
+        {recus.length} message{recus.length > 1 ? "s" : ""}
+        {recus.length > 0 && ` · ${nonLus} non lu${nonLus > 1 ? "s" : ""}`}
+      </p>
+      {recus.length === 0 ? (
+        <Vide texte="Aucun message reçu." />
+      ) : (
+        <ul className="grid gap-2">
+          {recus.map((m) => {
+            const { Icone, fondIcone, pastille } = apparenceMessage(m.couleur, m.icone);
+            return (
+              <li key={m.id}>
+                <details className="group rounded-2xl border border-white/40 open:border-sable">
+                  <summary className="flex cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
+                    <span className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${fondIcone}`}>
+                      <Icone className="size-[18px]" strokeWidth={1.75} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{m.titre}</span>
+                      <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ivoire/55">
+                        <span className={`rounded-full px-2 py-0.5 font-semibold ${pastille}`}>{m.typeNom ?? "Information"}</span>
+                        {formaterDateHeure(m.creeLe)}
+                        <span>· {m.envoiAdmin ? "Envoyé depuis Messages" : "Automatique"}</span>
+                      </span>
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[0.7rem] font-semibold ${
+                        m.lu ? "bg-white/10 text-ivoire/60" : "bg-terre text-white"
+                      }`}
+                    >
+                      {m.lu ? "Lu" : "Non lu"}
+                    </span>
+                    <ChevronDown className="size-4 shrink-0 text-ivoire/50 transition group-open:rotate-180" />
+                  </summary>
+                  <div className="border-t border-white/15 px-4 pt-3 pb-4">
+                    <p className="text-sm leading-7 whitespace-pre-line text-ivoire/80">
+                      <TexteAvecLiens texte={m.contenu} />
+                    </p>
+                    <FormulaireAdmin
+                      action={actionSupprimerMessageMembre}
+                      discret
+                      confirmation={`Retirer « ${m.titre} » de l’espace de ${membre.prenom} ${membre.nom} ?`}
+                      className="mt-3"
+                    >
+                      <input type="hidden" name="id" value={m.id} />
+                      <input type="hidden" name="membreId" value={membre.id} />
+                      <BoutonEnvoi style="danger">Supprimer ce message</BoutonEnvoi>
+                    </FormulaireAdmin>
+                  </div>
+                </details>
+              </li>
+            );
+          })}
         </ul>
       )}
     </>

@@ -12,6 +12,7 @@ import {
   mouvementsEtoiles,
   participations,
   typesActions,
+  typesMessages,
 } from "./db/schema";
 
 // Gestion des membres depuis l'admin : recherche, clan, étoiles.
@@ -178,6 +179,32 @@ async function crediter(membreId: string, libelle: string, variation: number, ty
       type: variation > 0 ? "star" : "warning",
     });
   });
+}
+
+/** Messages reçus par ce membre, du plus récent au plus ancien (fiche du membre dans l'admin). */
+export async function messagesDuMembre(membreId: string) {
+  return db
+    .select({
+      id: messages.id,
+      titre: messages.titre,
+      contenu: messages.contenu,
+      lu: messages.lu,
+      creeLe: messages.creeLe,
+      // Envoyé depuis la rubrique Messages (sinon : automatique — bienvenue, étoiles, parrainage…).
+      envoiAdmin: sql<boolean>`${messages.envoiId} is not null`.mapWith(Boolean),
+      typeNom: typesMessages.nom,
+      couleur: typesMessages.couleur,
+      icone: typesMessages.icone,
+    })
+    .from(messages)
+    .leftJoin(typesMessages, eq(typesMessages.cle, messages.type))
+    .where(eq(messages.membreId, membreId))
+    .orderBy(desc(messages.creeLe), desc(messages.id));
+}
+
+/** Retire un message de l'espace de ce membre (seulement s'il lui appartient). */
+export async function supprimerMessageMembre(messageId: number, membreId: string) {
+  await db.delete(messages).where(and(eq(messages.id, messageId), eq(messages.membreId, membreId)));
 }
 
 /** Annule un mouvement ajouté à la main (ceux des présences et du parrainage se gèrent à leur source). */

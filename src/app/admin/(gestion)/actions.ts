@@ -27,6 +27,7 @@ import {
   ajusterEtoiles,
   attribuerAction,
   changerClan,
+  supprimerMessageMembre,
   supprimerMouvement,
 } from "@/lib/gestion-membres";
 import { ErreurEnvoi, envoyerMessage, supprimerEnvoi } from "@/lib/envois";
@@ -596,6 +597,13 @@ export async function actionAjusterEtoiles(_: EtatAction, formulaire: FormData) 
   return executer(schema, formulaire, async ({ membreId, variation, libelle }) => {
     await ajusterEtoiles(membreId, variation, libelle);
     return "Solde d’étoiles mis à jour.";
+  });
+}
+
+export async function actionSupprimerMessageMembre(_: EtatAction, formulaire: FormData) {
+  return executer(z.object({ id: identifiant, membreId }), formulaire, async ({ id, membreId }) => {
+    await supprimerMessageMembre(id, membreId);
+    return "Message retiré de l’espace du membre.";
   });
 }
 
