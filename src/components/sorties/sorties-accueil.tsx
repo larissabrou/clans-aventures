@@ -14,7 +14,7 @@ export async function SortiesAccueil() {
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="mb-3 text-xs tracking-[3px] uppercase opacity-70">Le programme</p>
+            <p className="mb-3 text-xs tracking-[3px] uppercase opacity-70">Nos plans</p>
             <h2 id="sorties-accueil-titre" className="font-titre text-[clamp(2.25rem,4.5vw,3.5rem)] leading-tight font-semibold">
               Nos prochaines sorties
             </h2>

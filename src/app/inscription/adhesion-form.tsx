@@ -426,7 +426,7 @@ export function AdhesionForm({
                 {(
                   [
                     [false, "Nouveau membre", "Je rejoins CLANS et je règle mon adhésion."],
-                    [true, "Ancien membre", "J’ai déjà réglé mon adhésion avant le site."],
+                    [true, "Membre", "J’ai déjà réglé mon adhésion avant le site."],
                   ] as const
                 ).map(([valeur, titre, detail]) => (
                   <button
