@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Montserrat } from "next/font/google";
 import { Suspense } from "react";
 import { FacebookPixel } from "@/components/facebook-pixel";
+import { GoogleTagManager } from "@/components/google-tag-manager";
 import "./globals.css";
 
 // next/font télécharge les polices au build et les sert depuis notre domaine :
@@ -36,8 +37,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* Colonne flexible : le <main> de chaque page s'étire, le pied de page reste en bas de l'écran. */}
       <body className="flex min-h-svh flex-col font-sans">
         {children}
-        {/* Le pixel lit l'URL (usePathname) : sans Suspense, il bloquerait le prérendu des pages. */}
+        {/* Les outils de suivi lisent l'URL (usePathname) : sans Suspense, ils bloqueraient le prérendu des pages. */}
         <Suspense fallback={null}>
+          <GoogleTagManager />
           <FacebookPixel />
         </Suspense>
       </body>

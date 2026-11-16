@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { estPageSuivie } from "@/lib/suivi";
 
 // Identifiant public du pixel Meta (visible dans le code de toute page qui l'utilise).
 const PIXEL_ID = "2505314090003466";
@@ -11,11 +12,6 @@ declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void;
   }
-}
-
-// L'espace d'administration n'est pas suivi.
-function estSuivi(pathname: string) {
-  return !pathname.startsWith("/admin");
 }
 
 /**
@@ -29,11 +25,11 @@ export function FacebookPixel() {
   useEffect(() => {
     if (pagePrecedente.current === pathname) return;
     pagePrecedente.current = pathname;
-    if (estSuivi(pathname)) window.fbq?.("track", "PageView");
+    if (estPageSuivie(pathname)) window.fbq?.("track", "PageView");
   }, [pathname]);
 
   // Arrivée directe sur l'admin : le pixel n'est pas chargé du tout.
-  if (!estSuivi(pathname)) return null;
+  if (!estPageSuivie(pathname)) return null;
 
   return (
     <>
