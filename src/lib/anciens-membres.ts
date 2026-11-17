@@ -1,5 +1,7 @@
 import "server-only";
-import { and, asc, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import type { z } from "zod";
+import { activerMembre, demandeAncienSchema, enregistrerFiche, programmerEmailsAdhesion } from "./adhesions";
 import { db } from "./db";
 import { ancienMembres, membres } from "./db/schema";
 import {
@@ -11,6 +13,8 @@ import {
   type LigneRefusee,
 } from "./import-membres/analyse";
 import type { LigneBrute } from "./import-membres/lecture";
+import { genererMotDePasse } from "./mot-de-passe";
+import { normaliserTelephone } from "./telephone";
 
 // Liste des anciens membres chargée par l'admin : à l'inscription, un ancien reconnu par son
 // e-mail ou son téléphone devient membre sans payer (voir inscrireAncienMembre).
@@ -128,6 +132,68 @@ export async function listeAnciensMembres(recherche: string): Promise<LigneListe
     .orderBy(sql`${ancienMembres.utiliseLe} is not null`, desc(ancienMembres.utiliseLe), asc(ancienMembres.nom))
     .limit(500)
     .then((lignes) => lignes.map((l) => ({ ...l.ligne, membreNumero: l.membreNumero })));
+}
+
+/**
+ * Inscription d'un ancien membre : cherche une ligne non utilisée de la liste par l'e-mail (en
+ * priorité) ou le téléphone du formulaire. Trouvée : la fiche est enregistrée comme pour une
+ * inscription, la ligne est marquée utilisée et la personne devient membre sans paiement (ancien
+ * numéro et date d'adhésion de la liste, pas d'étoiles de parrainage). Pas trouvée : rien n'est écrit.
+ * Lève ErreurAdhesion (message affichable) si la personne est déjà membre ou si le formulaire est refusé.
+ */
+export async function inscrireAncienMembre(
+  demande: z.infer<typeof demandeAncienSchema>,
+): Promise<{ resultat: "active"; membreId: string } | { resultat: "inconnu" }> {
+  const email = demande.email.trim().toLowerCase();
+  const telephone = normaliserTelephone(demande.telephone);
+  const motDePasse = genererMotDePasse();
+
+  const active = await db.transaction(async (tx) => {
+    // Verrou sur la ligne : deux inscriptions simultanées ne peuvent pas utiliser la même.
+    const chercher = (condition: SQL) =>
+      tx
+        .select()
+        .from(ancienMembres)
+        .where(and(condition, isNull(ancienMembres.utiliseLe)))
+        .orderBy(asc(ancienMembres.id))
+        .for("update")
+        .limit(1);
+    const [parEmail] = await chercher(eq(ancienMembres.email, email));
+    const [parTelephone] = parEmail ? [] : await chercher(eq(ancienMembres.telephone, telephone));
+    const ligne = parEmail ?? parTelephone;
+    if (!ligne) return null;
+
+    const { membreId } = await enregistrerFiche(tx, demande);
+
+    // L'ancien numéro peut avoir été attribué entre-temps (import des comptes) : un nouveau est alors donné.
+    let numero = ligne.numero;
+    if (numero) {
+      const [pris] = await tx
+        .select({ id: membres.id })
+        .from(membres)
+        .where(and(eq(membres.numero, numero), ne(membres.id, membreId)))
+        .limit(1);
+      if (pris) {
+        console.warn("Anciens membres : ancien numéro déjà attribué, nouveau numéro donné", { numero, ligne: ligne.id });
+        numero = null;
+      }
+    }
+
+    await tx
+      .update(ancienMembres)
+      .set({ utiliseLe: new Date(), membreId, reconnuPar: parEmail ? "email" : "telephone", emailSaisi: email })
+      .where(eq(ancienMembres.id, ligne.id));
+
+    return activerMembre(tx, membreId, motDePasse, {
+      numero,
+      adhereLe: ligne.adhereLe,
+      recompenserParrain: false, // adhésion antérieure au site, comme pour l'import
+    });
+  });
+
+  if (!active) return { resultat: "inconnu" };
+  await programmerEmailsAdhesion(active, motDePasse);
+  return { resultat: "active", membreId: active.id };
 }
 
 /** Supprime une ligne qui n'a pas encore servi. */

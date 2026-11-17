@@ -97,6 +97,12 @@ export type DemandeAdhesion = z.infer<typeof demandeAdhesionSchema>;
 
 export class ErreurAdhesion extends Error {}
 
+/** Inscription d'un ancien membre (liste préchargée) : le profil, sans moyen de paiement. */
+export const demandeAncienSchema = demandeAdhesionSchema.omit({ pays: true, operateur: true, telephonePaiement: true });
+
+/** Profil saisi à l'inscription ; le pays (du paiement) sert à lire le numéro WhatsApp, Côte d'Ivoire sinon. */
+export type DemandeProfil = Omit<DemandeAdhesion, "pays" | "operateur" | "telephonePaiement"> & { pays?: string };
+
 /**
  * Crée (ou met à jour) la fiche « en attente » et le paiement associé.
  * Une personne déjà membre avec ce numéro WhatsApp ne peut pas payer une seconde fois.
@@ -105,7 +111,31 @@ export async function enregistrerDemande(
   demande: DemandeAdhesion,
   paiement: { reference: string; montant: number; devise: string; telephone: string },
 ) {
-  const indicatif = estPays(demande.pays) ? PAYS[demande.pays].indicatif : "225";
+  return db.transaction(async (tx) => {
+    const { membreId, telephone } = await enregistrerFiche(tx, demande);
+    await tx.insert(paiements).values({
+      reference: paiement.reference,
+      membreId,
+      montant: paiement.montant,
+      devise: paiement.devise,
+      operateur: demande.operateur,
+      pays: demande.pays,
+      telephone: paiement.telephone,
+    });
+    return { membreId, telephone };
+  });
+}
+
+/**
+ * Fiche « en attente » de l'inscription (créée, ou mise à jour si la personne avait déjà commencé) :
+ * profil, refus des personnes déjà membres, parrain et clan vérifiés. Partagée par l'inscription
+ * payante et l'inscription des anciens membres.
+ */
+export async function enregistrerFiche(
+  tx: Transaction,
+  demande: DemandeProfil,
+): Promise<{ membreId: string; telephone: string }> {
+  const indicatif = demande.pays && estPays(demande.pays) ? PAYS[demande.pays].indicatif : "225";
   const telephone = normaliserTelephone(demande.telephone, indicatif);
   if (!telephoneValide(telephone)) {
     throw new ErreurAdhesion("Ton numéro WhatsApp ne semble pas valide.");
@@ -129,7 +159,7 @@ export async function enregistrerDemande(
     modifieLe: new Date(),
   };
 
-  return db.transaction(async (tx) => {
+  {
     const [existant] = await tx
       .select({ id: membres.id, statut: membres.statut })
       .from(membres)
@@ -195,18 +225,8 @@ export async function enregistrerDemande(
       membreId = cree.id;
     }
 
-    await tx.insert(paiements).values({
-      reference: paiement.reference,
-      membreId,
-      montant: paiement.montant,
-      devise: paiement.devise,
-      operateur: demande.operateur,
-      pays: demande.pays,
-      telephone: paiement.telephone,
-    });
-
     return { membreId, telephone };
-  });
+  }
 }
 
 /** Garde la dernière réponse de la passerelle, utile pour le support. */
