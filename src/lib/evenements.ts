@@ -1,7 +1,15 @@
 import "server-only";
 import { and, asc, count, desc, eq, gte, lt, sql } from "drizzle-orm";
 import { db } from "./db";
-import { evenements, imagesEvenements, membres, mouvementsEtoiles, participations, typesActions } from "./db/schema";
+import {
+  evenements,
+  imagesEvenements,
+  membres,
+  mouvementsEtoiles,
+  paiementsSorties,
+  participations,
+  typesActions,
+} from "./db/schema";
 import { normaliserCodeParrainage } from "./adhesions";
 
 // Événements CLANS gérés depuis l'admin : création, participants, présences.
@@ -20,6 +28,7 @@ export type DonneesEvenement = {
   places: number | null;
   obligatoire: boolean;
   penalite: number;
+  publique: boolean;
 };
 
 /** Date de l'image de l'événement (null s'il n'en a pas) ; sert à construire son URL. */
@@ -68,20 +77,26 @@ export async function evenementDetail(id: number) {
     .limit(1);
   if (!evenement) return null;
 
+  // Membres (fiche membre) et non-membres (coordonnées saisies au paiement en ligne).
+  const nom = sql<string>`coalesce(${membres.nom}, ${participations.nom}, '')`;
+  const prenom = sql<string>`coalesce(${membres.prenom}, ${participations.prenom}, '')`;
   const participants = await db
     .select({
       participationId: participations.id,
       present: participations.present,
-      membreId: membres.id,
+      membre: sql<boolean>`${participations.membreId} is not null`.mapWith(Boolean),
+      membreId: participations.membreId,
       numero: membres.numero,
-      prenom: membres.prenom,
-      nom: membres.nom,
-      telephone: membres.telephone,
+      prenom,
+      nom,
+      telephone: sql<string | null>`coalesce(${membres.telephone}, ${participations.telephone})`,
+      email: sql<string | null>`coalesce(${membres.email}, ${participations.email})`,
+      paiementReference: participations.paiementReference,
     })
     .from(participations)
-    .innerJoin(membres, eq(membres.id, participations.membreId))
+    .leftJoin(membres, eq(membres.id, participations.membreId))
     .where(eq(participations.evenementId, id))
-    .orderBy(asc(membres.nom), asc(membres.prenom));
+    .orderBy(asc(nom), asc(prenom));
 
   return { ...evenement.evenement, typeAction: evenement.typeAction, imageMaj: evenement.imageMaj, participants };
 }
@@ -96,8 +111,19 @@ export async function modifierEvenement(id: number, donnees: DonneesEvenement) {
   await db.update(evenements).set(donnees).where(eq(evenements.id, id));
 }
 
-/** Supprime l'événement, ses participations et les étoiles gagnées par présence. */
-export async function supprimerEvenement(id: number) {
+/**
+ * Supprime l'événement, ses participations et les étoiles gagnées par présence.
+ * Les paiements en ligne sont conservés (trace des encaissements) ; s'il y en a, l'admin doit confirmer.
+ */
+export async function supprimerEvenement(id: number, confirmerPaiements = false) {
+  if (!confirmerPaiements) {
+    const [paye] = await db
+      .select({ reference: paiementsSorties.reference })
+      .from(paiementsSorties)
+      .where(and(eq(paiementsSorties.evenementId, id), eq(paiementsSorties.statut, "reussi")))
+      .limit(1);
+    if (paye) throw new ErreurEvenement("Des participants ont payé en ligne : confirme la suppression.");
+  }
   await db.delete(evenements).where(eq(evenements.id, id));
 }
 
@@ -186,6 +212,9 @@ export async function marquerPresence(participationId: number, present: boolean)
       await tx.delete(mouvementsEtoiles).where(eq(mouvementsEtoiles.participationId, participationId));
       return;
     }
+    // Les étoiles sont réservées aux membres : un non-membre est seulement marqué présent.
+    const membreId = ligne.membreId;
+    if (membreId === null) return;
 
     const [evenement] = await tx
       .select({ titre: evenements.titre, typeAction: typesActions })
@@ -199,7 +228,7 @@ export async function marquerPresence(participationId: number, present: boolean)
     await tx
       .insert(mouvementsEtoiles)
       .values({
-        membreId: ligne.membreId,
+        membreId,
         libelle: `${action.nom} — ${evenement.titre}`,
         variation: action.etoiles,
         typeActionId: action.id,

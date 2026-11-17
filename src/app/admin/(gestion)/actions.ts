@@ -276,6 +276,8 @@ const schemaEvenement = z.object({
   places: entierOptionnel(1, "Le nombre de places doit être d’au moins 1."),
   obligatoire: caseACocher,
   penalite: entierOptionnel(0, "La pénalité doit être un nombre entier positif.").transform((v) => v ?? 0),
+  // Case décochée = sortie réservée aux membres (absente de la page publique /sorties).
+  publique: caseACocher,
 });
 
 export async function actionCreerEvenement(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
@@ -309,9 +311,15 @@ export async function actionModifierEvenement(_: EtatAction, formulaire: FormDat
 
 export async function actionSupprimerEvenement(_: EtatAction, formulaire: FormData): Promise<EtatAction> {
   await verifierAdmin();
-  const analyse = z.object({ id: identifiant }).safeParse(lire(formulaire));
+  const analyse = z.object({ id: identifiant, confirmerPaiements: caseACocher }).safeParse(lire(formulaire));
   if (!analyse.success) return { ok: false, message: "Événement invalide." };
-  await supprimerEvenement(analyse.data.id);
+  try {
+    await supprimerEvenement(analyse.data.id, analyse.data.confirmerPaiements);
+  } catch (erreur) {
+    // Des places ont été payées en ligne : l'admin doit cocher la confirmation.
+    if (erreur instanceof ErreurEvenement) return { ok: false, message: erreur.message };
+    throw erreur;
+  }
   redirect("/admin/evenements");
 }
 

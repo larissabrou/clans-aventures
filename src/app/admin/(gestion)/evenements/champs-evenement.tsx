@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Evenement, TypeAction } from "@/lib/db/schema";
 import { ChampFichier } from "@/components/champ-fichier";
+import { MONTANT_MINIMUM } from "@/lib/paiement/gateway";
 import { ChampDateHeureFr } from "../champ-date";
 import { CaseACocher, Champ, champClasses } from "../ui";
 
@@ -81,6 +82,9 @@ export function ChampsEvenement({
           defaultValue={evenement?.prix ?? ""}
           className={champClasses}
         />
+        <span className="mt-1 block text-xs text-ivoire/55">
+          Sous {MONTANT_MINIMUM} FCFA, pas de paiement en ligne : à régler auprès de l’équipe.
+        </span>
       </Champ>
       <Champ label="Places (vide = sans limite)" id={`${prefixe}-places`}>
         <input
@@ -139,6 +143,13 @@ export function ChampsEvenement({
       <div className="flex flex-wrap items-end gap-6 sm:col-span-2 lg:col-span-4">
         <div className="pb-2.5">
           <CaseACocher name="obligatoire" label="Événement obligatoire" defaultChecked={evenement?.obligatoire} />
+        </div>
+        <div className="pb-2.5">
+          <CaseACocher
+            name="publique"
+            label="Visible sur la page publique (non-membres)"
+            defaultChecked={evenement?.publique ?? true}
+          />
         </div>
         <Champ label="Pénalité si absence (étoiles)" id={`${prefixe}-penalite`} className="w-56">
           <input

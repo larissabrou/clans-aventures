@@ -15,7 +15,7 @@ import {
   actionSupprimerEvenement,
 } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
-import { Carte, Champ, EnTete, Vide, champClasses } from "../../ui";
+import { CaseACocher, Carte, Champ, EnTete, Vide, champClasses } from "../../ui";
 import { ChampsEvenement } from "../champs-evenement";
 
 export const metadata: Metadata = { title: "Événement" };
@@ -29,6 +29,7 @@ export default async function EvenementAdmin({ params }: PageProps<"/admin/evene
   if (!evenement) notFound();
 
   const presents = evenement.participants.filter((p) => p.present).length;
+  const payesEnLigne = evenement.participants.filter((p) => p.paiementReference).length;
   const etoiles = evenement.typeAction?.actif ? evenement.typeAction.etoiles : 0;
 
   return (
@@ -62,14 +63,32 @@ export default async function EvenementAdmin({ params }: PageProps<"/admin/evene
           <ul className="divide-y divide-white/15">
             {evenement.participants.map((p) => (
               <li key={p.participationId} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <Link href={`/admin/membres/${p.membreId}`} className="hover:text-sable">
-                  <span className="block font-semibold">
-                    {p.prenom} {p.nom}
-                  </span>
-                  <span className="text-xs text-ivoire/60">
-                    {p.numero} · +{p.telephone}
-                  </span>
-                </Link>
+                {p.membre ? (
+                  <Link href={`/admin/membres/${p.membreId}`} className="hover:text-sable">
+                    <span className="block font-semibold">
+                      {p.prenom} {p.nom}
+                    </span>
+                    <span className="text-xs text-ivoire/60">
+                      {p.numero} · +{p.telephone}
+                      {p.paiementReference && ` · payé en ligne (${p.paiementReference})`}
+                    </span>
+                  </Link>
+                ) : (
+                  // Non-membre inscrit par un paiement en ligne : coordonnées saisies sur /sorties.
+                  <div>
+                    <span className="flex items-center gap-2 font-semibold">
+                      {p.prenom} {p.nom}
+                      <span className="rounded-full bg-terre/40 px-2 py-0.5 text-[0.65rem] font-semibold tracking-[1px] uppercase">
+                        Non-membre
+                      </span>
+                    </span>
+                    <span className="text-xs text-ivoire/60">
+                      {[p.telephone && `+${p.telephone}`, p.email, p.paiementReference && `payé en ligne (${p.paiementReference})`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </div>
+                )}
                 <div className="flex flex-wrap items-center gap-2">
                   <FormulaireAdmin action={actionMarquerPresence} discret className="flex flex-wrap items-center gap-2">
                     <input type="hidden" name="participationId" value={p.participationId} />
@@ -121,6 +140,15 @@ export default async function EvenementAdmin({ params }: PageProps<"/admin/evene
         className="mt-6"
       >
         <input type="hidden" name="id" value={evenement.id} />
+        {payesEnLigne > 0 && (
+          // Les paiements restent enregistrés (trace des encaissements) ; les remboursements se font à la main.
+          <div className="mb-3">
+            <CaseACocher
+              name="confirmerPaiements"
+              label={`${payesEnLigne} place${payesEnLigne > 1 ? "s ont été payées" : " a été payée"} en ligne : je confirme la suppression (remboursements à gérer à part).`}
+            />
+          </div>
+        )}
         <BoutonEnvoi style="danger">Supprimer l’événement</BoutonEnvoi>
       </FormulaireAdmin>
     </>
