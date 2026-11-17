@@ -9,7 +9,16 @@ export type Notification =
   | { modele: "acces"; email: string; prenom: string; numero: string; motDePasse: string }
   | { modele: "bienvenue"; email: string; prenom: string }
   | { modele: "code-admin"; email: string; code: string }
-  | { modele: "acces-admin"; email: string; prenom: string; motDePasse: string; superAdmin: boolean };
+  | { modele: "acces-admin"; email: string; prenom: string; motDePasse: string; superAdmin: boolean }
+  | {
+      modele: "participation";
+      email: string;
+      prenom: string;
+      titre: string;
+      date: string;
+      lieu: string | null;
+      reference: string;
+    };
 
 export async function envoyerNotification(notification: Notification) {
   const { sujet, paragraphes, bouton } = contenu(notification);
@@ -90,6 +99,20 @@ function contenu(notification: Notification): Contenu {
           "Connecte-toi avec ton adresse email et ce mot de passe. Tu pourras en choisir un autre avec « Mot de passe oublié ? ».",
         ],
         bouton: { libelle: "Accéder à l’administration", lien: `${urlSite()}/admin/connexion` },
+      };
+    case "participation":
+      return {
+        sujet: `Ta place est confirmée : ${notification.titre}`,
+        paragraphes: [
+          `Bonjour ${echapper(notification.prenom)},`,
+          `Ton paiement est confirmé : ta place pour <strong>${echapper(notification.titre)}</strong> est réservée.`,
+          `Date : <strong>${echapper(notification.date)}</strong>${
+            notification.lieu ? `<br>Lieu : <strong>${echapper(notification.lieu)}</strong>` : ""
+          }`,
+          `Référence du paiement : ${echapper(notification.reference)}. Garde-la : elle te sera demandée en cas de question.`,
+          "À très vite pour cette nouvelle aventure !",
+        ],
+        bouton: { libelle: "Voir les sorties", lien: `${urlSite()}/sorties` },
       };
   }
 }

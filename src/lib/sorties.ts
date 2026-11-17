@@ -2,8 +2,11 @@ import "server-only";
 import { and, asc, count, eq, gte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
-import { evenements, membres, paiementsSorties, participations, typesActions } from "./db/schema";
+import { formatFcfa } from "./adhesion";
+import { evenements, membres, messages, paiementsSorties, participations, typesActions } from "./db/schema";
 import { imageMaj } from "./evenements";
+import { programmerNotification } from "./jobs";
+import { formaterDateHeure } from "./membres";
 import { DEVISE, MONTANT_MINIMUM } from "./paiement/gateway";
 import { estOperateur, estPays } from "./paiement/operateurs";
 import { normaliserTelephone } from "./telephone";
@@ -160,4 +163,140 @@ export async function sortiesPubliques() {
     .where(and(eq(evenements.publique, true), gte(evenements.date, sql`now()`)))
     .groupBy(evenements.id, typesActions.id)
     .orderBy(asc(evenements.date));
+}
+
+export type ConfirmationSortie =
+  | { resultat: "confirme" | "deja_confirme"; participationId: number | null }
+  | { resultat: "introuvable" | "montant_incorrect" };
+
+/**
+ * Paiement réussi : la personne est inscrite à la sortie (même si elle s'est remplie entre-temps,
+ * l'argent étant encaissé). Idempotent : le webhook, la relecture du formulaire et la relecture
+ * automatique peuvent l'appeler. `montantRecu` (si la passerelle l'indique) doit couvrir le prix.
+ */
+export async function confirmerPaiementSortie(reference: string, montantRecu?: number): Promise<ConfirmationSortie> {
+  const confirmation = await db.transaction(async (tx) => {
+    const [paiement] = await tx
+      .select()
+      .from(paiementsSorties)
+      .where(eq(paiementsSorties.reference, reference))
+      .for("update")
+      .limit(1);
+
+    if (!paiement) return { resultat: "introuvable" } as const;
+    if (paiement.statut === "reussi") {
+      const [inscription] = await tx
+        .select({ id: participations.id })
+        .from(participations)
+        .where(eq(participations.paiementReference, reference))
+        .limit(1);
+      return { resultat: "deja_confirme", participationId: inscription?.id ?? null } as const;
+    }
+    if (montantRecu !== undefined && montantRecu < paiement.montant) {
+      console.error("Sortie : montant insuffisant", { reference, montantRecu, attendu: paiement.montant });
+      return { resultat: "montant_incorrect" } as const;
+    }
+
+    await tx
+      .update(paiementsSorties)
+      .set({ statut: "reussi", confirmeLe: new Date() })
+      .where(eq(paiementsSorties.reference, reference));
+
+    if (paiement.evenementId === null) {
+      console.error("Sortie : paiement reçu pour une sortie supprimée", { reference, titre: paiement.evenementTitre });
+      return { resultat: "confirme", participationId: null, paiement } as const;
+    }
+
+    const [sortie] = await tx
+      .select({ places: evenements.places, inscrits: count(participations.id) })
+      .from(evenements)
+      .leftJoin(participations, eq(participations.evenementId, evenements.id))
+      .where(eq(evenements.id, paiement.evenementId))
+      .groupBy(evenements.id);
+    if (sortie?.places !== null && sortie !== undefined && sortie.inscrits >= sortie.places) {
+      console.warn("Sortie : place payée alors que la sortie est complète", { reference, evenementId: paiement.evenementId });
+    }
+
+    const [inscription] = await tx
+      .insert(participations)
+      .values({
+        evenementId: paiement.evenementId,
+        membreId: paiement.membreId,
+        // Coordonnées gardées seulement pour un non-membre (celles d'un membre sont sur sa fiche).
+        ...(paiement.membreId
+          ? {}
+          : { prenom: paiement.prenom, nom: paiement.nom, telephone: paiement.telephone, email: paiement.email }),
+        paiementReference: reference,
+      })
+      .onConflictDoNothing()
+      .returning({ id: participations.id });
+
+    return { resultat: "confirme", participationId: inscription?.id ?? null, paiement } as const;
+  });
+
+  if (confirmation.resultat !== "confirme") return confirmation;
+
+  const { paiement, participationId } = confirmation;
+  if (participationId !== null) await prevenirParticipant(paiement);
+  return { resultat: "confirme", participationId };
+}
+
+/** Après l'inscription : e-mail de confirmation et, pour un membre, message dans sa boîte CLANS. */
+async function prevenirParticipant(paiement: typeof paiementsSorties.$inferSelect) {
+  const [membre] = paiement.membreId
+    ? await db.select().from(membres).where(eq(membres.id, paiement.membreId)).limit(1)
+    : [];
+  const email = membre?.email ?? paiement.email;
+  const prenom = membre?.prenom ?? paiement.prenom ?? "";
+  const [sortie] = paiement.evenementId
+    ? await db.select({ lieu: evenements.lieu }).from(evenements).where(eq(evenements.id, paiement.evenementId))
+    : [];
+  const date = formaterDateHeure(paiement.evenementDate);
+
+  try {
+    if (membre) {
+      await db.insert(messages).values({
+        membreId: membre.id,
+        titre: `Inscription confirmée : ${paiement.evenementTitre}`,
+        contenu: `Ton paiement de ${formatFcfa(paiement.montant)} FCFA est confirmé : tu es inscrit à « ${paiement.evenementTitre} », le ${date}${sortie?.lieu ? ` à ${sortie.lieu}` : ""}.\n\nRéférence du paiement : ${paiement.reference}`,
+        type: "event",
+      });
+    }
+    if (email) {
+      await programmerNotification({
+        modele: "participation",
+        email,
+        prenom,
+        titre: paiement.evenementTitre,
+        date,
+        lieu: sortie?.lieu ?? null,
+        reference: paiement.reference,
+      });
+    }
+  } catch (erreur) {
+    // L'inscription est faite : un échec d'envoi ne doit pas la remettre en cause.
+    console.error("Sortie : confirmation non envoyée", { reference: paiement.reference, erreur });
+  }
+}
+
+/** Paiement refusé ou annulé par la personne. */
+export async function marquerPaiementSortieEchoue(reference: string, statut: "echoue" | "annule") {
+  await db
+    .update(paiementsSorties)
+    .set({ statut })
+    .where(and(eq(paiementsSorties.reference, reference), eq(paiementsSorties.statut, "en_attente")));
+}
+
+/** Dernière réponse de la passerelle, gardée pour l'équipe en cas de réclamation. */
+export async function noterReponseSortie(reference: string, reponse: unknown) {
+  await db.update(paiementsSorties).set({ derniereReponse: reponse }).where(eq(paiementsSorties.reference, reference));
+}
+
+/** Paiements encore en attente depuis moins de 24 h (relus automatiquement). */
+export async function paiementsSortiesEnAttente(): Promise<string[]> {
+  const lignes = await db
+    .select({ reference: paiementsSorties.reference })
+    .from(paiementsSorties)
+    .where(and(eq(paiementsSorties.statut, "en_attente"), sql`${paiementsSorties.creeLe} > now() - interval '24 hours'`));
+  return lignes.map((l) => l.reference);
 }
