@@ -6,6 +6,8 @@ import { envoyerNotification, type Notification } from "./notifications";
 // Sert aux envois différés (« quelques heures après l'adhésion ») et réessaie en cas d'échec.
 
 export const FILE_NOTIFICATIONS = "notifications";
+/** Relecture des paiements de sorties restés en attente (webhook perdu, page fermée). */
+export const FILE_RELECTURE_SORTIES = "relecture-paiements-sorties";
 
 /** Messages programmables (les codes de vérification, eux, partent immédiatement sans file). */
 export type TacheNotification = Exclude<Notification, { modele: "code" | "code-admin" }>;
@@ -23,6 +25,7 @@ export function boss(): Promise<PgBoss> {
     instance.on("error", (erreur) => console.error("pg-boss :", erreur));
     await instance.start();
     await instance.createQueue(FILE_NOTIFICATIONS, { retryLimit: 5, retryDelay: 60, retryBackoff: true });
+    await instance.createQueue(FILE_RELECTURE_SORTIES);
     return instance;
   })().catch((erreur) => {
     globalPourBoss.bossClans = undefined; // on retentera au prochain appel
@@ -56,6 +59,15 @@ export async function demarrerTravailleurs(): Promise<boolean> {
         throw erreur;
       }
     }
+  });
+
+  // Toutes les 5 minutes : paiements de sorties en attente depuis moins de 24 h, revérifiés
+  // auprès de la passerelle (import différé : lib/sorties utilise lui-même cette file).
+  await instance.schedule(FILE_RELECTURE_SORTIES, "*/5 * * * *");
+  await instance.work(FILE_RELECTURE_SORTIES, async () => {
+    const { relancerPaiementsSortiesEnAttente } = await import("./paiement/suivi-sorties");
+    const relus = await relancerPaiementsSortiesEnAttente();
+    if (relus > 0) console.info(`Sorties : ${relus} paiement(s) en attente relu(s)`);
   });
   return true;
 }
