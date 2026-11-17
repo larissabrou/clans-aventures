@@ -6,6 +6,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 /** Préfixe des références d'adhésion envoyées à la passerelle (order_id). */
 export const PREFIXE_REFERENCE = "CLANS-ADH-";
+/** Paiements des sorties (voir lib/sorties.ts). */
+export const PREFIXE_REFERENCE_SORTIE = "CLANS-EVT-";
 
 export class ErreurPasserelle extends Error {
   constructor(

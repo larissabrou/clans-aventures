@@ -28,10 +28,10 @@ const TABLES_DE_REFERENCE = [
 /** Vide les tables de données du schéma public (entre deux tests), sans toucher aux données de référence. */
 export async function viderBase(db: BaseDeTest) {
   const { rows } = await db.execute<{ tablename: string }>(
-    sql`select tablename from pg_tables where schemaname = 'public' and tablename not like '\_\_%'`,
+    sql`select tablename from pg_tables where schemaname = 'public'`,
   );
-  rows.splice(0, rows.length, ...rows.filter((r) => !TABLES_DE_REFERENCE.includes(r.tablename)));
-  if (rows.length === 0) return;
-  const noms = rows.map((r) => `"${r.tablename}"`).join(", ");
+  const aVider = rows.filter((r) => !TABLES_DE_REFERENCE.includes(r.tablename));
+  if (aVider.length === 0) return;
+  const noms = aVider.map((r) => `"${r.tablename}"`).join(", ");
   await db.execute(sql.raw(`truncate ${noms} restart identity cascade`));
 }

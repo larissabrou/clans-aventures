@@ -23,7 +23,7 @@ export type DonneesEvenement = {
 };
 
 /** Date de l'image de l'événement (null s'il n'en a pas) ; sert à construire son URL. */
-const imageMaj = sql<Date | null>`(select ${imagesEvenements.modifieLe} from ${imagesEvenements} where ${imagesEvenements.evenementId} = ${evenements.id})`.mapWith(
+export const imageMaj = sql<Date | null>`(select ${imagesEvenements.modifieLe} from ${imagesEvenements} where ${imagesEvenements.evenementId} = ${evenements.id})`.mapWith(
   imagesEvenements.modifieLe,
 );
 
