@@ -110,6 +110,27 @@ export async function enregistrerPaiementSortie(
       if (membre) throw new ErreurSortie("Tu es déjà membre : connecte-toi pour payer depuis ton espace.");
     }
 
+    // Un seul paiement en cours à la fois depuis un même numéro : empêche de bloquer toutes les
+    // places d'une sortie en lançant des paiements en boucle sans les valider.
+    const [memeNumero] = await tx
+      .select({ reference: paiementsSorties.reference })
+      .from(paiementsSorties)
+      .where(
+        and(
+          eq(paiementsSorties.evenementId, evenementId),
+          eq(paiementsSorties.telephoneDebite, paiement.telephoneDebite),
+          enAttenteRecent,
+        ),
+      )
+      .limit(1);
+    if (memeNumero) {
+      throw new ErreurSortie(
+        estMembre(payeur)
+          ? "Un paiement est déjà en cours pour cette sortie."
+          : "Un paiement est déjà en cours depuis ce numéro : valide-le ou attends quelques minutes.",
+      );
+    }
+
     if (sortie.places !== null) {
       const [{ inscrits }] = await tx
         .select({ inscrits: count() })
@@ -166,7 +187,9 @@ export async function sortiesPubliques() {
 }
 
 export type ConfirmationSortie =
-  | { resultat: "confirme" | "deja_confirme"; participationId: number | null }
+  | { resultat: "confirme" | "deja_confirme"; participationId: number }
+  // Argent reçu sans inscription possible : à rembourser par l'équipe (journalisé en erreur).
+  | { resultat: "sortie_supprimee" | "deja_inscrit" }
   | { resultat: "introuvable" | "montant_incorrect" };
 
 /**
@@ -190,7 +213,9 @@ export async function confirmerPaiementSortie(reference: string, montantRecu?: n
         .from(participations)
         .where(eq(participations.paiementReference, reference))
         .limit(1);
-      return { resultat: "deja_confirme", participationId: inscription?.id ?? null } as const;
+      if (inscription) return { resultat: "deja_confirme", participationId: inscription.id } as const;
+      // Déjà traité sans inscription : même réponse qu'à la première confirmation.
+      return { resultat: paiement.evenementId === null ? "sortie_supprimee" : "deja_inscrit" } as const;
     }
     if (montantRecu !== undefined && montantRecu < paiement.montant) {
       console.error("Sortie : montant insuffisant", { reference, montantRecu, attendu: paiement.montant });
@@ -203,8 +228,12 @@ export async function confirmerPaiementSortie(reference: string, montantRecu?: n
       .where(eq(paiementsSorties.reference, reference));
 
     if (paiement.evenementId === null) {
-      console.error("Sortie : paiement reçu pour une sortie supprimée", { reference, titre: paiement.evenementTitre });
-      return { resultat: "confirme", participationId: null, paiement } as const;
+      console.error("Sortie : paiement reçu pour une sortie supprimée, à rembourser", {
+        reference,
+        titre: paiement.evenementTitre,
+        montant: paiement.montant,
+      });
+      return { resultat: "sortie_supprimee" } as const;
     }
 
     const [sortie] = await tx
@@ -231,13 +260,24 @@ export async function confirmerPaiementSortie(reference: string, montantRecu?: n
       .onConflictDoNothing()
       .returning({ id: participations.id });
 
-    return { resultat: "confirme", participationId: inscription?.id ?? null, paiement } as const;
+    if (!inscription) {
+      // Membre déjà inscrit (autre paiement ou ajout par l'admin) : il a payé deux fois.
+      console.error("Sortie : place payée en double, à rembourser", {
+        reference,
+        membreId: paiement.membreId,
+        evenementId: paiement.evenementId,
+        montant: paiement.montant,
+      });
+      return { resultat: "deja_inscrit" } as const;
+    }
+
+    return { resultat: "confirme", participationId: inscription.id, paiement } as const;
   });
 
   if (confirmation.resultat !== "confirme") return confirmation;
 
   const { paiement, participationId } = confirmation;
-  if (participationId !== null) await prevenirParticipant(paiement);
+  await prevenirParticipant(paiement);
   return { resultat: "confirme", participationId };
 }
 

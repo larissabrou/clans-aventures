@@ -111,16 +111,32 @@ describe("confirmerPaiementSortie", () => {
     expect((await confirmerPaiementSortie("CLANS-EVT-INCONNU")).resultat).toBe("introuvable");
   });
 
-  it("sortie supprimée : le paiement est réussi sans participation", async () => {
+  it("sortie supprimée : le paiement est réussi sans participation, signalé à rembourser", async () => {
     const { reference, sortieId } = await paiementEnAttente(nonMembre);
     await db.delete(evenements).where(eq(evenements.id, sortieId));
 
     const resultat = await confirmerPaiementSortie(reference);
 
-    expect(resultat).toEqual({ resultat: "confirme", participationId: null });
+    expect(resultat).toEqual({ resultat: "sortie_supprimee" });
+    expect(programmerNotification).not.toHaveBeenCalled();
     const [paiement] = await db.select().from(paiementsSorties).where(eq(paiementsSorties.reference, reference));
     expect(paiement.statut).toBe("reussi");
     expect(paiement.evenementTitre).toBe("Notre Night Clans");
+  });
+
+  it("membre déjà inscrit (payé deux fois) : paiement signalé à rembourser, sans e-mail", async () => {
+    const membre = await creerMembre(db);
+    const { reference, sortieId } = await paiementEnAttente({ membreId: membre.id });
+    // Inscrit entre-temps par un autre paiement ou par l'admin.
+    await db.insert(participations).values({ evenementId: sortieId, membreId: membre.id });
+    const erreurs = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const resultat = await confirmerPaiementSortie(reference);
+
+    expect(resultat).toEqual({ resultat: "deja_inscrit" });
+    expect(erreurs).toHaveBeenCalledWith(expect.stringContaining("à rembourser"), expect.anything());
+    expect(programmerNotification).not.toHaveBeenCalled();
+    erreurs.mockRestore();
   });
 
   it("sortie complète entre-temps : la personne est inscrite quand même", async () => {
@@ -141,6 +157,17 @@ describe("suivrePaiementSortie", () => {
 
     expect(await suivrePaiementSortie(reference)).toEqual({ etat: "paye" });
     expect(await inscriptions(sortieId)).toHaveLength(1);
+  });
+
+  it("SUCCESS pour une sortie supprimée : échec affiché avec la référence, pas de faux succès", async () => {
+    const { reference, sortieId } = await paiementEnAttente(nonMembre);
+    await db.delete(evenements).where(eq(evenements.id, sortieId));
+    vi.mocked(statutPaiement).mockResolvedValue({ status: "SUCCESS", amount: 20000, is_terminal: true });
+
+    const suivi = await suivrePaiementSortie(reference);
+
+    expect(suivi.etat).toBe("echoue");
+    expect(suivi.etat === "echoue" && suivi.message).toContain(reference);
   });
 
   it("FAILED encore en cours de traitement : toujours en attente", async () => {

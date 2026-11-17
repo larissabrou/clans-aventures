@@ -36,6 +36,18 @@ export async function suivrePaiementSortie(reference: string): Promise<SuiviSort
     if (confirmation.resultat === "confirme" || confirmation.resultat === "deja_confirme") {
       return { etat: "paye" };
     }
+    if (confirmation.resultat === "sortie_supprimee") {
+      return {
+        etat: "echoue",
+        message: `Cette sortie a été annulée entre-temps : ton paiement te sera remboursé. Contacte-nous sur WhatsApp avec la référence ${reference}.`,
+      };
+    }
+    if (confirmation.resultat === "deja_inscrit") {
+      return {
+        etat: "echoue",
+        message: `Tu étais déjà inscrit à cette sortie : ce second paiement te sera remboursé. Contacte-nous sur WhatsApp avec la référence ${reference}.`,
+      };
+    }
     return {
       etat: "echoue",
       message: `Paiement reçu mais non validé. Contacte-nous sur WhatsApp avec la référence ${reference}.`,

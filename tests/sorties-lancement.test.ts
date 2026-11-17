@@ -32,13 +32,14 @@ const nonMembre = {
   telephone: "2250101010101",
 };
 
-function paiement() {
+/** Paiement de test ; chaque appel débite un numéro différent, sauf s'il est imposé. */
+function paiement(telephoneDebite?: string) {
   compteur += 1;
   return {
     reference: `CLANS-EVT-TEST${compteur}`,
     operateur: "orange",
     pays: "CI",
-    telephoneDebite: "0101010101",
+    telephoneDebite: telephoneDebite ?? `22501000000${String(compteur).padStart(2, "0")}`,
   };
 }
 
@@ -157,9 +158,24 @@ describe("enregistrerPaiementSortie", () => {
     await expect(enregistrerPaiementSortie(sortie.id, nonMembre, paiement())).resolves.toBeDefined();
   });
 
+  it("refuse un second paiement en cours depuis le même numéro Mobile Money", async () => {
+    const sortie = await creerSortie(db);
+    await enregistrerPaiementSortie(sortie.id, nonMembre, paiement("2250101010101"));
+    await expect(
+      enregistrerPaiementSortie(
+        sortie.id,
+        { ...nonMembre, prenom: "Yao", email: "yao@example.com" },
+        paiement("2250101010101"),
+      ),
+    ).rejects.toThrow("Un paiement est déjà en cours depuis ce numéro : valide-le ou attends quelques minutes.");
+  });
+
   it("un non-membre peut payer plusieurs places", async () => {
     const sortie = await creerSortie(db);
-    await enregistrerPaiementSortie(sortie.id, nonMembre, paiement());
+    const premier = paiement();
+    await enregistrerPaiementSortie(sortie.id, nonMembre, premier);
+    // Le premier paiement est confirmé : la place suivante peut être payée depuis le même numéro.
+    await db.update(paiementsSorties).set({ statut: "reussi" }).where(eq(paiementsSorties.reference, premier.reference));
     await expect(enregistrerPaiementSortie(sortie.id, nonMembre, paiement())).resolves.toBeDefined();
   });
 });
