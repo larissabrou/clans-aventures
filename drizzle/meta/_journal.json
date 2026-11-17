@@ -113,6 +113,13 @@
       "when": 1794910209670,
       "tag": "0015_paiement_sorties",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794920046711,
+      "tag": "0016_anciens_membres",
+      "breakpoints": true
     }
   ]
 }

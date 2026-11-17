@@ -33,7 +33,8 @@ export type MembreAImporter = {
 
 export type LigneRefusee = { ligne: number; raison: string };
 
-class LigneInvalide extends Error {}
+/** Ligne refusée : son message est affiché dans l'aperçu. */
+export class LigneInvalide extends Error {}
 
 /** Au-delà, un ancien numéro est presque sûrement une faute de frappe (6 chiffres au maximum). */
 export const NUMERO_MAX_IMPORT = 900000;
@@ -51,6 +52,43 @@ function lireDate(texte: string): Date | null {
   if (!annee) return null;
   const date = new Date(Date.UTC(annee, mois - 1, jour));
   return date.getUTCFullYear() === annee && date.getUTCMonth() === mois - 1 && date.getUTCDate() === jour ? date : null;
+}
+
+// Vérifications de format communes à l'import des comptes et à la liste des anciens membres.
+
+/** E-mail en minuscules ; lève LigneInvalide s'il est invalide ou s'il s'agit de la ligne d'exemple. */
+export function verifierEmail(saisie: string): string {
+  const email = saisie.trim().toLowerCase();
+  if (!emailValide(email)) throw new LigneInvalide("e-mail invalide");
+  if (email === EMAIL_EXEMPLE) throw new LigneInvalide("ligne d’exemple du modèle : supprime-la avant l’import");
+  return email;
+}
+
+/** Téléphone normalisé (2250707070707) ; lève LigneInvalide s'il est invalide. */
+export function verifierTelephone(saisie: string): string {
+  const telephone = normaliserTelephone(saisie);
+  if (!telephoneValide(telephone)) throw new LigneInvalide("téléphone invalide");
+  return telephone;
+}
+
+/** Ancien numéro normalisé (CLANS-000012) ou null ; lève LigneInvalide s'il est invalide ou trop grand. */
+export function verifierNumero(saisie: string | null): string | null {
+  if (!saisie) return null;
+  const numero = normaliserCodeParrainage(saisie);
+  if (!numero || !/^CLANS-\d{6}$/.test(numero)) throw new LigneInvalide(`numéro membre invalide : ${saisie}`);
+  // Un numéro géant (faute de frappe) déplacerait pour toujours la numérotation des inscriptions.
+  if (Number(numero.slice(6)) > NUMERO_MAX_IMPORT) throw new LigneInvalide(`numéro membre trop grand : ${numero}`);
+  return numero;
+}
+
+/** Date d'adhésion (cellule date ou texte) ou null ; lève LigneInvalide si invalide ou hors limites. */
+export function verifierDateAdhesion(saisie: string | null, cellule?: Date): Date | null {
+  const date = cellule ?? (saisie ? lireDate(saisie) : null);
+  if (saisie && !date) throw new LigneInvalide(`date d’adhésion invalide : ${saisie}`);
+  if (date && (date.getTime() > Date.now() || date.getTime() < DATE_ADHESION_MIN)) {
+    throw new LigneInvalide(`date d’adhésion hors limites : ${saisie ?? date.toLocaleDateString("fr-FR")}`);
+  }
+  return date;
 }
 
 export async function analyserImport(
@@ -107,11 +145,8 @@ export async function analyserImport(
         }
       }
 
-      const email = (champ("email") as string).toLowerCase();
-      if (!emailValide(email)) throw new LigneInvalide("e-mail invalide");
-      if (email === EMAIL_EXEMPLE) throw new LigneInvalide("ligne d’exemple du modèle : supprime-la avant l’import");
-      const telephone = normaliserTelephone(champ("telephone") as string);
-      if (!telephoneValide(telephone)) throw new LigneInvalide("téléphone invalide");
+      const email = verifierEmail(champ("email") as string);
+      const telephone = verifierTelephone(champ("telephone") as string);
 
       const trancheSaisie = champ("trancheAge") as string;
       const trancheAge = tranches.get(normaliserEntete(trancheSaisie));
@@ -132,22 +167,8 @@ export async function analyserImport(
       const universADecouvrir = universSaisi ? universParNom.get(normaliserEntete(universSaisi)) : null;
       if (universSaisi && !universADecouvrir) throw new LigneInvalide(`univers culturel inconnu : ${universSaisi}`);
 
-      const numeroSaisi = champ("numero");
-      const numero = numeroSaisi ? normaliserCodeParrainage(numeroSaisi) : null;
-      if (numeroSaisi && !/^CLANS-\d{6}$/.test(numero ?? "")) {
-        throw new LigneInvalide(`numéro membre invalide : ${numeroSaisi}`);
-      }
-      // Un numéro géant (faute de frappe) déplacerait pour toujours la numérotation des inscriptions.
-      if (numero && Number(numero.slice(6)) > NUMERO_MAX_IMPORT) {
-        throw new LigneInvalide(`numéro membre trop grand : ${numero}`);
-      }
-
-      const dateSaisie = champ("dateAdhesion");
-      const adhereLe = dateAdhesion ?? (dateSaisie ? lireDate(dateSaisie) : null);
-      if (dateSaisie && !adhereLe) throw new LigneInvalide(`date d’adhésion invalide : ${dateSaisie}`);
-      if (adhereLe && (adhereLe.getTime() > Date.now() || adhereLe.getTime() < DATE_ADHESION_MIN)) {
-        throw new LigneInvalide(`date d’adhésion hors limites : ${dateSaisie ?? adhereLe.toLocaleDateString("fr-FR")}`);
-      }
+      const numero = verifierNumero(champ("numero"));
+      const adhereLe = verifierDateAdhesion(champ("dateAdhesion"), dateAdhesion);
 
       if (emailsSite.has(email)) throw new LigneInvalide("déjà membre du site (même e-mail)");
       if (telephonesSite.has(telephone)) throw new LigneInvalide("déjà membre du site (même téléphone)");

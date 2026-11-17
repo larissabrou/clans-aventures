@@ -434,6 +434,31 @@ export const sessionsAdmin = pgTable(
   (t) => [index("sessions_admin_admin_idx").on(t.adminId)],
 );
 
+/**
+ * Liste des anciens membres (ont payé hors du site), chargée par l'admin : à l'inscription, un
+ * ancien reconnu par son e-mail ou son téléphone devient membre sans paiement. Une ligne sert une fois.
+ * Séparée de `membres` : ces lignes n'apparaissent ni dans les statistiques ni dans les envois.
+ */
+export const ancienMembres = pgTable(
+  "anciens_membres",
+  {
+    id: serial("id").primaryKey(),
+    prenom: text("prenom").notNull(),
+    nom: text("nom").notNull(),
+    email: text("email"), // minuscules
+    telephone: text("telephone"), // normalisé (2250707070707)
+    numero: text("numero"), // ancien numéro CLANS-000000, conservé à l'inscription
+    adhereLe: horodatage("adhere_le"),
+    chargeLe: horodatage("charge_le").notNull().defaultNow(),
+    // Inscription faite avec cette ligne : quand, par quel membre, reconnu comment, avec quel e-mail.
+    utiliseLe: horodatage("utilise_le"),
+    membreId: uuid("membre_id").references(() => membres.id, { onDelete: "set null" }),
+    reconnuPar: text("reconnu_par"), // "email" | "telephone"
+    emailSaisi: text("email_saisi"),
+  },
+  (t) => [index("anciens_membres_email_idx").on(t.email), index("anciens_membres_telephone_idx").on(t.telephone)],
+);
+
 export type Membre = typeof membres.$inferSelect;
 export type Administrateur = typeof administrateurs.$inferSelect;
 export type Clan = typeof clans.$inferSelect;
