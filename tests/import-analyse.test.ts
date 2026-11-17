@@ -131,6 +131,16 @@ describe("analyserImport", () => {
     expect(await raisons(ligne({ numero: "AB-12" }))).toEqual(["numéro membre invalide : AB-12"]);
   });
 
+  it("refuse un numéro trop grand (faute de frappe probable)", async () => {
+    expect(await raisons(ligne({ numero: "999500" }))).toEqual(["numéro membre trop grand : CLANS-999500"]);
+  });
+
+  it("annonce le prochain numéro attribué en ligne après l'import", async () => {
+    await creerMembre(db, { numero: "CLANS-000120" });
+    expect((await analyserImport([ligne({ numero: "350" })])).prochainNumero).toBe("CLANS-000351");
+    expect((await analyserImport([ligne({ numero: "40" })])).prochainNumero).toBe("CLANS-000121");
+  });
+
   it("refuse une date d'adhésion invalide", async () => {
     expect(await raisons(ligne({ dateAdhesion: "31/02/2022" }))).toEqual(["date d’adhésion invalide : 31/02/2022"]);
   });

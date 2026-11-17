@@ -8,7 +8,7 @@ import { ErreurFichier, lireClasseur } from "@/lib/import-membres/lecture";
 
 export type EtatImport =
   | { etape: "choix" }
-  | { etape: "apercu"; aImporter: number; refusees: LigneRefusee[]; nomFichier: string }
+  | { etape: "apercu"; aImporter: number; refusees: LigneRefusee[]; nomFichier: string; prochainNumero: string }
   | { etape: "termine"; importes: number }
   | { etape: "erreur"; message: string };
 
@@ -20,6 +20,8 @@ const TAILLE_MAX = 5 * 1024 * 1024;
  */
 export async function actionImportMembres(_: EtatImport, formulaire: FormData): Promise<EtatImport> {
   await verifierAdmin();
+  // Nouveau fichier choisi : l'aperçu précédent ne vaut plus, sans message d'erreur.
+  if (formulaire.get("mode") === "reinitialiser") return { etape: "choix" };
 
   const fichier = formulaire.get("fichier");
   if (!(fichier instanceof File) || fichier.size === 0) {
@@ -33,9 +35,11 @@ export async function actionImportMembres(_: EtatImport, formulaire: FormData): 
   }
 
   try {
-    const { aImporter, refusees } = await analyserImport(await lireClasseur(await fichier.arrayBuffer()));
+    const { aImporter, refusees, prochainNumero } = await analyserImport(
+      await lireClasseur(await fichier.arrayBuffer()),
+    );
     if (formulaire.get("mode") !== "importer") {
-      return { etape: "apercu", aImporter: aImporter.length, refusees, nomFichier: fichier.name };
+      return { etape: "apercu", aImporter: aImporter.length, refusees, nomFichier: fichier.name, prochainNumero };
     }
     const { importes } = await importerMembres(aImporter);
     refresh(); // liste des membres et tableau de bord à jour

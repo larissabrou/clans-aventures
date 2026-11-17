@@ -134,6 +134,24 @@ describe("importerMembres", () => {
     expect(lignes[0].prenom).toBe("Nouveau");
   });
 
+  it("annule le paiement en attente d'une inscription remplacée", async () => {
+    const attente = await creerMembre(db, { statut: "en_attente", numero: null, email: "paie@example.com" });
+    await db.insert(paiements).values({
+      reference: "CLANS-ADH-REMPLACE",
+      membreId: attente.id,
+      montant: 500,
+      devise: "XOF",
+      operateur: "orange",
+      pays: "CI",
+      telephone: "2250101010101",
+    });
+
+    await importer(ligne({ email: "paie@example.com" }));
+
+    const [paiement] = await db.select().from(paiements).where(eq(paiements.reference, "CLANS-ADH-REMPLACE"));
+    expect(paiement.statut).toBe("annule");
+  });
+
   it("réimporter le même fichier refuse toutes les lignes et n'envoie rien", async () => {
     const fichier = [ligne({ numero: "60" }), ligne()];
     await importer(...fichier);

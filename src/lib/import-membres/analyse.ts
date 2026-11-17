@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { TRANCHES_AGE } from "../adhesion";
 import { normaliserCodeParrainage } from "../adhesions";
@@ -35,6 +35,9 @@ export type LigneRefusee = { ligne: number; raison: string };
 
 class LigneInvalide extends Error {}
 
+/** Au-delà, un ancien numéro est presque sûrement une faute de frappe (6 chiffres au maximum). */
+export const NUMERO_MAX_IMPORT = 900000;
+
 const emailValide = (email: string) => z.email().safeParse(email).success;
 
 /** « 15/03/2022 » ou « 2022-03-15 » → date UTC ; null si la date n'existe pas. */
@@ -49,15 +52,21 @@ function lireDate(texte: string): Date | null {
 
 export async function analyserImport(
   lignes: LigneBrute[],
-): Promise<{ aImporter: MembreAImporter[]; refusees: LigneRefusee[] }> {
+): Promise<{ aImporter: MembreAImporter[]; refusees: LigneRefusee[]; prochainNumero: string }> {
   // Membres du site (les inscriptions en attente de paiement seront remplacées, pas comptées en doublon).
-  const [existants, listeClans, listeUnivers] = await Promise.all([
+  const [existants, listeClans, listeUnivers, [sequence]] = await Promise.all([
     db
       .select({ id: membres.id, email: membres.email, telephone: membres.telephone, numero: membres.numero, statut: membres.statut })
       .from(membres),
     db.select({ id: clans.id, nom: clans.nom }).from(clans).where(eq(clans.actif, true)),
     db.select({ nom: universCulturels.nom }).from(universCulturels).where(eq(universCulturels.actif, true)),
+    db
+      .execute<{ prochain: string }>(
+        sql`select case when is_called then last_value + 1 else last_value end as prochain from numero_membre_seq`,
+      )
+      .then((r) => r.rows),
   ]);
+  const prochainDeLaSequence = Number(sequence?.prochain ?? 1);
   const actifs = existants.filter((m) => m.statut !== "en_attente");
   const emailsSite = new Set(actifs.map((m) => m.email.toLowerCase()));
   const telephonesSite = new Set(actifs.map((m) => m.telephone));
@@ -123,6 +132,10 @@ export async function analyserImport(
       if (numeroSaisi && !/^CLANS-\d{6}$/.test(numero ?? "")) {
         throw new LigneInvalide(`numéro membre invalide : ${numeroSaisi}`);
       }
+      // Un numéro géant (faute de frappe) déplacerait pour toujours la numérotation des inscriptions.
+      if (numero && Number(numero.slice(6)) > NUMERO_MAX_IMPORT) {
+        throw new LigneInvalide(`numéro membre trop grand : ${numero}`);
+      }
 
       const dateSaisie = champ("dateAdhesion");
       const adhereLe = dateAdhesion ?? (dateSaisie ? lireDate(dateSaisie) : null);
@@ -178,5 +191,13 @@ export async function analyserImport(
     }
   }
 
-  return { aImporter, refusees };
+  // Prochain numéro des inscriptions en ligne après cet import : affiché dans l'aperçu.
+  const plusGrand = Math.max(
+    0,
+    ...[...existants.map((m) => m.numero), ...aImporter.map((m) => m.numero)]
+      .filter((n): n is string => !!n && /^CLANS-\d{6}$/.test(n))
+      .map((n) => Number(n.slice(6))),
+  );
+  const prochain = Math.max(plusGrand + 1, prochainDeLaSequence);
+  return { aImporter, refusees, prochainNumero: `CLANS-${String(prochain).padStart(6, "0")}` };
 }

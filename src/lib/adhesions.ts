@@ -263,6 +263,22 @@ export async function confirmerPaiement(
       .set({ statut: "reussi", confirmeLe: new Date() })
       .where(eq(paiements.reference, reference));
 
+    // Déjà membre (ancien membre importé pendant que ce paiement était en cours) : on ne réactive
+    // pas le compte (mot de passe, e-mails, étoiles du parrain) ; l'équipe rembourse ce paiement.
+    const [actuel] = await tx
+      .select({ statut: membres.statut })
+      .from(membres)
+      .where(eq(membres.id, paiement.membreId))
+      .limit(1);
+    if (actuel?.statut === "membre") {
+      console.error("Adhésion : paiement reçu pour une personne déjà membre, à rembourser", {
+        reference,
+        membreId: paiement.membreId,
+        montant: paiement.montant,
+      });
+      return { resultat: "deja_confirme", membreId: paiement.membreId } as const;
+    }
+
     const membre = await activerMembre(tx, paiement.membreId, motDePasse, { recompenserParrain: true });
     return { resultat: "confirme", membreId: membre.id, membre } as const;
   });
@@ -282,7 +298,13 @@ export async function activerMembre(
   tx: Transaction,
   membreId: string,
   motDePasse: string,
-  options: { numero?: string | null; adhereLe?: Date | null; recompenserParrain: boolean },
+  options: {
+    numero?: string | null;
+    adhereLe?: Date | null;
+    recompenserParrain: boolean;
+    /** Empreinte déjà calculée (import : hachage hors du fil principal, avant la transaction). */
+    empreinte?: string;
+  },
 ): Promise<Membre> {
   const [membre] = await tx
     .update(membres)
@@ -292,7 +314,7 @@ export async function activerMembre(
         ? options.numero
         : sql`coalesce(${membres.numero}, 'CLANS-' || lpad(nextval(${numeroMembreSeq.seqName})::text, 6, '0'))`,
       adhereLe: options.adhereLe ? options.adhereLe : sql`coalesce(${membres.adhereLe}, now())`,
-      motDePasseHash: hacherMotDePasse(motDePasse),
+      motDePasseHash: options.empreinte ?? hacherMotDePasse(motDePasse),
       modifieLe: new Date(),
     })
     .where(eq(membres.id, membreId))

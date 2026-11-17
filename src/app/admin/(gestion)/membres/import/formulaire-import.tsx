@@ -37,7 +37,9 @@ export function FormulaireImport() {
           onChange={(e) => {
             setFichier(e.target.files?.[0] ?? null);
             // Nouveau fichier : l'ancien aperçu ne vaut plus.
-            startTransition(() => executer(new FormData()));
+            const donnees = new FormData();
+            donnees.set("mode", "reinitialiser");
+            startTransition(() => executer(donnees));
           }}
         />
       </label>
@@ -82,6 +84,12 @@ export function FormulaireImport() {
             {etat.refusees.length > 0 &&
               ` · ${etat.refusees.length} ligne${etat.refusees.length > 1 ? "s" : ""} à corriger (non importée${etat.refusees.length > 1 ? "s" : ""})`}
           </p>
+          {etat.aImporter > 0 && (
+            <p className="text-ivoire/70">
+              Après l’import, la prochaine inscription en ligne recevra le numéro{" "}
+              <strong className="text-ivoire">{etat.prochainNumero}</strong>.
+            </p>
+          )}
           {etat.refusees.length > 0 && (
             <ul className="max-h-72 overflow-y-auto rounded-xl border border-white/15 bg-white/5 p-4 text-ivoire/80">
               {etat.refusees.map((r) => (

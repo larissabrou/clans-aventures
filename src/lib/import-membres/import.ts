@@ -2,8 +2,8 @@ import "server-only";
 import { and, eq, or, sql } from "drizzle-orm";
 import { activerMembre, programmerEmailsAdhesion, type Transaction } from "../adhesions";
 import { db } from "../db";
-import { membres, type Membre } from "../db/schema";
-import { genererMotDePasse } from "../mot-de-passe";
+import { membres, paiements, type Membre } from "../db/schema";
+import { genererMotDePasse, hacherMotDePasseAsync } from "../mot-de-passe";
 import type { MembreAImporter } from "./analyse";
 
 // Crée les anciens membres validés par analyserImport, comme après une adhésion payée
@@ -30,6 +30,15 @@ async function avancerSequence(tx: Transaction, numerosImportes: string[]) {
 export async function importerMembres(aImporter: MembreAImporter[]): Promise<{ importes: number }> {
   if (aImporter.length === 0) return { importes: 0 };
 
+  // Mots de passe hachés avant la transaction, hors du fil principal : 1 000 hachages scrypt
+  // figeraient sinon le serveur (paiements, visiteurs) et garderaient la transaction ouverte.
+  const motsDePasse = await Promise.all(
+    aImporter.map(async () => {
+      const motDePasse = genererMotDePasse();
+      return { motDePasse, empreinte: await hacherMotDePasseAsync(motDePasse) };
+    }),
+  );
+
   const crees = await db.transaction(async (tx) => {
     await avancerSequence(
       tx,
@@ -39,7 +48,7 @@ export async function importerMembres(aImporter: MembreAImporter[]): Promise<{ i
     const idsParLigne = new Map<number, string>();
     const resultat: { membre: Membre; motDePasse: string }[] = [];
 
-    for (const m of aImporter) {
+    for (const [index, m] of aImporter.entries()) {
       const parrainId = m.parrain === null ? null : "id" in m.parrain ? m.parrain.id : idsParLigne.get(m.parrain.ligne);
       const fiche = {
         prenom: m.prenom,
@@ -68,12 +77,20 @@ export async function importerMembres(aImporter: MembreAImporter[]): Promise<{ i
         ? (await tx.update(membres).set(fiche).where(eq(membres.id, enAttente.id)).returning({ id: membres.id }))[0].id
         : (await tx.insert(membres).values(fiche).returning({ id: membres.id }))[0].id;
       idsParLigne.set(m.ligne, id);
+      if (enAttente) {
+        // Son paiement en ligne éventuellement en cours ne doit plus activer le compte plus tard.
+        await tx
+          .update(paiements)
+          .set({ statut: "annule" })
+          .where(and(eq(paiements.membreId, id), eq(paiements.statut, "en_attente")));
+      }
 
-      const motDePasse = genererMotDePasse();
+      const { motDePasse, empreinte } = motsDePasse[index];
       const membre = await activerMembre(tx, id, motDePasse, {
         numero: m.numero,
         adhereLe: m.adhereLe,
         recompenserParrain: false, // parrainages antérieurs au site : pas d'étoiles
+        empreinte,
       });
       resultat.push({ membre, motDePasse });
     }

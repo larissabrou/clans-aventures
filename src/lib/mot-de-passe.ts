@@ -1,5 +1,5 @@
 import "server-only";
-import { randomBytes, randomInt, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, randomInt, scrypt, scryptSync, timingSafeEqual } from "node:crypto";
 
 // Mots de passe des membres : générés à l'adhésion, envoyés par email, stockés hachés (scrypt).
 
@@ -27,6 +27,18 @@ export function hacherMotDePasse(motDePasse: string): string {
   const sel = randomBytes(16).toString("hex");
   const hash = scryptSync(motDePasse, sel, 64).toString("hex");
   return `scrypt$${sel}$${hash}`;
+}
+
+/**
+ * Même empreinte que hacherMotDePasse, calculée hors du fil principal (pool de Node) :
+ * à utiliser pour beaucoup de mots de passe d'un coup (import), sans figer le serveur.
+ */
+export async function hacherMotDePasseAsync(motDePasse: string): Promise<string> {
+  const sel = randomBytes(16).toString("hex");
+  const hash = await new Promise<Buffer>((resolve, reject) =>
+    scrypt(motDePasse, sel, 64, (erreur, cle) => (erreur ? reject(erreur) : resolve(cle))),
+  );
+  return `scrypt$${sel}$${hash.toString("hex")}`;
 }
 
 export function motDePasseValide(motDePasse: string, empreinte: string): boolean {

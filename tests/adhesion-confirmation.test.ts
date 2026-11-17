@@ -31,6 +31,30 @@ beforeEach(async () => {
 });
 
 describe("confirmerPaiement (adhésion en ligne)", () => {
+  it("ne réactive pas une personne déjà membre (importée entre-temps)", async () => {
+    const membre = await creerMembre(db, { numero: "CLANS-000350", motDePasseHash: "scrypt$sel$empreinte" });
+    await db.insert(paiements).values({
+      reference: "CLANS-ADH-TARDIF",
+      membreId: membre.id,
+      montant: 500,
+      devise: "XOF",
+      operateur: "orange",
+      pays: "CI",
+      telephone: "2250101010101",
+    });
+    const erreurs = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const resultat = await confirmerPaiement("CLANS-ADH-TARDIF", 500);
+
+    expect(resultat).toEqual({ resultat: "deja_confirme", membreId: membre.id });
+    const [apres] = await db.select().from(membres).where(eq(membres.id, membre.id));
+    expect(apres.motDePasseHash).toBe("scrypt$sel$empreinte");
+    expect(programmerNotification).not.toHaveBeenCalled();
+    expect(await db.select().from(messages).where(eq(messages.membreId, membre.id))).toHaveLength(0);
+    expect(erreurs).toHaveBeenCalled();
+    erreurs.mockRestore();
+  });
+
   it("attribue un numéro, envoie acces et bienvenue, dépose les messages de bienvenue et prévient le parrain", async () => {
     const parrain = await creerMembre(db, { numero: "CLANS-000900" });
     const filleul = await creerMembre(db, {
