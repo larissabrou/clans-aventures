@@ -13,7 +13,7 @@ import type { MembreAImporter } from "./analyse";
  * Place la séquence des numéros après le plus grand numéro CLANS-NNNNNN (en base ou à importer) :
  * ni l'import ni les inscriptions suivantes ne reprennent un numéro déjà attribué.
  */
-async function avancerSequence(tx: Transaction, numerosImportes: string[]) {
+export async function avancerSequence(tx: Transaction, numerosImportes: string[]) {
   const maxImporte = Math.max(0, ...numerosImportes.map((n) => Number(n.slice(6))));
   await tx.execute(sql`
     select setval('numero_membre_seq', plus_grand)

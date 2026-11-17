@@ -105,6 +105,18 @@ describe("ajouterALaListe", () => {
   });
 });
 
+describe("ajouterALaListe et la numérotation", () => {
+  it("place la séquence après les numéros de la liste", async () => {
+    await db.execute("select setval('numero_membre_seq', 1, false)");
+    const { aAjouter } = await analyserListeAnciens([ligne({ numero: "300" })]);
+    await ajouterALaListe(aAjouter);
+    const { rows } = await db.execute<{ prochain: string }>(
+      "select case when is_called then last_value + 1 else last_value end as prochain from numero_membre_seq",
+    );
+    expect(Number(rows[0].prochain)).toBe(301);
+  });
+});
+
 describe("listeAnciensMembres et supprimerAncienMembre", () => {
   it("cherche par nom et par numéro", async () => {
     await db.insert(ancienMembres).values([

@@ -1,7 +1,14 @@
 import "server-only";
 import { and, asc, desc, eq, ilike, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import type { z } from "zod";
-import { activerMembre, demandeAncienSchema, enregistrerFiche, programmerEmailsAdhesion } from "./adhesions";
+import {
+  ErreurAdhesion,
+  activerMembre,
+  demandeAncienSchema,
+  enregistrerFiche,
+  programmerEmailsAdhesion,
+} from "./adhesions";
+import { avancerSequence } from "./import-membres/import";
 import { db } from "./db";
 import { ancienMembres, membres } from "./db/schema";
 import {
@@ -102,9 +109,16 @@ export async function analyserListeAnciens(
 /** Ajoute les lignes vérifiées à la liste. Aucun compte n'est créé, aucun e-mail n'est envoyé. */
 export async function ajouterALaListe(aAjouter: AncienAAjouter[]): Promise<{ ajoutes: number }> {
   if (aAjouter.length === 0) return { ajoutes: 0 };
-  await db.insert(ancienMembres).values(
-    aAjouter.map(({ prenom, nom, email, telephone, numero, adhereLe }) => ({ prenom, nom, email, telephone, numero, adhereLe })),
-  );
+  await db.transaction(async (tx) => {
+    await tx.insert(ancienMembres).values(
+      aAjouter.map(({ prenom, nom, email, telephone, numero, adhereLe }) => ({ prenom, nom, email, telephone, numero, adhereLe })),
+    );
+    // Les nouvelles inscriptions reçoivent des numéros après ceux de la liste (réservés aux anciens).
+    await avancerSequence(
+      tx,
+      aAjouter.flatMap((a) => (a.numero ? [a.numero] : [])),
+    );
+  });
   return { ajoutes: aAjouter.length };
 }
 
@@ -161,7 +175,25 @@ export async function inscrireAncienMembre(
     const [parEmail] = await chercher(eq(ancienMembres.email, email));
     const [parTelephone] = parEmail ? [] : await chercher(eq(ancienMembres.telephone, telephone));
     const ligne = parEmail ?? parTelephone;
-    if (!ligne) return null;
+    if (!ligne) {
+      // Pas de ligne libre : une personne déjà membre (ou une seconde validation) reçoit le message
+      // de l'inscription, pas « introuvable » qui l'enverrait vers le paiement.
+      const [parTel] = await tx
+        .select({ id: membres.id })
+        .from(membres)
+        .where(and(eq(membres.telephone, telephone), ne(membres.statut, "en_attente")))
+        .limit(1);
+      if (parTel) throw new ErreurAdhesion("Ce numéro WhatsApp est déjà membre de CLANS. Connecte-toi à ton espace membre.");
+      const [parMail] = await tx
+        .select({ id: membres.id })
+        .from(membres)
+        .where(and(eq(membres.email, email), eq(membres.statut, "membre")))
+        .limit(1);
+      if (parMail) {
+        throw new ErreurAdhesion("Cette adresse email est déjà utilisée par un membre. Connecte-toi à ton espace membre.");
+      }
+      return null;
+    }
 
     const { membreId } = await enregistrerFiche(tx, demande);
 

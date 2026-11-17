@@ -24,7 +24,12 @@ export async function POST(request: Request) {
   try {
     const resultat = await inscrireAncienMembre(analyse.data);
     if (resultat.resultat === "inconnu") return repondre({ statut: "inconnu" });
-    await ouvrirSession(resultat.membreId);
+    try {
+      await ouvrirSession(resultat.membreId);
+    } catch (erreur) {
+      // Le compte est activé et l'e-mail d'accès part : la personne se connectera avec son mot de passe.
+      console.error("Inscription d'un ancien membre : session non ouverte", { membreId: resultat.membreId, erreur });
+    }
     return repondre({ statut: "active" });
   } catch (erreur) {
     if (erreur instanceof ErreurAdhesion) return repondre({ statut: "error", message: erreur.message }, 409);

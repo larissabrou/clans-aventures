@@ -137,6 +137,29 @@ describe("inscrireAncienMembre", () => {
     expect(apres.utiliseLe).toBeNull();
   });
 
+  it("déjà membre sans ligne disponible : refus avec le message de l'inscription", async () => {
+    await creerMembre(db, { email: "awa@example.com", telephone: "2250101010101" });
+    await expect(inscrireAncienMembre(formulaire())).rejects.toThrow(
+      "Cette adresse email est déjà utilisée par un membre. Connecte-toi à ton espace membre.",
+    );
+  });
+
+  it("seconde validation après activation : refus « déjà membre », pas « inconnu »", async () => {
+    await ligneListe({ email: "awa@example.com" });
+    await inscrireAncienMembre(formulaire());
+    await expect(inscrireAncienMembre(formulaire())).rejects.toThrow(/déjà/);
+  });
+
+  it("les numéros de la liste ne sont pas donnés aux nouvelles inscriptions", async () => {
+    // Liste chargée avec CLANS-000001 : la séquence est encore à 1.
+    await ligneListe({ email: "liste@example.com", numero: "CLANS-000001" });
+    await ligneListe({ prenom: "Yao", email: "awa@example.com" });
+
+    await inscrireAncienMembre(formulaire()); // ligne sans numéro : nouveau numéro
+
+    expect((await parEmail("awa@example.com")).numero).toBe("CLANS-000002");
+  });
+
   it("pas d'étoiles pour le parrain", async () => {
     await creerMembre(db, { numero: "CLANS-000007", email: "parrain@example.com", telephone: "2250101010101" });
     await ligneListe({ email: "awa@example.com" });

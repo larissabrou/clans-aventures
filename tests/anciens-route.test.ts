@@ -49,6 +49,14 @@ describe("POST /api/inscription/ancien", () => {
     expect(ouvrirSession).toHaveBeenCalledTimes(1);
   });
 
+  it("répond active même si l'ouverture de session échoue (compte déjà activé)", async () => {
+    await db.insert(ancienMembres).values({ prenom: "Awa", nom: "Koné", email: "awa@example.com" });
+    vi.mocked(ouvrirSession).mockRejectedValueOnce(new Error("cookies indisponibles"));
+    const erreurs = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await (await envoyer(corps())).json()).toEqual({ statut: "active" });
+    erreurs.mockRestore();
+  });
+
   it("répond inconnu sans ouvrir de session", async () => {
     const reponse = await envoyer(corps());
     expect(await reponse.json()).toEqual({ statut: "inconnu" });

@@ -1,8 +1,9 @@
 import "server-only";
-import { and, count, eq, sql } from "drizzle-orm";
+import { and, count, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "./db";
 import {
+  ancienMembres,
   clans,
   membres,
   messages,
@@ -362,7 +363,13 @@ async function numeroPour(tx: Transaction, membreId: string): Promise<string> {
     );
     const candidat = rows[0].numero;
     const [pris] = await tx.select({ id: membres.id }).from(membres).where(eq(membres.numero, candidat)).limit(1);
-    if (!pris) return candidat;
+    // Numéro réservé à un ancien membre de la liste qui ne s'est pas encore inscrit.
+    const [reserve] = await tx
+      .select({ id: ancienMembres.id })
+      .from(ancienMembres)
+      .where(and(eq(ancienMembres.numero, candidat), isNull(ancienMembres.utiliseLe)))
+      .limit(1);
+    if (!pris && !reserve) return candidat;
   }
   throw new Error("Aucun numéro membre libre trouvé après 1 000 essais.");
 }
