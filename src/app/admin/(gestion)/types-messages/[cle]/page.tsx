@@ -1,18 +1,27 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { typeMessage } from "@/lib/types-messages";
 import { actionModifierTypeMessage, actionSupprimerTypeMessage } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
-import { Carte, EnTete } from "../../ui";
+import { Carte, ChargementPage, EnTete } from "../../ui";
 import { ChampsTypeMessage } from "../champs-type-message";
 
 export const metadata: Metadata = { title: "Type de message" };
 
-export default async function TypeMessageAdmin({ params }: PageProps<"/admin/types-messages/[cle]">) {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function TypeMessageAdmin({ params }: PageProps<"/admin/types-messages/[cle]">) {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu params={params} />
+    </Suspense>
+  );
+}
+
+async function Contenu({ params }: Pick<PageProps<"/admin/types-messages/[cle]">, "params">) {
   const { cle } = await params;
   const type = await typeMessage(decodeURIComponent(cle));
   if (!type) notFound();

@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
-import { exigerAdmin } from "@/lib/admin";
+import { Suspense } from "react";
 import { listeClans } from "@/lib/clans";
 import { actionCreerClan, actionModifierClan, actionOrdonnerClans, actionSupprimerClan } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
-import { CaseACocher, Carte, Champ, EnTete, Pastille, Vide, champClasses } from "../ui";
+import { CaseACocher, Carte, Champ, ChargementPage, EnTete, Pastille, Vide, champClasses } from "../ui";
 import { OrdreListe } from "../ordre-liste";
 
 export const metadata: Metadata = { title: "Clans" };
 
-export default async function ClansAdmin() {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function ClansAdmin() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const clans = await listeClans();
 
   return (

@@ -1,15 +1,26 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { exigerAdmin } from "@/lib/admin";
 import { formatFcfa } from "@/lib/adhesion";
 import { montantADebiter } from "@/lib/adhesions";
 import { prixAdhesion } from "@/lib/parametres";
 import { actionPrixAdhesion } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
-import { Carte, Champ, EnTete, champClasses } from "../ui";
+import { Carte, Champ, ChargementPage, EnTete, champClasses } from "../ui";
 
 export const metadata: Metadata = { title: "Réglages" };
 
-export default async function ReglagesAdmin() {
+// La vérification du rôle lit la session : elle se fait dans <Suspense>, sinon la page bloque
+// le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function ReglagesAdmin() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   await exigerAdmin("super_admin");
   const [prix, debite] = await Promise.all([prixAdhesion(), montantADebiter()]);
 

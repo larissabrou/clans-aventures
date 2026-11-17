@@ -1,13 +1,22 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { listeEvenements } from "@/lib/evenements";
 import { derniersMembres, statistiquesAdmin } from "@/lib/gestion-membres";
 import { formaterDate, formaterDateHeure } from "@/lib/membres";
-import { Carte, EnTete, Vide } from "./ui";
+import { Carte, ChargementPage, EnTete, Vide } from "./ui";
 
-export default async function AdminAccueil() {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function AdminAccueil() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const [stats, nouveaux, { aVenir }] = await Promise.all([
     statistiquesAdmin(),
     derniersMembres(),

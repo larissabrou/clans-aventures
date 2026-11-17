@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Check } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { listeTypesActions } from "@/lib/bareme";
 import { evenementDetail } from "@/lib/evenements";
 import { urlImageEvenement } from "@/lib/images";
@@ -15,13 +15,22 @@ import {
   actionSupprimerEvenement,
 } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
-import { CaseACocher, Carte, Champ, EnTete, Vide, champClasses } from "../../ui";
+import { CaseACocher, Carte, Champ, ChargementPage, EnTete, Vide, champClasses } from "../../ui";
 import { ChampsEvenement } from "../champs-evenement";
 
 export const metadata: Metadata = { title: "Événement" };
 
-export default async function EvenementAdmin({ params }: PageProps<"/admin/evenements/[id]">) {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function EvenementAdmin({ params }: PageProps<"/admin/evenements/[id]">) {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu params={params} />
+    </Suspense>
+  );
+}
+
+async function Contenu({ params }: Pick<PageProps<"/admin/evenements/[id]">, "params">) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Users } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { apparenceMessage } from "@/lib/apparence-messages";
 import { listeClans } from "@/lib/clans";
 import { historiqueEnvois } from "@/lib/envois";
@@ -9,14 +9,23 @@ import { formaterDateHeure } from "@/lib/membres";
 import { typesMessagesActifs } from "@/lib/types-messages";
 import { actionEnvoyerMessage, actionSupprimerEnvoi } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
-import { Carte, Champ, EnTete, Vide, champClasses } from "../ui";
+import { Carte, Champ, ChargementPage, EnTete, Vide, champClasses } from "../ui";
 import { PaletteEmojis } from "../palette-emojis";
 import { ChoixDestinataires } from "./destinataires";
 
 export const metadata: Metadata = { title: "Messages" };
 
-export default async function MessagesAdmin() {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function MessagesAdmin() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const [clans, envois, types] = await Promise.all([listeClans(), historiqueEnvois(), typesMessagesActifs()]);
 
   return (

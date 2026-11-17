@@ -1,5 +1,16 @@
 // Éléments visuels communs aux pages de l'admin (même style que l'espace membre).
 
+import { LoaderCircle } from "lucide-react";
+
+/** Attente du contenu d'une page, dans le cadre de l'admin déjà affiché. */
+export function ChargementPage() {
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center text-ivoire/60">
+      <LoaderCircle className="size-6 animate-spin" aria-label="Chargement" />
+    </div>
+  );
+}
+
 export const champClasses =
   "w-full rounded-xl border border-white/25 bg-white/5 px-4 py-2.5 text-sm text-ivoire placeholder:text-ivoire/40 focus:border-sable focus:ring-2 focus:ring-sable/20 focus:outline-none [&>option]:bg-charbon";
 

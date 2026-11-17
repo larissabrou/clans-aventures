@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, X } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { listeTypesActions } from "@/lib/bareme";
 import { listeClans } from "@/lib/clans";
 import { db } from "@/lib/db";
@@ -18,12 +18,21 @@ import {
 } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
 import { AttribuerEtoiles } from "./attribuer-etoiles";
-import { Carte, Champ, EnTete, Vide, champClasses } from "../../ui";
+import { Carte, Champ, ChargementPage, EnTete, Vide, champClasses } from "../../ui";
 
 export const metadata: Metadata = { title: "Fiche membre" };
 
-export default async function MembreAdmin({ params }: PageProps<"/admin/membres/[id]">) {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function MembreAdmin({ params }: PageProps<"/admin/membres/[id]">) {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu params={params} />
+    </Suspense>
+  );
+}
+
+async function Contenu({ params }: Pick<PageProps<"/admin/membres/[id]">, "params">) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 

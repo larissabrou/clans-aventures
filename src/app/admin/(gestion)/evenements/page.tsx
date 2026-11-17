@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { CalendarDays, ImageOff, MapPin, Users } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { formatFcfa } from "@/lib/adhesion";
 import { listeTypesActions } from "@/lib/bareme";
 import { listeEvenements } from "@/lib/evenements";
@@ -9,15 +9,24 @@ import { urlImageEvenement } from "@/lib/images";
 import { formaterDateHeure } from "@/lib/membres";
 import { actionCreerEvenement } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
-import { Carte, EnTete, Vide } from "../ui";
+import { Carte, ChargementPage, EnTete, Vide } from "../ui";
 import { ChampsEvenement } from "./champs-evenement";
 
 export const metadata: Metadata = { title: "Événements" };
 
 type Ligne = Awaited<ReturnType<typeof listeEvenements>>["aVenir"][number];
 
-export default async function EvenementsAdmin() {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function EvenementsAdmin() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const [{ aVenir, passes }, types] = await Promise.all([listeEvenements(), listeTypesActions()]);
 
   return (

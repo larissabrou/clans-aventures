@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
-import { exigerAdmin } from "@/lib/admin";
+import { Suspense } from "react";
 import { listeUnivers } from "@/lib/univers-culturels";
 import { actionCreerUnivers, actionModifierUnivers, actionOrdonnerUnivers, actionSupprimerUnivers } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
 import { OrdreListe } from "../ordre-liste";
-import { CaseACocher, Carte, Champ, EnTete, Pastille, Vide, champClasses } from "../ui";
+import { CaseACocher, Carte, Champ, ChargementPage, EnTete, Pastille, Vide, champClasses } from "../ui";
 
 export const metadata: Metadata = { title: "Univers" };
 
-export default async function UniversAdmin() {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function UniversAdmin() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const univers = await listeUnivers();
 
   return (

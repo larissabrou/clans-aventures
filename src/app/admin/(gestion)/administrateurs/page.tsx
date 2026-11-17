@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { exigerAdmin } from "@/lib/admin";
 import { listeAdministrateurs } from "@/lib/administrateurs";
 import { formaterDateHeure } from "@/lib/membres";
@@ -9,7 +10,7 @@ import {
   actionSupprimerAdministrateur,
 } from "../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../formulaire";
-import { CaseACocher, Carte, Champ, EnTete, Pastille, champClasses } from "../ui";
+import { CaseACocher, Carte, Champ, ChargementPage, EnTete, Pastille, champClasses } from "../ui";
 
 export const metadata: Metadata = { title: "Administrateurs" };
 
@@ -18,7 +19,17 @@ const ROLES = [
   { valeur: "super_admin", label: "Super admin — tous les droits" },
 ] as const;
 
-export default async function AdministrateursAdmin() {
+// La vérification du rôle lit la session : elle se fait dans <Suspense>, sinon la page bloque
+// le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function AdministrateursAdmin() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const moi = await exigerAdmin("super_admin");
   const comptes = await listeAdministrateurs();
 

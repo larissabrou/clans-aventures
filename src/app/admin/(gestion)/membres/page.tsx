@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { FileSpreadsheet, Search, X } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { listeMembres } from "@/lib/gestion-membres";
 import { formaterDate } from "@/lib/membres";
 import { ChampDateFr } from "../champ-date";
-import { Champ, EnTete, Vide, champClasses } from "../ui";
+import { Champ, ChargementPage, EnTete, Vide, champClasses } from "../ui";
 
 /** « AAAA-MM-JJ » valide, sinon null. */
 const jour = (valeur: unknown) =>
@@ -13,8 +13,17 @@ const jour = (valeur: unknown) =>
 
 export const metadata: Metadata = { title: "Membres" };
 
-export default async function MembresAdmin({ searchParams }: PageProps<"/admin/membres">) {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function MembresAdmin({ searchParams }: PageProps<"/admin/membres">) {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function Contenu({ searchParams }: Pick<PageProps<"/admin/membres">, "searchParams">) {
   const params = await searchParams;
   const recherche = typeof params.q === "string" ? params.q.slice(0, 100) : "";
   const periode = { du: jour(params.du), au: jour(params.au) };

@@ -1,17 +1,26 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { typesMessagesActifs } from "@/lib/types-messages";
 import { actionCreerMessageBienvenue } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
-import { Carte, EnTete } from "../../ui";
+import { Carte, ChargementPage, EnTete } from "../../ui";
 import { ChampsMessageBienvenue } from "../champs-message-bienvenue";
 
 export const metadata: Metadata = { title: "Nouveau message de bienvenue" };
 
-export default async function NouveauMessageBienvenue() {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function NouveauMessageBienvenue() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const types = await typesMessagesActifs();
 
   return (

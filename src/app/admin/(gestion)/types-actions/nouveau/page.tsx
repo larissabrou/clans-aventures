@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { actionCreerTypeAction } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
 import { Carte, EnTete } from "../../ui";
@@ -9,8 +8,7 @@ import { ChampsTypeAction } from "../champs-type-action";
 
 export const metadata: Metadata = { title: "Nouveau type d’action" };
 
-export default async function NouveauTypeAction() {
-  await exigerAdmin();
+export default function NouveauTypeAction() {
 
   return (
     <>

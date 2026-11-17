@@ -1,21 +1,30 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, TriangleAlert } from "lucide-react";
 import { TexteAvecLiens } from "@/components/texte-avec-liens";
-import { exigerAdmin } from "@/lib/admin";
 import { modeleMessage } from "@/lib/modeles-messages";
 import { typesMessagesActifs } from "@/lib/types-messages";
 import { VALEURS_EXEMPLE_ETOILES, remplirVariables, variablesInconnues } from "@/lib/variables-messages";
 import { actionModifierModeleMessage, actionSupprimerModeleMessage } from "../../actions";
 import { BoutonEnvoi, FormulaireAdmin } from "../../formulaire";
 import { ChampsMessageBienvenue } from "../../messages-bienvenue/champs-message-bienvenue";
-import { Carte, EnTete } from "../../ui";
+import { Carte, ChargementPage, EnTete } from "../../ui";
 
 export const metadata: Metadata = { title: "Modèle de message" };
 
-export default async function ModeleMessageAdmin({ params }: PageProps<"/admin/modeles-messages/[id]">) {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function ModeleMessageAdmin({ params }: PageProps<"/admin/modeles-messages/[id]">) {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu params={params} />
+    </Suspense>
+  );
+}
+
+async function Contenu({ params }: Pick<PageProps<"/admin/modeles-messages/[id]">, "params">) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
   const [modele, types] = await Promise.all([modeleMessage(id), typesMessagesActifs()]);

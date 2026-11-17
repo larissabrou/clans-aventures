@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Pencil, Plus } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { apparenceMessage } from "@/lib/apparence-messages";
 import { listeModelesMessages } from "@/lib/modeles-messages";
-import { EnTete, Pastille, Vide } from "../ui";
+import { ChargementPage, EnTete, Pastille, Vide } from "../ui";
 
 export const metadata: Metadata = { title: "Modèles de messages" };
 
-export default async function ModelesMessagesAdmin() {
-  await exigerAdmin();
+// La mise en page vérifie déjà la session ; les lectures dynamiques restent dans <Suspense>,
+// sinon la page bloque le rendu et ne s'hydrate pas lors d'un chargement direct.
+export default function ModelesMessagesAdmin() {
+  return (
+    <Suspense fallback={<ChargementPage />}>
+      <Contenu />
+    </Suspense>
+  );
+}
+
+async function Contenu() {
   const lignes = await listeModelesMessages();
 
   return (
