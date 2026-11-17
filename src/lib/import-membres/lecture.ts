@@ -1,6 +1,7 @@
 import "server-only";
 import ExcelJS from "exceljs";
-import { COLONNES, normaliserEntete, type CleColonne } from "./colonnes";
+import JSZip from "jszip";
+import { COLONNES, EMAIL_EXEMPLE, normaliserEntete, type CleColonne } from "./colonnes";
 
 // Lecture du fichier Excel d'import (première feuille, première ligne = en-têtes) et modèle à télécharger.
 
@@ -31,7 +32,30 @@ function texteCellule(valeur: ExcelJS.CellValue): string {
   return "";
 }
 
+/** Taille maximale du fichier une fois décompressé (un .xlsx est une archive zip). */
+const MAX_DECOMPRESSE = 40 * 1024 * 1024;
+
+/**
+ * Un .xlsx de quelques Mo peut cacher des centaines de Mo compressés (fichier piégé) : la taille
+ * annoncée par l'archive est vérifiée avant qu'ExcelJS ne décompresse tout en mémoire.
+ */
+async function verifierTailleDecompressee(octets: ArrayBuffer) {
+  let archive: JSZip;
+  try {
+    archive = await JSZip.loadAsync(octets);
+  } catch {
+    throw new ErreurFichier("Ce fichier n’est pas un fichier Excel (.xlsx) lisible.");
+  }
+  let total = 0;
+  for (const entree of Object.values(archive.files)) {
+    // Taille lue dans l'en-tête de l'archive (champ interne de JSZip), sans rien décompresser.
+    total += (entree as unknown as { _data?: { uncompressedSize?: number } })._data?.uncompressedSize ?? 0;
+  }
+  if (total > MAX_DECOMPRESSE) throw new ErreurFichier("Ce fichier est trop volumineux une fois décompressé.");
+}
+
 export async function lireClasseur(octets: ArrayBuffer): Promise<LigneBrute[]> {
+  await verifierTailleDecompressee(octets);
   const livre = new ExcelJS.Workbook();
   try {
     await livre.xlsx.load(octets);
@@ -63,8 +87,9 @@ export async function lireClasseur(octets: ArrayBuffer): Promise<LigneBrute[]> {
         continue;
       }
       let texte = texteCellule(valeur).trim();
-      // Téléphone tapé comme un nombre : Excel a retiré le 0 initial des numéros ivoiriens (10 chiffres).
-      if (cle === "telephone" && typeof valeur === "number" && /^\d{9}$/.test(texte)) texte = `0${texte}`;
+      // 9 chiffres : le 0 initial d'un numéro ivoirien (10 chiffres) a été perdu, qu'Excel l'ait
+      // retiré (cellule nombre) ou qu'une cellule texte ait été copiée depuis un nombre.
+      if (cle === "telephone" && /^\d{9}$/.test(texte)) texte = `0${texte}`;
       if (texte) ligne.valeurs[cle] = texte;
     }
     if (Object.keys(ligne.valeurs).length > 0 || ligne.dateAdhesion) lignes.push(ligne);
@@ -94,7 +119,7 @@ export async function modeleExcel(listes: {
   membres.addRow({
     prenom: "Awa",
     nom: "Koné",
-    email: "awa.kone@example.com",
+    email: EMAIL_EXEMPLE,
     telephone: "0707070707",
     trancheAge: listes.tranches[0] ?? "",
     univers: listes.univers.slice(0, 2).join(", "),

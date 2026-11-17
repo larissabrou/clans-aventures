@@ -306,13 +306,12 @@ export async function activerMembre(
     empreinte?: string;
   },
 ): Promise<Membre> {
+  const numero = options.numero ?? (await numeroPour(tx, membreId));
   const [membre] = await tx
     .update(membres)
     .set({
       statut: "membre",
-      numero: options.numero
-        ? options.numero
-        : sql`coalesce(${membres.numero}, 'CLANS-' || lpad(nextval(${numeroMembreSeq.seqName})::text, 6, '0'))`,
+      numero,
       adhereLe: options.adhereLe ? options.adhereLe : sql`coalesce(${membres.adhereLe}, now())`,
       motDePasseHash: options.empreinte ?? hacherMotDePasse(motDePasse),
       modifieLe: new Date(),
@@ -328,6 +327,24 @@ export async function activerMembre(
 
   if (options.recompenserParrain && membre.parrainId) await recompenserParrain(tx, membre);
   return membre;
+}
+
+/**
+ * Numéro du membre : le sien s'il en a déjà un, sinon le prochain numéro libre de la séquence.
+ * Les numéros déjà pris (anciens membres importés, séquence en retard) sont sautés.
+ */
+async function numeroPour(tx: Transaction, membreId: string): Promise<string> {
+  const [actuel] = await tx.select({ numero: membres.numero }).from(membres).where(eq(membres.id, membreId)).limit(1);
+  if (actuel?.numero) return actuel.numero;
+  for (let essai = 0; essai < 1000; essai += 1) {
+    const { rows } = await tx.execute<{ numero: string }>(
+      sql`select 'CLANS-' || lpad(nextval(${numeroMembreSeq.seqName})::text, 6, '0') as numero`,
+    );
+    const candidat = rows[0].numero;
+    const [pris] = await tx.select({ id: membres.id }).from(membres).where(eq(membres.numero, candidat)).limit(1);
+    if (!pris) return candidat;
+  }
+  throw new Error("Aucun numéro membre libre trouvé après 1 000 essais.");
 }
 
 /** Après l'activation : e-mail d'accès tout de suite, e-mail de bienvenue quelques heures plus tard (via la file). */

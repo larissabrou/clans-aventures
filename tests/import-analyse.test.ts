@@ -54,7 +54,7 @@ describe("analyserImport", () => {
     const [clan] = await db.insert(clans).values({ nom: "Clan des Lions" }).returning();
     await db.insert(universCulturels).values({ nom: "Akan" });
     const entree = ligne({
-      email: "Awa.Kone@Example.com",
+      email: "Mariam.Kone@Example.com",
       telephone: "07 07 07 07 07",
       ville: "Abidjan",
       universCulturel: "akan",
@@ -72,7 +72,7 @@ describe("analyserImport", () => {
         ligne: entree.ligne,
         prenom: "Awa",
         nom: "Koné",
-        email: "awa.kone@example.com",
+        email: "mariam.kone@example.com",
         telephone: "2250707070707",
         trancheAge: "25-34",
         interets: ["aventure"],
@@ -129,6 +129,29 @@ describe("analyserImport", () => {
 
   it("refuse un numéro membre invalide", async () => {
     expect(await raisons(ligne({ numero: "AB-12" }))).toEqual(["numéro membre invalide : AB-12"]);
+  });
+
+  it("refuse la ligne d'exemple du modèle", async () => {
+    expect(await raisons(ligne({ email: "awa.kone@example.com" }))).toEqual([
+      "ligne d’exemple du modèle : supprime-la avant l’import",
+    ]);
+  });
+
+  it("refuse une date d'adhésion dans le futur", async () => {
+    const futur = new Date(Date.now() + 2 * 24 * 3600 * 1000);
+    expect(await raisons(ligne({}, futur))).toEqual([`date d’adhésion hors limites : ${futur.toLocaleDateString("fr-FR")}`]);
+  });
+
+  it("refuse une date d'adhésion avant 1950", async () => {
+    expect(await raisons(ligne({ dateAdhesion: "01/01/1900" }))).toEqual(["date d’adhésion hors limites : 01/01/1900"]);
+  });
+
+  it("refuse une ligne qui correspond à deux inscriptions en attente différentes", async () => {
+    await creerMembre(db, { statut: "en_attente", numero: null, email: "un@example.com", telephone: "2250101010101" });
+    await creerMembre(db, { statut: "en_attente", numero: null, email: "deux@example.com", telephone: "2250202020202" });
+    expect(await raisons(ligne({ email: "un@example.com", telephone: "0202020202" }))).toEqual([
+      "deux inscriptions en attente différentes (même e-mail pour l’une, même téléphone pour l’autre)",
+    ]);
   });
 
   it("refuse un numéro trop grand (faute de frappe probable)", async () => {

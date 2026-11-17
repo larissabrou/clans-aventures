@@ -13,4 +13,14 @@ describe("actionImportMembres", () => {
     donnees.set("mode", "reinitialiser");
     expect(await actionImportMembres({ etape: "erreur", message: "x" }, donnees)).toEqual({ etape: "choix" });
   });
+
+  it("un fichier de plus de 5 Mo reçoit un message clair", async () => {
+    const donnees = new FormData();
+    donnees.set("mode", "analyser");
+    donnees.set("fichier", new File([new Uint8Array(5 * 1024 * 1024 + 1)], "gros.xlsx"));
+    expect(await actionImportMembres({ etape: "choix" }, donnees)).toEqual({
+      etape: "erreur",
+      message: "Le fichier dépasse 5 Mo : découpe-le en plusieurs fichiers.",
+    });
+  });
 });

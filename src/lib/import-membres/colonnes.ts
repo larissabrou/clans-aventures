@@ -32,6 +32,9 @@ export const COLONNES: { cle: CleColonne; entete: string; obligatoire: boolean }
   { cle: "dateAdhesion", entete: "Date d'adhésion", obligatoire: false },
 ];
 
+/** E-mail de la ligne d'exemple du modèle : refusé à l'import (ligne oubliée dans le fichier). */
+export const EMAIL_EXEMPLE = "awa.kone@example.com";
+
 /** « Tranche d’Âge » → « tranche d'age » : minuscules, sans accents ni espaces superflus. */
 export function normaliserEntete(texte: string): string {
   return texte

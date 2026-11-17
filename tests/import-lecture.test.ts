@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import { ErreurFichier, lireClasseur, modeleExcel } from "@/lib/import-membres/lecture";
 
@@ -59,6 +60,23 @@ describe("lireClasseur", () => {
       await classeur(ENTETES, [["Awa", "Koné", "awa@example.com", 2250707070707, "25-34", "Aventure"]]),
     );
     expect(ligne.valeurs.telephone).toBe("2250707070707");
+  });
+
+  it("remet le 0 initial d'un téléphone de 9 chiffres saisi en texte", async () => {
+    const [ligne] = await lireClasseur(
+      await classeur(ENTETES, [["Awa", "Koné", "awa@example.com", "707070707", "25-34", "Aventure"]]),
+    );
+    expect(ligne.valeurs.telephone).toBe("0707070707");
+  });
+
+  it("refuse un fichier énorme une fois décompressé (fichier piégé)", async () => {
+    const zip = new JSZip();
+    const livre = await JSZip.loadAsync(await classeur(ENTETES, [ligneComplete]));
+    for (const [nom, entree] of Object.entries(livre.files)) zip.file(nom, await entree.async("uint8array"));
+    zip.file("xl/media/remplissage.bin", new Uint8Array(41 * 1024 * 1024)); // 41 Mo de zéros, quelques Ko compressés
+    const octets = await zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE" });
+    expect(octets.byteLength).toBeLessThan(1024 * 1024);
+    await expect(lireClasseur(octets)).rejects.toThrow("Ce fichier est trop volumineux une fois décompressé.");
   });
 
   it("lit le texte d'un e-mail transformé en lien", async () => {

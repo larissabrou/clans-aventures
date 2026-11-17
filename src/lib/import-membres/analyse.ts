@@ -7,7 +7,7 @@ import { db } from "../db";
 import { clans, membres, universCulturels } from "../db/schema";
 import { normaliserTelephone, telephoneValide } from "../telephone";
 import { UNIVERS } from "../univers";
-import { COLONNES, normaliserEntete } from "./colonnes";
+import { COLONNES, EMAIL_EXEMPLE, normaliserEntete } from "./colonnes";
 import type { LigneBrute } from "./lecture";
 
 // Vérifie les lignes du fichier d'import, sans rien écrire : valeurs reconnues, doublons avec les
@@ -37,6 +37,9 @@ class LigneInvalide extends Error {}
 
 /** Au-delà, un ancien numéro est presque sûrement une faute de frappe (6 chiffres au maximum). */
 export const NUMERO_MAX_IMPORT = 900000;
+
+/** Date d'adhésion la plus ancienne acceptée (au-delà : faute de saisie probable). */
+const DATE_ADHESION_MIN = Date.UTC(1950, 0, 1);
 
 const emailValide = (email: string) => z.email().safeParse(email).success;
 
@@ -68,6 +71,7 @@ export async function analyserImport(
   ]);
   const prochainDeLaSequence = Number(sequence?.prochain ?? 1);
   const actifs = existants.filter((m) => m.statut !== "en_attente");
+  const enAttente = existants.filter((m) => m.statut === "en_attente");
   const emailsSite = new Set(actifs.map((m) => m.email.toLowerCase()));
   const telephonesSite = new Set(actifs.map((m) => m.telephone));
   const numerosSite = new Map(existants.filter((m) => m.numero).map((m) => [m.numero as string, m]));
@@ -105,6 +109,7 @@ export async function analyserImport(
 
       const email = (champ("email") as string).toLowerCase();
       if (!emailValide(email)) throw new LigneInvalide("e-mail invalide");
+      if (email === EMAIL_EXEMPLE) throw new LigneInvalide("ligne d’exemple du modèle : supprime-la avant l’import");
       const telephone = normaliserTelephone(champ("telephone") as string);
       if (!telephoneValide(telephone)) throw new LigneInvalide("téléphone invalide");
 
@@ -140,9 +145,20 @@ export async function analyserImport(
       const dateSaisie = champ("dateAdhesion");
       const adhereLe = dateAdhesion ?? (dateSaisie ? lireDate(dateSaisie) : null);
       if (dateSaisie && !adhereLe) throw new LigneInvalide(`date d’adhésion invalide : ${dateSaisie}`);
+      if (adhereLe && (adhereLe.getTime() > Date.now() || adhereLe.getTime() < DATE_ADHESION_MIN)) {
+        throw new LigneInvalide(`date d’adhésion hors limites : ${dateSaisie ?? adhereLe.toLocaleDateString("fr-FR")}`);
+      }
 
       if (emailsSite.has(email)) throw new LigneInvalide("déjà membre du site (même e-mail)");
       if (telephonesSite.has(telephone)) throw new LigneInvalide("déjà membre du site (même téléphone)");
+      // L'import remplacerait une seule fiche en attente : deux fiches différentes ne peuvent pas être fusionnées.
+      const attenteEmail = enAttente.find((m) => m.email.toLowerCase() === email);
+      const attenteTelephone = enAttente.find((m) => m.telephone === telephone);
+      if (attenteEmail && attenteTelephone && attenteEmail.id !== attenteTelephone.id) {
+        throw new LigneInvalide(
+          "deux inscriptions en attente différentes (même e-mail pour l’une, même téléphone pour l’autre)",
+        );
+      }
       // Un numéro tenu par une inscription en attente est libre (cette fiche n'a pas encore payé).
       const titulaire = numero ? numerosSite.get(numero) : undefined;
       if (numero && titulaire && titulaire.statut !== "en_attente") {

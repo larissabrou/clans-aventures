@@ -27,10 +27,33 @@ beforeAll(async () => {
 afterAll(() => fermer());
 beforeEach(async () => {
   await viderBase(db);
+  // TRUNCATE ne remet pas la séquence des numéros à zéro.
+  await db.execute("select setval('numero_membre_seq', 1, false)");
   vi.mocked(programmerNotification).mockReset();
 });
 
 describe("confirmerPaiement (adhésion en ligne)", () => {
+  it("saute un numéro déjà pris si la séquence est en retard", async () => {
+    // Séquence repartie de 1 alors que CLANS-000001 et CLANS-000002 existent déjà (import, course…).
+    await db.execute("select setval('numero_membre_seq', 1, false)");
+    await creerMembre(db, { numero: "CLANS-000001" });
+    await creerMembre(db, { numero: "CLANS-000002" });
+    const nouveau = await creerMembre(db, { statut: "en_attente", numero: null, email: "suivant@example.com" });
+    await db.insert(paiements).values({
+      reference: "CLANS-ADH-RETARD",
+      membreId: nouveau.id,
+      montant: 500,
+      devise: "XOF",
+      operateur: "orange",
+      pays: "CI",
+      telephone: "2250101010101",
+    });
+
+    expect((await confirmerPaiement("CLANS-ADH-RETARD")).resultat).toBe("confirme");
+    const [membre] = await db.select().from(membres).where(eq(membres.id, nouveau.id));
+    expect(membre.numero).toBe("CLANS-000003");
+  });
+
   it("ne réactive pas une personne déjà membre (importée entre-temps)", async () => {
     const membre = await creerMembre(db, { numero: "CLANS-000350", motDePasseHash: "scrypt$sel$empreinte" });
     await db.insert(paiements).values({
