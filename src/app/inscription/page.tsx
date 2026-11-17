@@ -83,6 +83,8 @@ async function FormulaireAvecRetour({
       clans={clans}
       univers={univers}
       codeParrainage={codeParrainage}
+      // « Contacter l’équipe » (ancien membre non trouvé dans la liste) : numéro réglé sur le serveur.
+      contactWhatsapp={process.env.WHATSAPP_CONTACT?.replace(/\D/g, "") || undefined}
     />
   );
 }

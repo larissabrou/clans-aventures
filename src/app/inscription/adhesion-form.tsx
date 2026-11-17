@@ -22,6 +22,7 @@ import {
   type ResultatPaiement,
 } from "@/lib/paiement/operateurs";
 import { UNIVERS, type Univers } from "@/lib/univers";
+import type { ResultatInscriptionAncien } from "@/app/api/inscription/ancien/route";
 import { verifierCodeParrainage } from "./actions";
 import { PaiementMobileMoney } from "./paiement-mobile-money";
 
@@ -107,7 +108,10 @@ export function AdhesionForm({
   clans,
   univers,
   codeParrainage = "",
+  contactWhatsapp,
 }: {
+  // Numéro WhatsApp de l'équipe (chiffres, sans « + ») pour « Contacter l’équipe » ; absent = bouton masqué.
+  contactWhatsapp?: string;
   retourWave?: RetourWave;
   // Prix affiché, réglé dans l'admin.
   prix: number;
@@ -140,6 +144,9 @@ export function AdhesionForm({
       : { etat: "inactif" },
   );
   const [tentative, setTentative] = useState(0);
+  // Ancien membre (adhésion réglée avant le site) : pas de paiement ; « inconnu » = pas trouvé dans la liste.
+  const [ancien, setAncien] = useState(false);
+  const [inconnu, setInconnu] = useState(false);
 
   const clanChoisi = clans.find((clan) => String(clan.id) === donnees.clanId);
 
@@ -225,6 +232,52 @@ export function AdhesionForm({
     }
   }
 
+  // Profil envoyé au serveur (inscription payante et ancien membre).
+  function profil() {
+    return {
+      prenom: donnees.prenom,
+      nom: donnees.nom,
+      email: donnees.email,
+      telephone: donnees.telephone,
+      ville: donnees.ville,
+      age: donnees.age,
+      interets: donnees.interets,
+      universId: donnees.universId ? Number(donnees.universId) : null,
+      attente: donnees.attente,
+      codeParrainage: donnees.codeParrainage,
+      clanId: donnees.clanId ? Number(donnees.clanId) : null,
+      charteAcceptee: donnees.charteAcceptee,
+    };
+  }
+
+  // Ancien membre : le serveur le cherche dans la liste ; trouvé, il devient membre sans paiement.
+  async function validerAncien() {
+    setErreur(null);
+    setInconnu(false);
+    setPaiementEnCours(true);
+    try {
+      const reponse = await fetch("/api/inscription/ancien", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profil()),
+      });
+      const resultat = (await reponse.json().catch(() => null)) as ResultatInscriptionAncien | null;
+      if (resultat?.statut === "active") {
+        allerA("succes");
+        return;
+      }
+      if (resultat?.statut === "inconnu") {
+        setInconnu(true);
+        return;
+      }
+      setErreur(resultat?.message || "L’inscription n’a pas pu être validée. Réessaie dans un instant.");
+    } catch {
+      setErreur("Connexion impossible. Vérifie ton réseau et réessaie.");
+    } finally {
+      setPaiementEnCours(false);
+    }
+  }
+
   // Lance le paiement sur le Payment Gateway (la passerelle Mobile Money de Czotick).
   async function payer() {
     if (donnees.moyenPaiement !== "mobile-money") {
@@ -244,18 +297,7 @@ export function AdhesionForm({
         headers: { "Content-Type": "application/json" },
         // Tout le profil est envoyé : le serveur l'enregistre avant de lancer le paiement.
         body: JSON.stringify({
-          prenom: donnees.prenom,
-          nom: donnees.nom,
-          email: donnees.email,
-          telephone: donnees.telephone,
-          ville: donnees.ville,
-          age: donnees.age,
-          interets: donnees.interets,
-          universId: donnees.universId ? Number(donnees.universId) : null,
-          attente: donnees.attente,
-          codeParrainage: donnees.codeParrainage,
-          clanId: donnees.clanId ? Number(donnees.clanId) : null,
-          charteAcceptee: donnees.charteAcceptee,
+          ...profil(),
           pays: donnees.pays,
           operateur: donnees.operateur,
           telephonePaiement: donnees.telephonePaiement,
@@ -343,7 +385,7 @@ export function AdhesionForm({
       <div className="border-b border-charbon/10 px-6 pt-6 pb-5 sm:px-10">
         <div className="mb-3 flex items-center justify-between text-xs font-semibold tracking-[1.5px] uppercase">
           <span className="text-charbon/70">
-            {etape === "succes" ? "Bienvenue" : TITRES_ETAPES[etape]}
+            {etape === "succes" ? "Bienvenue" : etape === 5 && ancien ? "Validation" : TITRES_ETAPES[etape]}
           </span>
           <span className="text-terre">
             {etape === "succes"
@@ -377,6 +419,35 @@ export function AdhesionForm({
         {/* ÉTAPE 1 */}
         {etape === 1 && (
           <section>
+            {/* Ancien membre : adhésion déjà réglée, vérifiée dans la liste chargée par l'équipe. */}
+            <fieldset className="mb-8">
+              <legend className={labelClasses}>Tu es…</legend>
+              <div className="grid gap-3 sm:grid-cols-2" role="radiogroup">
+                {(
+                  [
+                    [false, "Nouveau membre", "Je rejoins CLANS et je règle mon adhésion."],
+                    [true, "Ancien membre", "J’ai déjà réglé mon adhésion avant le site."],
+                  ] as const
+                ).map(([valeur, titre, detail]) => (
+                  <button
+                    key={titre}
+                    type="button"
+                    role="radio"
+                    aria-checked={ancien === valeur}
+                    onClick={() => {
+                      setAncien(valeur);
+                      setInconnu(false);
+                    }}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      ancien === valeur ? "border-terre bg-sable/25" : "border-charbon/15 hover:border-charbon/40"
+                    }`}
+                  >
+                    <span className="block font-semibold text-charbon">{titre}</span>
+                    <span className="mt-1 block text-sm text-charbon/65">{detail}</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
             <EnteteEtape
               numero={1}
               titre="Faisons connaissance."
@@ -631,8 +702,51 @@ export function AdhesionForm({
           </section>
         )}
 
+        {/* ÉTAPE 5 — ANCIEN MEMBRE : pas de paiement, vérification dans la liste */}
+        {etape === 5 && ancien && (
+          <section>
+            <EnteteEtape
+              numero={5}
+              titre="Ton aventure continue."
+              texte="Ton adhésion a déjà été réglée : nous vérifions que tu es dans la liste des anciens membres."
+            />
+            {inconnu && (
+              <div role="status" className="rounded-2xl border border-bordeaux/30 bg-bordeaux/5 p-5 text-sm leading-6">
+                <p className="font-semibold text-bordeaux">Nous ne te trouvons pas dans la liste des anciens membres.</p>
+                <p className="mt-1 text-charbon/75">
+                  Vérifie ton e-mail et ton numéro WhatsApp à l’étape 1, ou choisis une autre solution :
+                </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAncien(false);
+                      setInconnu(false);
+                      setErreur(null);
+                      if (!donnees.telephonePaiement) maj("telephonePaiement", numeroLocal(donnees.pays, donnees.telephone));
+                    }}
+                    className={buttonClasses("primary")}
+                  >
+                    M’inscrire comme nouveau membre
+                  </button>
+                  {contactWhatsapp && (
+                    <a
+                      href={`https://wa.me/${contactWhatsapp}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={buttonClasses("secondary")}
+                    >
+                      Contacter l’équipe
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
         {/* ÉTAPE 5 */}
-        {etape === 5 && (
+        {etape === 5 && !ancien && (
           <section>
             <EnteteEtape
               numero={5}
@@ -804,7 +918,18 @@ export function AdhesionForm({
                   className={buttonClasses("primary")}
                 >
                   {verification && <LoaderCircle className="size-4 animate-spin" />}
-                  {etape === 4 ? "Passer au paiement" : "Continuer"}
+                  {etape === 4 && !ancien ? "Passer au paiement" : "Continuer"}
+                  <ArrowRight className="size-4" />
+                </button>
+              ) : ancien ? (
+                <button
+                  type="button"
+                  onClick={validerAncien}
+                  disabled={paiementEnCours}
+                  className={buttonClasses("primary")}
+                >
+                  {paiementEnCours ? <LoaderCircle className="size-4 animate-spin" /> : null}
+                  Valider mon inscription
                   <ArrowRight className="size-4" />
                 </button>
               ) : paiement.etat === "en-cours" ? (
