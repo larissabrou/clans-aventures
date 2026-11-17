@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search, X } from "lucide-react";
+import { FileSpreadsheet, Search, X } from "lucide-react";
 import { exigerAdmin } from "@/lib/admin";
 import { listeMembres } from "@/lib/gestion-membres";
 import { formaterDate } from "@/lib/membres";
@@ -24,6 +24,13 @@ export default async function MembresAdmin({ searchParams }: PageProps<"/admin/m
   return (
     <>
       <EnTete titre="Membres" texte="Ouvre la fiche d’un membre pour lui attribuer un clan ou des étoiles." />
+      <Link
+        href="/admin/membres/import"
+        className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-xs font-semibold tracking-[1.5px] text-ivoire uppercase hover:border-sable hover:text-sable"
+      >
+        <FileSpreadsheet className="size-4" />
+        Importer des membres (Excel)
+      </Link>
 
       {/* Recherche et période d'adhésion : formulaire GET, les filtres restent dans l'adresse. */}
       <form role="search" className="mb-6 flex flex-wrap items-end gap-3">
