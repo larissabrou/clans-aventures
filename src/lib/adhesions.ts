@@ -10,6 +10,7 @@ import {
   numeroMembreSeq,
   paiements,
   typesActions,
+  type Membre,
 } from "./db/schema";
 import { programmerNotification } from "./jobs";
 import { messagesBienvenuePour } from "./messages-bienvenue";
@@ -262,33 +263,53 @@ export async function confirmerPaiement(
       .set({ statut: "reussi", confirmeLe: new Date() })
       .where(eq(paiements.reference, reference));
 
-    const [membre] = await tx
-      .update(membres)
-      .set({
-        statut: "membre",
-        numero: sql`coalesce(${membres.numero}, 'CLANS-' || lpad(nextval(${numeroMembreSeq.seqName})::text, 6, '0'))`,
-        adhereLe: sql`coalesce(${membres.adhereLe}, now())`,
-        motDePasseHash: hacherMotDePasse(motDePasse),
-        modifieLe: new Date(),
-      })
-      .where(eq(membres.id, paiement.membreId))
-      .returning();
-
-    // Messages de bienvenue réglés dans l'admin, dans l'ordre, variables remplacées pour ce membre.
-    const bienvenue = await messagesBienvenuePour(tx, membre);
-    if (bienvenue.length > 0) {
-      await tx.insert(messages).values(bienvenue.map((message) => ({ ...message, membreId: membre.id })));
-    }
-
-    if (membre.parrainId) await recompenserParrain(tx, membre);
-
+    const membre = await activerMembre(tx, paiement.membreId, motDePasse, { recompenserParrain: true });
     return { resultat: "confirme", membreId: membre.id, membre } as const;
   });
 
   if (confirmation.resultat !== "confirme") return confirmation;
 
-  // Après la transaction : les emails passent par la file (réessais automatiques).
-  const { membre } = confirmation;
+  await programmerEmailsAdhesion(confirmation.membre, motDePasse, reference);
+  return { resultat: "confirme", membreId: confirmation.membre.id };
+}
+
+/**
+ * La personne devient membre : statut, numéro (conservé, sinon le suivant de la séquence), date
+ * d'adhésion, mot de passe, messages de bienvenue de l'admin et, si demandé, récompense du parrain.
+ * Partagé par l'adhésion en ligne et l'import des anciens membres.
+ */
+export async function activerMembre(
+  tx: Transaction,
+  membreId: string,
+  motDePasse: string,
+  options: { numero?: string | null; adhereLe?: Date | null; recompenserParrain: boolean },
+): Promise<Membre> {
+  const [membre] = await tx
+    .update(membres)
+    .set({
+      statut: "membre",
+      numero: options.numero
+        ? options.numero
+        : sql`coalesce(${membres.numero}, 'CLANS-' || lpad(nextval(${numeroMembreSeq.seqName})::text, 6, '0'))`,
+      adhereLe: options.adhereLe ? options.adhereLe : sql`coalesce(${membres.adhereLe}, now())`,
+      motDePasseHash: hacherMotDePasse(motDePasse),
+      modifieLe: new Date(),
+    })
+    .where(eq(membres.id, membreId))
+    .returning();
+
+  // Messages de bienvenue réglés dans l'admin, dans l'ordre, variables remplacées pour ce membre.
+  const bienvenue = await messagesBienvenuePour(tx, membre);
+  if (bienvenue.length > 0) {
+    await tx.insert(messages).values(bienvenue.map((message) => ({ ...message, membreId: membre.id })));
+  }
+
+  if (options.recompenserParrain && membre.parrainId) await recompenserParrain(tx, membre);
+  return membre;
+}
+
+/** Après l'activation : e-mail d'accès tout de suite, e-mail de bienvenue quelques heures plus tard (via la file). */
+export async function programmerEmailsAdhesion(membre: Membre, motDePasse: string, reference?: string) {
   try {
     await programmerNotification({
       modele: "acces",
@@ -303,13 +324,11 @@ export async function confirmerPaiement(
     );
   } catch (erreur) {
     // L'adhésion est enregistrée : un échec d'envoi ne doit pas la faire échouer.
-    console.error("Adhésion : emails non programmés", { reference, erreur });
+    console.error("Adhésion : emails non programmés", { reference, membreId: membre.id, erreur });
   }
-
-  return { resultat: "confirme", membreId: membre.id };
 }
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 /**
  * Parrainage : une étoile (barème « Parrainage membre ») toutes les deux adhésions confirmées.
