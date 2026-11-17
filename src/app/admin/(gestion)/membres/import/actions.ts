@@ -2,26 +2,40 @@
 
 import { refresh } from "next/cache";
 import { verifierAdmin } from "@/lib/admin";
+import { ajouterALaListe, analyserListeAnciens } from "@/lib/anciens-membres";
 import { analyserImport, type LigneRefusee } from "@/lib/import-membres/analyse";
 import { importerMembres } from "@/lib/import-membres/import";
 import { ErreurFichier, lireClasseur } from "@/lib/import-membres/lecture";
 
+/** « comptes » : créer les membres tout de suite ; « liste » : ajouter à la liste des anciens membres. */
+export type CibleImport = "comptes" | "liste";
+
 export type EtatImport =
   | { etape: "choix" }
-  | { etape: "apercu"; aImporter: number; refusees: LigneRefusee[]; nomFichier: string; prochainNumero: string }
-  | { etape: "termine"; importes: number }
+  | {
+      etape: "apercu";
+      cible: CibleImport;
+      aImporter: number;
+      refusees: LigneRefusee[];
+      nomFichier: string;
+      /** Prochain numéro des inscriptions en ligne (import des comptes seulement). */
+      prochainNumero?: string;
+    }
+  | { etape: "termine"; cible: CibleImport; importes: number }
   | { etape: "erreur"; message: string };
 
 const TAILLE_MAX = 5 * 1024 * 1024;
 
 /**
- * Import des anciens membres en deux temps, avec le même fichier :
- * mode « analyser » = aperçu sans rien écrire ; mode « importer » = nouvelle analyse puis création.
+ * Import du fichier des anciens membres en deux temps, avec le même fichier :
+ * mode « analyser » = aperçu sans rien écrire ; mode « importer » = nouvelle analyse puis écriture
+ * (comptes créés avec leurs e-mails, ou lignes ajoutées à la liste des anciens membres, sans e-mail).
  */
 export async function actionImportMembres(_: EtatImport, formulaire: FormData): Promise<EtatImport> {
   await verifierAdmin();
   // Nouveau fichier choisi : l'aperçu précédent ne vaut plus, sans message d'erreur.
   if (formulaire.get("mode") === "reinitialiser") return { etape: "choix" };
+  const cible: CibleImport = formulaire.get("cible") === "comptes" ? "comptes" : "liste";
 
   const fichier = formulaire.get("fichier");
   if (!(fichier instanceof File) || fichier.size === 0) {
@@ -35,18 +49,27 @@ export async function actionImportMembres(_: EtatImport, formulaire: FormData): 
   }
 
   try {
-    const { aImporter, refusees, prochainNumero } = await analyserImport(
-      await lireClasseur(await fichier.arrayBuffer()),
-    );
-    if (formulaire.get("mode") !== "importer") {
-      return { etape: "apercu", aImporter: aImporter.length, refusees, nomFichier: fichier.name, prochainNumero };
+    const lignes = await lireClasseur(await fichier.arrayBuffer());
+    const importer = formulaire.get("mode") === "importer";
+
+    if (cible === "liste") {
+      const { aAjouter, refusees } = await analyserListeAnciens(lignes);
+      if (!importer) return { etape: "apercu", cible, aImporter: aAjouter.length, refusees, nomFichier: fichier.name };
+      const { ajoutes } = await ajouterALaListe(aAjouter);
+      refresh();
+      return { etape: "termine", cible, importes: ajoutes };
+    }
+
+    const { aImporter, refusees, prochainNumero } = await analyserImport(lignes);
+    if (!importer) {
+      return { etape: "apercu", cible, aImporter: aImporter.length, refusees, nomFichier: fichier.name, prochainNumero };
     }
     const { importes } = await importerMembres(aImporter);
     refresh(); // liste des membres et tableau de bord à jour
-    return { etape: "termine", importes };
+    return { etape: "termine", cible, importes };
   } catch (erreur) {
     if (erreur instanceof ErreurFichier) return { etape: "erreur", message: erreur.message };
     console.error("Import des membres : échec", erreur);
-    return { etape: "erreur", message: "L’import a échoué : aucun membre n’a été créé. Réessaie dans un instant." };
+    return { etape: "erreur", message: "L’import a échoué : rien n’a été enregistré. Réessaie dans un instant." };
   }
 }

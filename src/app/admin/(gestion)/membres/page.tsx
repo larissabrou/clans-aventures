@@ -40,6 +40,12 @@ async function Contenu({ searchParams }: Pick<PageProps<"/admin/membres">, "sear
         <FileSpreadsheet className="size-4" />
         Importer des membres (Excel)
       </Link>
+      <Link
+        href="/admin/membres/anciens"
+        className="mb-6 ml-3 inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-xs font-semibold tracking-[1.5px] text-ivoire uppercase hover:border-sable hover:text-sable"
+      >
+        Anciens membres (liste)
+      </Link>
 
       {/* Recherche et période d'adhésion : formulaire GET, les filtres restent dans l'adresse. */}
       <form role="search" className="mb-6 flex flex-wrap items-end gap-3">

@@ -18,18 +18,22 @@ export default function ImportMembresAdmin() {
       </Link>
       <EnTete
         titre="Importer des membres"
-        texte="Anciens membres ayant déjà payé leur adhésion : chacun reçoit son numéro, ses e-mails d’accès et de bienvenue, comme après une inscription."
+        texte="Anciens membres ayant déjà payé leur adhésion : ajoute-les à la liste (ils s’inscrivent eux-mêmes sans payer) ou crée directement leurs comptes."
       />
 
       <Carte titre="1. Le modèle">
         <p className="mb-4 text-sm leading-6 text-ivoire/75">
-          Remplis une ligne par membre. Colonnes obligatoires :{" "}
+          Remplis une ligne par membre. Pour la <strong>liste des anciens membres</strong>, il suffit du prénom, du nom
+          et d’un e-mail ou d’un téléphone. Pour <strong>créer les comptes</strong>, colonnes obligatoires :{" "}
           {COLONNES.filter((c) => c.obligatoire)
             .map((c) => c.entete)
             .join(", ")}
           . « Numéro membre » garde l’ancien numéro (sinon un nouveau est attribué) ; « Date d’adhésion » garde
-          l’ancienneté (sinon la date de l’import). La feuille « Valeurs acceptées » liste les tranches d’âge, univers,
-          clans et univers culturels reconnus.
+          l’ancienneté (sinon la date de l’inscription). La feuille « Valeurs acceptées » liste les tranches d’âge,
+          univers, clans et univers culturels reconnus.{" "}
+          <Link href="/admin/membres/anciens" className="text-sable underline underline-offset-4">
+            Voir la liste des anciens membres
+          </Link>
         </p>
         {/* Téléchargement d'un fichier : un lien classique, pas une navigation <Link>. */}
         <a
@@ -44,8 +48,8 @@ export default function ImportMembresAdmin() {
 
       <Carte titre="2. Vérifier puis importer" className="mt-8">
         <p className="mb-4 text-sm leading-6 text-ivoire/75">
-          Rien n’est créé tant que tu n’as pas cliqué sur « Importer ». Les personnes déjà membres du site et les lignes
-          incomplètes sont signalées et ignorées.
+          Rien n’est enregistré tant que tu n’as pas confirmé. Les personnes déjà membres du site, déjà dans la liste,
+          et les lignes incomplètes sont signalées et ignorées.
         </p>
         <FormulaireImport />
       </Carte>
