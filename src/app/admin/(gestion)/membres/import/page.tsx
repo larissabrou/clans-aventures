@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Download } from "lucide-react";
-import { exigerAdmin } from "@/lib/admin";
 import { COLONNES } from "@/lib/import-membres/colonnes";
 import { Carte, EnTete } from "../../ui";
 import { FormulaireImport } from "./formulaire-import";
 
 export const metadata: Metadata = { title: "Importer des membres" };
 
-export default async function ImportMembresAdmin() {
-  await exigerAdmin();
-
+// Pas de lecture de session ici (elle bloquerait le rendu hors <Suspense>) : la mise en page de
+// l'admin vérifie déjà la session, et l'action d'import comme le modèle la revérifient eux-mêmes.
+export default function ImportMembresAdmin() {
   return (
     <>
       <Link href="/admin/membres" className="mb-4 inline-flex items-center gap-2 text-sm text-sable hover:text-ivoire">
