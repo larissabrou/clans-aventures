@@ -269,6 +269,8 @@ export const evenements = pgTable("evenements", {
   obligatoire: boolean("obligatoire").notNull().default(false),
   // Étoiles retirées en cas d'absence non justifiée à un événement obligatoire.
   penalite: integer("penalite").notNull().default(0),
+  // Visible sur la page publique /sorties (et payable par les non-membres) ; sinon réservée aux membres.
+  publique: boolean("publique").notNull().default(true),
   creeLe: horodatage("cree_le").notNull().defaultNow(),
 });
 
@@ -302,20 +304,59 @@ export const photosMembres = pgTable("photos_membres", {
   modifieLe: horodatage("modifie_le").notNull().defaultNow(),
 });
 
+/**
+ * Inscriptions aux sorties. Un membre (membre_id) ou un non-membre (membre_id vide, avec ses
+ * coordonnées), inscrit par l'admin ou par un paiement en ligne (paiement_reference).
+ */
 export const participations = pgTable(
   "participations",
   {
     id: serial("id").primaryKey(),
-    membreId: uuid("membre_id")
-      .notNull()
-      .references(() => membres.id, { onDelete: "cascade" }),
+    membreId: uuid("membre_id").references(() => membres.id, { onDelete: "cascade" }),
     evenementId: integer("evenement_id")
       .notNull()
       .references(() => evenements.id, { onDelete: "cascade" }),
+    // Coordonnées d'un non-membre (vides pour un membre).
+    prenom: text("prenom"),
+    nom: text("nom"),
+    telephone: text("telephone"),
+    email: text("email"),
+    paiementReference: text("paiement_reference"),
     present: boolean("present").notNull().default(false),
     creeLe: horodatage("cree_le").notNull().defaultNow(),
   },
+  // Les membre_id vides ne se gênent pas entre eux : un non-membre peut payer plusieurs places.
   (t) => [uniqueIndex("participations_unique_idx").on(t.membreId, t.evenementId)],
+);
+
+/**
+ * Paiements des sorties (références CLANS-EVT-…), séparés des paiements d'adhésion.
+ * Conservés si la sortie ou le membre est supprimé : titre et date de la sortie y sont recopiés.
+ */
+export const paiementsSorties = pgTable(
+  "paiements_sorties",
+  {
+    reference: text("reference").primaryKey(),
+    evenementId: integer("evenement_id").references(() => evenements.id, { onDelete: "set null" }),
+    membreId: uuid("membre_id").references(() => membres.id, { onDelete: "set null" }),
+    // Personne inscrite si ce n'est pas un membre.
+    prenom: text("prenom"),
+    nom: text("nom"),
+    telephone: text("telephone"),
+    email: text("email"),
+    evenementTitre: text("evenement_titre").notNull(),
+    evenementDate: horodatage("evenement_date").notNull(),
+    montant: integer("montant").notNull(),
+    devise: text("devise").notNull(),
+    operateur: text("operateur").notNull(),
+    pays: text("pays").notNull(),
+    telephoneDebite: text("telephone_debite").notNull(),
+    statut: statutPaiement("statut").notNull().default("en_attente"),
+    derniereReponse: jsonb("derniere_reponse"),
+    creeLe: horodatage("cree_le").notNull().defaultNow(),
+    confirmeLe: horodatage("confirme_le"),
+  },
+  (t) => [index("paiements_sorties_evenement_idx").on(t.evenementId, t.statut)],
 );
 
 /** Groupes WhatsApp proposés après l'adhésion, selon les univers choisis. */
