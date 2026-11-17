@@ -28,8 +28,8 @@ export default function ImportMembresAdmin() {
           {COLONNES.filter((c) => c.obligatoire)
             .map((c) => c.entete)
             .join(", ")}
-          . « Numéro membre » garde l’ancien numéro (sinon un nouveau est attribué) ; « Date d’adhésion » garde
-          l’ancienneté (sinon la date de l’inscription). La feuille « Valeurs acceptées » liste les tranches d’âge,
+          . Les anciens membres sont reconnus par leur e-mail ou leur téléphone, et reçoivent leur numéro CLANS à
+          l’inscription. « Date d’adhésion » (facultative) garde leur ancienneté. La feuille « Valeurs acceptées » liste les tranches d’âge,
           univers, clans et univers culturels reconnus.{" "}
           <Link href="/admin/membres/anciens" className="text-sable underline underline-offset-4">
             Voir la liste des anciens membres

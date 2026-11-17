@@ -128,6 +128,21 @@ describe("lireClasseur", () => {
   });
 });
 
+describe("numéro membre (nouveau système : les anciens n'en ont pas)", () => {
+  it("une colonne « Numéro membre » dans le fichier est ignorée", async () => {
+    const [ligne] = await lireClasseur(await classeur([...ENTETES, "Numéro membre"], [[...ligneComplete, "12"]]));
+    expect(ligne.valeurs).not.toHaveProperty("numero");
+  });
+
+  it("le modèle ne propose pas de colonne « Numéro membre »", async () => {
+    const octets = await modeleExcel({ tranches: ["18 – 24 ans"], univers: ["Aventure"], clans: [], universCulturels: [] });
+    const livre = new ExcelJS.Workbook();
+    await livre.xlsx.load(octets as unknown as ArrayBuffer);
+    const entetes = (livre.getWorksheet("Membres")?.getRow(1).values as unknown[]).filter(Boolean);
+    expect(entetes).not.toContain("Numéro membre");
+  });
+});
+
 describe("modeleExcel", () => {
   it("se relit sans erreur et contient la feuille des valeurs acceptées", async () => {
     const octets = await modeleExcel({

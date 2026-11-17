@@ -28,7 +28,8 @@ export const COLONNES: { cle: CleColonne; entete: string; obligatoire: boolean }
   { cle: "attentes", entete: "Attentes", obligatoire: false },
   { cle: "clan", entete: "Clan", obligatoire: false },
   { cle: "codeParrainage", entete: "Code de parrainage", obligatoire: false },
-  { cle: "numero", entete: "Numéro membre", obligatoire: false },
+  // Pas de « Numéro membre » : les anciens membres n'en avaient pas (nouveau système) ; ils sont
+  // reconnus par e-mail ou téléphone et reçoivent un numéro à leur inscription.
   { cle: "dateAdhesion", entete: "Date d'adhésion", obligatoire: false },
 ];
 

@@ -113,9 +113,8 @@ export async function modeleExcel(listes: {
   const membres = livre.addWorksheet("Membres");
   membres.columns = COLONNES.map((c) => ({ header: c.entete, key: c.cle, width: 22 }));
   membres.getRow(1).font = { bold: true };
-  // Téléphones et numéros en texte : Excel ne retire pas le 0 initial.
+  // Téléphones en texte : Excel ne retire pas le 0 initial.
   membres.getColumn("telephone").numFmt = "@";
-  membres.getColumn("numero").numFmt = "@";
   membres.addRow({
     prenom: "Awa",
     nom: "Koné",
@@ -128,7 +127,6 @@ export async function modeleExcel(listes: {
     attentes: "",
     clan: listes.clans[0] ?? "",
     codeParrainage: "",
-    numero: "CLANS-000012",
     dateAdhesion: "15/03/2022",
   });
 
