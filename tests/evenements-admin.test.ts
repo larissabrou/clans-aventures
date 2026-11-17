@@ -94,6 +94,9 @@ describe("administration des sorties", () => {
       statut: "reussi",
     });
 
+    // Même sans participant inscrit (retiré à la main), la fiche signale les places payées.
+    expect((await evenementDetail(sortie.id))?.paiementsEnLigne).toBe(1);
+
     await expect(supprimerEvenement(sortie.id)).rejects.toThrow(
       "Des participants ont payé en ligne : confirme la suppression.",
     );

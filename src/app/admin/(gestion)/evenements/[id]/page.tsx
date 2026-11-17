@@ -29,7 +29,7 @@ export default async function EvenementAdmin({ params }: PageProps<"/admin/evene
   if (!evenement) notFound();
 
   const presents = evenement.participants.filter((p) => p.present).length;
-  const payesEnLigne = evenement.participants.filter((p) => p.paiementReference).length;
+  const payesEnLigne = evenement.paiementsEnLigne;
   const etoiles = evenement.typeAction?.actif ? evenement.typeAction.etoiles : 0;
 
   return (

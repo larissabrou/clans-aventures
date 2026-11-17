@@ -98,7 +98,19 @@ export async function evenementDetail(id: number) {
     .where(eq(participations.evenementId, id))
     .orderBy(asc(nom), asc(prenom));
 
-  return { ...evenement.evenement, typeAction: evenement.typeAction, imageMaj: evenement.imageMaj, participants };
+  // Places payées en ligne (même si la personne a été retirée de la liste) : la suppression demande confirmation.
+  const [{ paiementsEnLigne }] = await db
+    .select({ paiementsEnLigne: count() })
+    .from(paiementsSorties)
+    .where(and(eq(paiementsSorties.evenementId, id), eq(paiementsSorties.statut, "reussi")));
+
+  return {
+    ...evenement.evenement,
+    typeAction: evenement.typeAction,
+    imageMaj: evenement.imageMaj,
+    participants,
+    paiementsEnLigne,
+  };
 }
 
 export async function creerEvenement(donnees: DonneesEvenement): Promise<number> {
