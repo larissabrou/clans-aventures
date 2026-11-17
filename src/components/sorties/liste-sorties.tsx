@@ -40,7 +40,8 @@ export function ListeSorties({
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
       {/* LISTE (cachée sur mobile pendant la lecture) */}
-      <ul className={`grid content-start gap-3 ${choisieId !== null ? "hidden lg:grid" : ""}`}>
+      {/* grid-cols-1 = minmax(0, 1fr) : les titres longs sont tronqués au lieu d'élargir la colonne. */}
+      <ul className={`grid grid-cols-1 content-start gap-3 ${choisieId !== null ? "hidden lg:grid" : ""}`}>
         {sorties.map((sortie) => {
           const active = sortie.id === ouverte?.id;
           return (
