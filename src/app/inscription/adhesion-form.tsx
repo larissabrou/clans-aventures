@@ -438,12 +438,16 @@ export function AdhesionForm({
                       setAncien(valeur);
                       setInconnu(false);
                     }}
-                    className={`rounded-2xl border p-4 text-left transition ${
-                      ancien === valeur ? "border-terre bg-sable/25" : "border-charbon/15 hover:border-charbon/40"
+                    // Vert de la charte (forêt) ; le choix actif est souligné d'un contour or et d'une coche.
+                    className={`relative rounded-2xl bg-foret p-4 pr-10 text-left text-ivoire transition ${
+                      ancien === valeur
+                        ? "ring-2 ring-sable"
+                        : "opacity-85 ring-1 ring-transparent hover:opacity-100 hover:ring-sable/60"
                     }`}
                   >
-                    <span className="block font-semibold text-charbon">{titre}</span>
-                    <span className="mt-1 block text-sm text-charbon/65">{detail}</span>
+                    {ancien === valeur && <Check className="absolute top-4 right-4 size-4 text-sable" aria-hidden />}
+                    <span className="block font-semibold">{titre}</span>
+                    <span className="mt-1 block text-sm text-ivoire/75">{detail}</span>
                   </button>
                 ))}
               </div>
