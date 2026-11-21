@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { estPageSuivie } from "@/lib/suivi";
 
 // Identifiant public du pixel Meta (visible dans le code de toute page qui l'utilise).
-const PIXEL_ID = "2505314090003466";
+const PIXEL_ID = "2018668231566454";
 
 declare global {
   interface Window {
